@@ -1,4 +1,4 @@
-package Capitolul_3;
+package Capitolul_03;
 
 import java.io.BufferedReader;
 import java.io.FileReader;

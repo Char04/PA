@@ -1,4 +1,4 @@
-package Capitolul_4;
+package Capitolul_04;
 
 public class AlgoritmiBacktracking {
 

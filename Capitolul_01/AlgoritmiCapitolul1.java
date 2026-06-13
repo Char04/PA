@@ -1,4 +1,4 @@
-package Capitolul_1;
+package Capitolul_01;
 
 public class AlgoritmiCapitolul1 {
 

@@ -1,4 +1,4 @@
-package Capitolul_2;
+package Capitolul_02;
 
 public class StructuriDateCapitolul2 {
 

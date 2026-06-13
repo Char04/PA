@@ -1,4 +1,4 @@
-package Capitolul_6;
+package Capitolul_06;
 
 import java.util.ArrayList;
 import java.util.List;

@@ -1,4 +1,4 @@
-package Capitolul_9;
+package Capitolul_09;
 
 import java.util.Arrays;
 
