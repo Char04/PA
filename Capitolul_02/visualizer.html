@@ -786,6 +786,16 @@ end procedure`
                 <p style="margin-bottom: 12px; color: var(--text-main); font-size: 13px; line-height: 1.5;">Gestiunea dinamică a memoriei, implementarea altor structuri flexibile (stive, cozi, tabele de dispersie).</p>
                 <h3 style="color: var(--primary); margin-bottom: 6px; font-size: 15px;">Complexitate</h3>
                 <p style="color: var(--text-main); font-size: 13px; line-height: 1.5;">Timp: Inserare/Ștergere: O(1) dacă avem referința, Căutare: O(n). Spațiu: O(n) pentru stocarea nodurilor.</p>
+            </div>`,
+            hash: `<div style="padding: 10px; font-family: var(--font-sans);">
+                <h3 style="color: var(--primary); margin-bottom: 6px; font-size: 15px;">Scop</h3>
+                <p style="margin-bottom: 12px; color: var(--text-main); font-size: 13px; line-height: 1.5;">Stocarea și regăsirea rapidă a datelor pe baza unor chei unice, folosind o funcție de dispersie.</p>
+                <h3 style="color: var(--primary); margin-bottom: 6px; font-size: 15px;">Funcționare</h3>
+                <p style="margin-bottom: 12px; color: var(--text-main); font-size: 13px; line-height: 1.5;">O funcție hash asociază fiecărei chei un index în tabelă. În caz de coliziune (două chei diferite produc același index), se folosesc tehnici precum adresarea deschisă (linear probing, quadratic probing) sau înlănțuirea.</p>
+                <h3 style="color: var(--primary); margin-bottom: 6px; font-size: 15px;">Aplicații</h3>
+                <p style="margin-bottom: 12px; color: var(--text-main); font-size: 13px; line-height: 1.5;">Baze de date (indecși), cache-uri (memoise), compilatoare (tabele de simboluri), criptografie.</p>
+                <h3 style="color: var(--primary); margin-bottom: 6px; font-size: 15px;">Complexitate</h3>
+                <p style="color: var(--text-main); font-size: 13px; line-height: 1.5;">Timp: O(1) în medie pentru inserare, ștergere și căutare; O(n) în cel mai rău caz. Spațiu: O(m) unde m este dimensiunea tabelei.</p>
             </div>`
         };
 
@@ -876,10 +886,6 @@ end procedure`
                 `;
             }
         }
-
-        let demoQueue = [10, 20, 30, null, null];
-        let demoHead = 0;
-        let demoTail = 3;
 
         function enqueueStates(val) {
             states = [];
