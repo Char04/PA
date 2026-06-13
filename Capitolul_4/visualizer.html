@@ -1,0 +1,1177 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vizualizator Algoritmi - Capitolul 4</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-base: #0f172a;
+            --bg-surface: #1e293b;
+            --bg-code: #0b0f19;
+            --primary: #6366f1;
+            --primary-hover: #4f46e5;
+            --secondary: #0ea5e9;
+            --accent: #f43f5e;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border: #334155;
+            --font-sans: 'Inter', sans-serif;
+            --font-mono: 'Fira Code', monospace;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-base);
+            color: var(--text-main);
+            font-family: var(--font-sans);
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .sidebar {
+            width: 280px;
+            background-color: var(--bg-surface);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+        }
+
+        .sidebar-header {
+            padding: 24px;
+            border-bottom: 1px solid var(--border);
+            background: linear-gradient(135deg, var(--bg-surface), #131b2e);
+        }
+
+        .sidebar-header h1 {
+            font-size: 18px;
+            font-weight: 700;
+            letter-spacing: -0.025em;
+            color: var(--text-main);
+        }
+
+        .sidebar-header p {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        .menu-list {
+            list-style: none;
+            padding: 16px;
+            overflow-y: auto;
+            flex-grow: 1;
+        }
+
+        .menu-item {
+            padding: 12px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            color: var(--text-muted);
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+        }
+
+        .menu-item:hover {
+            background-color: rgba(99, 102, 241, 0.1);
+            color: var(--text-main);
+        }
+
+        .menu-item.active {
+            background-color: var(--primary);
+            color: var(--text-main);
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.25);
+        }
+
+        .main-content {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .top-bar {
+            height: 70px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 32px;
+            background-color: var(--bg-surface);
+        }
+
+        .top-bar h2 {
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .workspace {
+            flex-grow: 1;
+            display: flex;
+            overflow: hidden;
+            padding: 24px;
+            gap: 24px;
+        }
+
+        .visualizer-section {
+            flex: 3;
+            background-color: var(--bg-surface);
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .visualizer-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background-color: rgba(30, 41, 59, 0.5);
+        }
+
+        .controls-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .btn {
+            background-color: var(--border);
+            color: var(--text-main);
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn:hover {
+            background-color: #475569;
+        }
+
+        .btn-primary {
+            background-color: var(--primary);
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-hover);
+        }
+
+        .btn-danger {
+            background-color: var(--accent);
+        }
+
+        .btn-danger:hover {
+            background-color: #e11d48;
+        }
+
+        .visualizer-body {
+            flex-grow: 1;
+            padding: 32px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow-y: auto;
+        }
+
+        .visualizer-footer {
+            padding: 20px;
+            border-top: 1px solid var(--border);
+            background-color: rgba(15, 23, 42, 0.4);
+        }
+
+        .explanation-box {
+            background-color: rgba(99, 102, 241, 0.05);
+            border-left: 4px solid var(--primary);
+            padding: 16px;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .explanation-box p {
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .code-section {
+            flex: 2;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .code-container {
+            background-color: var(--bg-surface);
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .code-tabs {
+            display: flex;
+            border-bottom: 1px solid var(--border);
+            background-color: rgba(30, 41, 59, 0.5);
+        }
+
+        .code-tab {
+            padding: 12px 20px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            border-right: 1px solid var(--border);
+            color: var(--text-muted);
+            transition: all 0.2s ease;
+        }
+
+        .code-tab:hover {
+            color: var(--text-main);
+        }
+
+        .code-tab.active {
+            background-color: var(--bg-code);
+            color: var(--primary);
+            border-bottom: 2px solid var(--primary);
+        }
+
+        .code-viewport {
+            flex-grow: 1;
+            background-color: var(--bg-code);
+            padding: 20px;
+            overflow: auto;
+        }
+
+        pre {
+            font-family: var(--font-mono);
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        .highlighted-line {
+            background-color: rgba(99, 102, 241, 0.2);
+            display: block;
+            margin: 0 -20px;
+            padding: 0 20px;
+            border-left: 3px solid var(--primary);
+        }
+
+        .input-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .input-field {
+            background-color: var(--bg-base);
+            border: 1px solid var(--border);
+            color: var(--text-main);
+            padding: 6px 12px;
+            border-radius: 6px;
+            width: 80px;
+            font-size: 14px;
+            font-weight: 500;
+            outline: none;
+        }
+
+        .input-field:focus {
+            border-color: var(--primary);
+        }
+
+        .chessboard {
+            display: grid;
+            grid-template-columns: repeat(4, 52px);
+            grid-template-rows: repeat(4, 52px);
+            border: 4px solid var(--border);
+            border-radius: 8px;
+            overflow: hidden;
+            background-color: var(--bg-base);
+        }
+
+        .chess-cell {
+            width: 52px;
+            height: 52px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            transition: all 0.2s;
+        }
+
+        .chess-cell.light {
+            background-color: #e2e8f0;
+            color: #0f172a;
+        }
+
+        .chess-cell.dark {
+            background-color: #475569;
+            color: #f8fafc;
+        }
+
+        .chess-cell.attacked {
+            background-color: rgba(244, 63, 94, 0.6) !important;
+            color: #fff;
+        }
+
+        .chess-cell.placed {
+            background-color: rgba(16, 185, 129, 0.6) !important;
+            color: #fff;
+        }
+
+        .state-vector-container {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+        }
+
+        .state-cell {
+            width: 44px;
+            height: 44px;
+            background-color: var(--bg-base);
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 16px;
+        }
+
+        .state-cell.active {
+            border-color: var(--primary);
+            background-color: rgba(99, 102, 241, 0.1);
+        }
+
+        .bracket-visual {
+            display: flex;
+            gap: 8px;
+            padding: 16px;
+        }
+
+        .bracket-node {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            border: 2px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 20px;
+            background-color: var(--bg-base);
+        }
+
+        .bracket-node.open {
+            border-color: var(--secondary);
+            color: var(--secondary);
+        }
+
+        .bracket-node.close {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .counters-container {
+            display: flex;
+            gap: 24px;
+            margin-bottom: 24px;
+        }
+
+        .counter-badge {
+            padding: 8px 16px;
+            background-color: var(--bg-surface);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .counter-badge span {
+            color: var(--secondary);
+            margin-left: 6px;
+        }
+
+        .comb-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            width: 100%;
+        }
+
+        .comb-list-box {
+            width: 100%;
+            max-height: 240px;
+            overflow-y: auto;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background-color: var(--bg-base);
+            padding: 12px;
+        }
+
+        .comb-item-text {
+            font-family: var(--font-mono);
+            font-size: 14px;
+            padding: 6px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .comb-item-text.highlight {
+            background-color: rgba(99, 102, 241, 0.15);
+            border-left: 3px solid var(--primary);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h1>Capitolul 4</h1>
+            <p>Backtracking</p>
+        </div>
+        <ul class="menu-list">
+            <li class="menu-item active" onclick="selectAlgorithm('comb')">1. Permutări / Comb</li>
+            <li class="menu-item" onclick="selectAlgorithm('brackets')">2. Paranteze Închise</li>
+            <li class="menu-item" onclick="selectAlgorithm('queens')">3. Problema Damelor</li>
+        </ul>
+    </div>
+
+    <div class="main-content">
+        <div class="top-bar">
+            <h2 id="algo-title">Permutări / Aranjamente / Combinări</h2>
+        </div>
+
+        <div class="workspace">
+            <div class="visualizer-section">
+                <div class="visualizer-header">
+                    <div class="controls-row" id="inputs-container">
+                    </div>
+                    <div class="controls-row">
+                        <button class="btn" onclick="stepBackward()">Înapoi</button>
+                        <button class="btn btn-primary" id="play-btn" onclick="togglePlay()">Auto Run</button>
+                        <button class="btn" onclick="stepForward()">Pas Următor</button>
+                        <button class="btn btn-danger" onclick="resetState()">Reset</button>
+                    </div>
+                </div>
+                <div class="visualizer-body" id="canvas">
+                </div>
+                <div class="visualizer-footer">
+                    <div class="explanation-box">
+                        <p id="step-explanation">Inițializează stările pentru a începe.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="code-section">
+                <div class="code-container">
+                    <div class="code-tabs">
+                        <div class="code-tab active" id="tab-pseudo" onclick="selectCodeTab('pseudo')">Pseudocod</div>
+                        <div class="code-tab" id="tab-java" onclick="selectCodeTab('java')">Cod Java</div>
+                        <div class="code-tab" id="tab-teorie" onclick="selectCodeTab('teorie')">Teorie</div>
+                    </div>
+                    <div class="code-viewport">
+                        <pre id="code-display"></pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentAlgorithm = 'comb';
+        let currentCodeTab = 'pseudo';
+        let stepIndex = 0;
+        let states = [];
+        let isPlaying = false;
+        let playInterval = null;
+
+        const pseudocodes = {
+            comb: `procedure PERMREC(k)
+  if k == n + 1 then
+    WRITE s[1..n]
+  else
+    for j = 1 to n do
+      s[k] = j
+      if VALID(k) then
+        PERMREC(k + 1)
+      end if
+    end for
+  end if
+end procedure`,
+            brackets: `procedure PARANTEZE(k, ps, pd)
+  if k == n + 1 then
+    if ps == pd then WRITE s[1..n]
+  else
+    if ps < n/2 then
+      s[k] = 1
+      PARANTEZE(k + 1, ps + 1, pd)
+    end if
+    if pd < ps then
+      s[k] = 2
+      PARANTEZE(k + 1, ps, pd + 1)
+    end if
+  end if
+end procedure`,
+            queens: `procedure DAME(k)
+  if k == n + 1 then
+    WRITE s[1..n]
+  else
+    for i = 1 to n do
+      s[k] = i
+      if VALID(k) then
+        DAME(k + 1)
+      end if
+    end for
+  end if
+end procedure`
+        };
+
+        const javacodes = {
+            comb: `public static void permuta(int[] s, boolean[] visited, int k, int n) {
+    if (k == n) {
+        printArray(s);
+        return;
+    }
+    for (int i = 1; i <= n; i++) {
+        if (!visited[i]) {
+            visited[i] = true;
+            s[k] = i;
+            permuta(s, visited, k + 1, n);
+            visited[i] = false;
+        }
+    }
+}`,
+            brackets: `public static void paranteze(int[] s, int k, int n, int ps, int pd) {
+    if (k == n) {
+        if (ps == pd) printBrackets(s);
+        return;
+    }
+    if (ps < n / 2) {
+        s[k] = 1;
+        paranteze(s, k + 1, n, ps + 1, pd);
+    }
+    if (pd < ps) {
+        s[k] = 2;
+        paranteze(s, k + 1, n, ps, pd + 1);
+    }
+}`,
+            queens: `public static void dame(int[] s, int k, int n) {
+    if (k == n + 1) {
+        printQueens(s, n);
+        return;
+    }
+    for (int i = 1; i <= n; i++) {
+        s[k] = i;
+        if (valid(s, k)) {
+            dame(s, k + 1, n);
+        }
+    }
+}`
+        };
+
+        const titles = {
+            comb: "1. Generare Permutări",
+            brackets: "2. Paranteze Închise",
+            queens: "3. Problema Damelor"
+        };
+
+        function selectAlgorithm(algo) {
+            currentAlgorithm = algo;
+            document.querySelectorAll('.menu-item').forEach(el => el.classList.remove('active'));
+            const items = document.querySelectorAll('.menu-item');
+            if (algo === 'comb') items[0].classList.add('active');
+            else if (algo === 'brackets') items[1].classList.add('active');
+            else if (algo === 'queens') items[2].classList.add('active');
+
+            document.getElementById('algo-title').innerText = titles[algo];
+            stopPlay();
+            renderCode();
+            setupInputs();
+            resetState();
+        }
+
+        const teorii = {
+            comb: `<div style="padding: 10px; font-family: var(--font-sans);">
+                <h3 style="color: var(--primary); margin-bottom: 6px; font-size: 15px;">Scop</h3>
+                <p style="margin-bottom: 12px; color: var(--text-main); font-size: 13px; line-height: 1.5;">Generarea sistematică a structurilor combinatorice (permutări, aranjamente sau combinări) ale unei mulțimi date.</p>
+                <h3 style="color: var(--primary); margin-bottom: 6px; font-size: 15px;">Funcționare</h3>
+                <p style="margin-bottom: 12px; color: var(--text-main); font-size: 13px; line-height: 1.5;">Folosește tehnica backtracking recursiv. La fiecare nivel k, plasează un element, verifică dacă respectă condițiile de validare (de ex. unicitate pentru permutări) și avansează la nivelul k+1. La eșec sau după generarea unei soluții, revine la pasul anterior (backtrack).</p>
+                <h3 style="color: var(--primary); margin-bottom: 6px; font-size: 15px;">Aplicații</h3>
+                <p style="margin-bottom: 12px; color: var(--text-main); font-size: 13px; line-height: 1.5;">Probleme de optimizare, generare de parole/coduri, testarea tuturor posibilităților într-un spațiu de stări limitat.</p>
+                <h3 style="color: var(--primary); margin-bottom: 6px; font-size: 15px;">Complexitate</h3>
+                <p style="color: var(--text-main); font-size: 13px; line-height: 1.5;">Timp: Permutări: O(n!), Combinări: O(n! / (k!(n-k)!)). Spațiu: O(n) pentru adâncimea stivei de recursivitate.</p>
+            </div>`,
+            brackets: `<div style="padding: 10px; font-family: var(--font-sans);">
+                <h3 style="color: var(--primary); margin-bottom: 6px; font-size: 15px;">Scop</h3>
+                <p style="margin-bottom: 12px; color: var(--text-main); font-size: 13px; line-height: 1.5;">Generarea tuturor variantelor corecte de parantezare de o lungime dată.</p>
+                <h3 style="color: var(--primary); margin-bottom: 6px; font-size: 15px;">Funcționare</h3>
+                <p style="margin-bottom: 12px; color: var(--text-main); font-size: 13px; line-height: 1.5;">Backtracking optimizat bazat pe numărare: se poate adăuga o paranteză deschisă '(' dacă nu s-a depășit n/2, și o paranteză închisă ')' doar dacă numărul de paranteze închise deja plasate este strict mai mic decât cel al parantezelor deschise.</p>
+                <h3 style="color: var(--primary); margin-bottom: 6px; font-size: 15px;">Aplicații</h3>
+                <p style="margin-bottom: 12px; color: var(--text-main); font-size: 13px; line-height: 1.5;">Validarea expresiilor matematice în compilatoare, generarea de structuri arborescente bine formate.</p>
+                <h3 style="color: var(--primary); margin-bottom: 6px; font-size: 15px;">Complexitate</h3>
+                <p style="color: var(--text-main); font-size: 13px; line-height: 1.5;">Timp: O(2ⁿ), soluțiile fiind legate direct de numerele lui Catalan. Spațiu: O(n) recursiv.</p>
+            </div>`,
+            queens: `<div style="padding: 10px; font-family: var(--font-sans);">
+                <h3 style="color: var(--primary); margin-bottom: 6px; font-size: 15px;">Scop</h3>
+                <p style="margin-bottom: 12px; color: var(--text-main); font-size: 13px; line-height: 1.5;">Plasarea a N dame pe o tablă de șah de N x N fără ca acestea să se atace între ele (să nu fie pe aceeași linie, coloană sau diagonală).</p>
+                <h3 style="color: var(--primary); margin-bottom: 6px; font-size: 15px;">Funcționare</h3>
+                <p style="margin-bottom: 12px; color: var(--text-main); font-size: 13px; line-height: 1.5;">Se plasează câte o damă pe fiecare linie k, testând consecutiv coloanele de la 1 la N. Dacă poziția curentă este sigură (nu există atac pe verticală sau diagonale de la damele deja plasate), se continuă pe linia k+1. În caz de conflict, se încearcă următoarea coloană.</p>
+                <h3 style="color: var(--primary); margin-bottom: 6px; font-size: 15px;">Aplicații</h3>
+                <p style="margin-bottom: 12px; color: var(--text-main); font-size: 13px; line-height: 1.5;">Probleme de plasament cu constrângeri, colorarea grafurilor, testarea performanțelor algoritmilor de căutare.</p>
+                <h3 style="color: var(--primary); margin-bottom: 6px; font-size: 15px;">Complexitate</h3>
+                <p style="color: var(--text-main); font-size: 13px; line-height: 1.5;">Timp: O(N!). Spațiu: O(N) pentru vectorul de stări și stivă.</p>
+            </div>`
+        };
+
+        function selectCodeTab(tab) {
+            currentCodeTab = tab;
+            document.getElementById('tab-pseudo').classList.toggle('active', tab === 'pseudo');
+            document.getElementById('tab-java').classList.toggle('active', tab === 'java');
+            document.getElementById('tab-teorie').classList.toggle('active', tab === 'teorie');
+            renderCode();
+        }
+
+        function renderCode() {
+            const display = document.getElementById('code-display');
+            if (currentCodeTab === 'teorie') {
+                display.innerHTML = teorii[currentAlgorithm] || '';
+                display.style.fontFamily = 'var(--font-sans)';
+                display.style.whiteSpace = 'normal';
+                return;
+            }
+            display.style.fontFamily = '';
+            display.style.whiteSpace = '';
+            const codeText = currentCodeTab === 'pseudo' ? pseudocodes[currentAlgorithm] : javacodes[currentAlgorithm];
+            
+            if (states.length > 0 && stepIndex < states.length) {
+                const lines = codeText.split('\n');
+                const targetLine = states[stepIndex].line;
+                const formattedLines = lines.map((line, idx) => {
+                    if (idx === targetLine) {
+                        return `<span class="highlighted-line">${line}</span>`;
+                    }
+                    return line;
+                });
+                display.innerHTML = formattedLines.join('\n');
+            } else {
+                display.innerText = codeText;
+            }
+        }
+
+        function setupInputs() {
+            const container = document.getElementById('inputs-container');
+            container.innerHTML = '';
+
+            if (currentAlgorithm === 'comb') {
+                container.innerHTML = `
+                    <div class="input-group">
+                        <span style="font-size: 13px; font-weight:600;">n:</span>
+                        <input type="number" class="input-field" id="comb-n" value="3" min="1" max="4">
+                        <button class="btn btn-primary" onclick="generateStates()">Pornește</button>
+                    </div>
+                `;
+            } else if (currentAlgorithm === 'brackets') {
+                container.innerHTML = `
+                    <div class="input-group">
+                        <span style="font-size: 13px; font-weight:600;">n (par):</span>
+                        <input type="number" class="input-field" id="bracket-n" value="4" step="2" min="2" max="6">
+                        <button class="btn btn-primary" onclick="generateStates()">Pornește</button>
+                    </div>
+                `;
+            } else if (currentAlgorithm === 'queens') {
+                container.innerHTML = `
+                    <div class="input-group">
+                        <button class="btn btn-primary" onclick="generateStates()">Pornește Backtracking</button>
+                    </div>
+                `;
+            }
+        }
+
+        function generateStates() {
+            states = [];
+            stepIndex = 0;
+            stopPlay();
+
+            if (currentAlgorithm === 'comb') {
+                const n = parseInt(document.getElementById('comb-n').value);
+                let currentSol = Array(n).fill(null);
+                let visited = Array(n + 1).fill(false);
+                let allSol = [];
+
+                states.push({
+                    s: [...currentSol],
+                    allSol: [],
+                    line: 1,
+                    desc: "Inițializăm permutările pentru n = " + n + "."
+                });
+
+                const solve = (k) => {
+                    if (k === n) {
+                        allSol.push([...currentSol]);
+                        states.push({
+                            s: [...currentSol],
+                            allSol: JSON.parse(JSON.stringify(allSol)),
+                            line: 2,
+                            desc: "Soluție completă găsită: [" + currentSol.join(', ') + "]. O afișăm."
+                        });
+                        return;
+                    }
+
+                    for (let j = 1; j <= n; j++) {
+                        states.push({
+                            s: [...currentSol],
+                            allSol: JSON.parse(JSON.stringify(allSol)),
+                            line: 4,
+                            desc: "Încercăm plasarea valorii j = " + j + " la poziția k = " + k + "."
+                        });
+
+                        if (!visited[j]) {
+                            visited[j] = true;
+                            currentSol[k] = j;
+
+                            states.push({
+                                s: [...currentSol],
+                                allSol: JSON.parse(JSON.stringify(allSol)),
+                                line: 5,
+                                desc: "Valoarea " + j + " este liberă. O punem în vector și avansăm la nivelul următor."
+                            });
+
+                            solve(k + 1);
+
+                            visited[j] = false;
+                            currentSol[k] = null;
+
+                            states.push({
+                                s: [...currentSol],
+                                allSol: JSON.parse(JSON.stringify(allSol)),
+                                line: 4,
+                                desc: "Revenim din recursivitate (backtrack) pentru indexul k = " + k + "."
+                            });
+                        } else {
+                            states.push({
+                                s: [...currentSol],
+                                allSol: JSON.parse(JSON.stringify(allSol)),
+                                line: 4,
+                                desc: "Valoarea j = " + j + " este deja folosită, deci o ignorăm."
+                            });
+                        }
+                    }
+                };
+
+                solve(0);
+
+                states.push({
+                    s: Array(n).fill(null),
+                    allSol: JSON.parse(JSON.stringify(allSol)),
+                    line: 11,
+                    desc: "Generarea permutărilor s-a încheiat. Am găsit " + allSol.length + " soluții."
+                });
+
+            } else if (currentAlgorithm === 'brackets') {
+                const n = parseInt(document.getElementById('bracket-n').value);
+                let currentSol = Array(n).fill(null);
+                let allSol = [];
+
+                states.push({
+                    s: [...currentSol],
+                    ps: 0,
+                    pd: 0,
+                    allSol: [],
+                    line: 1,
+                    desc: "Inițializăm generarea parantezelor pentru n = " + n + "."
+                });
+
+                const solve = (k, ps, pd) => {
+                    if (k === n) {
+                        if (ps === pd) {
+                            let str = currentSol.map(x => x === 1 ? '(' : ')').join('');
+                            allSol.push(str);
+                            states.push({
+                                s: [...currentSol],
+                                ps: ps,
+                                pd: pd,
+                                allSol: [...allSol],
+                                line: 2,
+                                desc: "Am găsit o secvență validă: '" + str + "'. O înregistrăm."
+                            });
+                        }
+                        return;
+                    }
+
+                    if (ps < n / 2) {
+                        currentSol[k] = 1;
+                        states.push({
+                            s: [...currentSol],
+                            ps: ps + 1,
+                            pd: pd,
+                            allSol: [...allSol],
+                            line: 4,
+                            desc: "Avem mai puțin de " + (n/2) + " paranteze deschise. Adăugăm '(' la poziția k = " + k + "."
+                        });
+
+                        solve(k + 1, ps + 1, pd);
+                        currentSol[k] = null;
+                    }
+
+                    if (pd < ps) {
+                        currentSol[k] = 2;
+                        states.push({
+                            s: [...currentSol],
+                            ps: ps,
+                            pd: pd + 1,
+                            allSol: [...allSol],
+                            line: 8,
+                            desc: "Avem paranteze închise mai puține decât deschise. Adăugăm ')' la poziția k = " + k + "."
+                        });
+
+                        solve(k + 1, ps, pd + 1);
+                        currentSol[k] = null;
+                    }
+                };
+
+                solve(0, 0, 0);
+
+                states.push({
+                    s: Array(n).fill(null),
+                    ps: 0,
+                    pd: 0,
+                    allSol: [...allSol],
+                    line: 12,
+                    desc: "Parcurgerea s-a încheiat. Am găsit " + allSol.length + " secvențe corecte."
+                });
+
+            } else if (currentAlgorithm === 'queens') {
+                let n = 4;
+                let s = Array(n + 1).fill(0);
+                let allSol = [];
+
+                states.push({
+                    s: [...s],
+                    activeK: 1,
+                    activeCol: 0,
+                    attackedCells: [],
+                    allSol: [],
+                    line: 1,
+                    desc: "Inițializăm problema damelor pe o tablă de 4x4."
+                });
+
+                const checkValid = (k) => {
+                    for (let i = 1; i < k; i++) {
+                        if (s[i] === s[k] || Math.abs(k - i) === Math.abs(s[k] - s[i])) {
+                            return false;
+                        }
+                    }
+                    return true;
+                };
+
+                const getAttackedList = (k, col) => {
+                    let list = [];
+                    for (let i = 1; i < k; i++) {
+                        let prevCol = s[i];
+                        if (prevCol === col || Math.abs(k - i) === Math.abs(col - prevCol)) {
+                            list.push({r: i - 1, c: prevCol - 1});
+                        }
+                    }
+                    return list;
+                };
+
+                const solve = (k) => {
+                    if (k === n + 1) {
+                        let sol = s.slice(1);
+                        allSol.push(sol);
+                        states.push({
+                            s: [...s],
+                            activeK: k,
+                            activeCol: 0,
+                            attackedCells: [],
+                            allSol: JSON.parse(JSON.stringify(allSol)),
+                            line: 2,
+                            desc: "Am găsit o plasare corectă pentru toate cele 4 dame! Soluție: [" + sol.join(', ') + "]."
+                        });
+                        return;
+                    }
+
+                    for (let col = 1; col <= n; col++) {
+                        s[k] = col;
+                        let attacked = getAttackedList(k, col);
+                        let isValid = checkValid(k);
+
+                        states.push({
+                            s: [...s],
+                            activeK: k,
+                            activeCol: col,
+                            attackedCells: attacked,
+                            allSol: JSON.parse(JSON.stringify(allSol)),
+                            line: 4,
+                            desc: "Încercăm să plasăm dama de pe rândul " + k + " pe coloana " + col + "."
+                        });
+
+                        if (isValid) {
+                            states.push({
+                                s: [...s],
+                                activeK: k,
+                                activeCol: col,
+                                attackedCells: [],
+                                allSol: JSON.parse(JSON.stringify(allSol)),
+                                line: 6,
+                                desc: "Poziția este validă (nu este atacată). Avansăm la rândul următor k = " + (k+1) + "."
+                            });
+                            solve(k + 1);
+                        } else {
+                            states.push({
+                                s: [...s],
+                                activeK: k,
+                                activeCol: col,
+                                attackedCells: attacked,
+                                allSol: JSON.parse(JSON.stringify(allSol)),
+                                line: 4,
+                                desc: "Poziție invalidă! Dama de pe rândul " + k + " este atacată."
+                            });
+                        }
+                        s[k] = 0;
+                    }
+                };
+
+                solve(1);
+
+                states.push({
+                    s: Array(n + 1).fill(0),
+                    activeK: 1,
+                    activeCol: 0,
+                    attackedCells: [],
+                    allSol: JSON.parse(JSON.stringify(allSol)),
+                    line: 11,
+                    desc: "Căutarea s-a încheiat. Am găsit toate cele " + allSol.length + " soluții posibile."
+                });
+            }
+
+            renderState();
+        }
+
+        function renderState() {
+            if (states.length === 0) return;
+            const state = states[stepIndex];
+            const canvas = document.getElementById('canvas');
+            canvas.innerHTML = '';
+
+            document.getElementById('step-explanation').innerText = state.desc;
+            renderCode();
+
+            if (currentAlgorithm === 'comb') {
+                const wrapper = document.createElement('div');
+                wrapper.className = 'comb-wrapper';
+
+                const solRow = document.createElement('div');
+                solRow.className = 'state-vector-container';
+                state.s.forEach(val => {
+                    const cell = document.createElement('div');
+                    cell.className = 'state-cell' + (val !== null ? ' active' : '');
+                    cell.innerText = val !== null ? val : '';
+                    solRow.appendChild(cell);
+                });
+                wrapper.appendChild(solRow);
+
+                const listCont = document.createElement('div');
+                listCont.className = 'comb-list-box';
+                listCont.innerHTML = '<div style="font-weight:600; font-size:13px; margin-bottom:8px; color:var(--text-muted);">Soluții găsite:</div>';
+                
+                state.allSol.forEach((sol, idx) => {
+                    const item = document.createElement('div');
+                    item.className = 'comb-item-text';
+                    if (idx === state.allSol.length - 1 && stepIndex > 0 && states[stepIndex].line === 2) {
+                        item.classList.add('highlight');
+                    }
+                    item.innerText = (idx + 1) + ": [" + sol.join(', ') + "]";
+                    listCont.appendChild(item);
+                });
+                wrapper.appendChild(listCont);
+                canvas.appendChild(wrapper);
+
+            } else if (currentAlgorithm === 'brackets') {
+                const wrapper = document.createElement('div');
+                wrapper.className = 'comb-wrapper';
+
+                const counters = document.createElement('div');
+                counters.className = 'counters-container';
+                counters.innerHTML = `
+                    <div class="counter-badge">ps (deschise): <span>${state.ps}</span></div>
+                    <div class="counter-badge">pd (închise): <span>${state.pd}</span></div>
+                `;
+                wrapper.appendChild(counters);
+
+                const solRow = document.createElement('div');
+                solRow.className = 'bracket-visual';
+                state.s.forEach(val => {
+                    const node = document.createElement('div');
+                    node.className = 'bracket-node';
+                    if (val === 1) {
+                        node.classList.add('open');
+                        node.innerText = '(';
+                    } else if (val === 2) {
+                        node.classList.add('close');
+                        node.innerText = ')';
+                    } else {
+                        node.innerText = '';
+                    }
+                    solRow.appendChild(node);
+                });
+                wrapper.appendChild(solRow);
+
+                const listCont = document.createElement('div');
+                listCont.className = 'comb-list-box';
+                listCont.innerHTML = '<div style="font-weight:600; font-size:13px; margin-bottom:8px; color:var(--text-muted);">Secvențe valide găsite:</div>';
+
+                state.allSol.forEach((sol, idx) => {
+                    const item = document.createElement('div');
+                    item.className = 'comb-item-text';
+                    if (idx === state.allSol.length - 1 && stepIndex > 0 && states[stepIndex].line === 2) {
+                        item.classList.add('highlight');
+                    }
+                    item.innerText = (idx + 1) + ": " + sol;
+                    listCont.appendChild(item);
+                });
+                wrapper.appendChild(listCont);
+                canvas.appendChild(wrapper);
+
+            } else if (currentAlgorithm === 'queens') {
+                const wrapper = document.createElement('div');
+                wrapper.style.display = 'flex';
+                wrapper.style.flexDirection = 'column';
+                wrapper.style.alignItems = 'center';
+                wrapper.style.width = '100%';
+
+                const board = document.createElement('div');
+                board.className = 'chessboard';
+
+                for (let r = 0; r < 4; r++) {
+                    for (let c = 0; c < 4; c++) {
+                        const cell = document.createElement('div');
+                        const isDark = (r + c) % 2 === 1;
+                        cell.className = 'chess-cell ' + (isDark ? 'dark' : 'light');
+
+                        let rowInS = r + 1;
+                        let colInS = c + 1;
+
+                        if (state.s[rowInS] === colInS) {
+                            cell.innerText = '♛';
+                            if (rowInS === state.activeK) {
+                                cell.classList.add('placed');
+                            }
+                        }
+
+                        state.attackedCells.forEach(cellCoords => {
+                            if (cellCoords.r === r && cellCoords.c === c) {
+                                cell.classList.add('attacked');
+                            }
+                        });
+
+                        board.appendChild(cell);
+                    }
+                }
+                wrapper.appendChild(board);
+
+                const vectorRow = document.createElement('div');
+                vectorRow.className = 'state-vector-container';
+                for (let i = 1; i <= 4; i++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'state-cell';
+                    if (i === state.activeK) cell.classList.add('active');
+                    cell.innerText = state.s[i] !== 0 ? state.s[i] : '';
+                    vectorRow.appendChild(cell);
+                }
+                wrapper.appendChild(vectorRow);
+
+                const countBox = document.createElement('div');
+                countBox.className = 'comb-list-box';
+                countBox.style.marginTop = '16px';
+                countBox.innerHTML = '<div style="font-weight:600; font-size:13px; margin-bottom:8px; color:var(--text-muted);">Soluții de aranjare:</div>';
+
+                state.allSol.forEach((sol, idx) => {
+                    const item = document.createElement('div');
+                    item.className = 'comb-item-text';
+                    if (idx === state.allSol.length - 1 && stepIndex > 0 && states[stepIndex].line === 2) {
+                        item.classList.add('highlight');
+                    }
+                    item.innerText = (idx + 1) + ": [" + sol.join(', ') + "]";
+                    countBox.appendChild(item);
+                });
+                wrapper.appendChild(countBox);
+
+                canvas.appendChild(wrapper);
+            }
+        }
+
+        function stepForward() {
+            if (stepIndex < states.length - 1) {
+                stepIndex++;
+                renderState();
+            }
+        }
+
+        function stepBackward() {
+            if (stepIndex > 0) {
+                stepIndex--;
+                renderState();
+            }
+        }
+
+        function resetState() {
+            stepIndex = 0;
+            generateStates();
+        }
+
+        function togglePlay() {
+            if (isPlaying) {
+                stopPlay();
+            } else {
+                isPlaying = true;
+                document.getElementById('play-btn').innerText = 'Stop';
+                playInterval = setInterval(() => {
+                    if (stepIndex < states.length - 1) {
+                        stepForward();
+                    } else {
+                        stopPlay();
+                    }
+                }, 1200);
+            }
+        }
+
+        function stopPlay() {
+            isPlaying = false;
+            document.getElementById('play-btn').innerText = 'Auto Run';
+            if (playInterval) {
+                clearInterval(playInterval);
+                playInterval = null;
+            }
+        }
+
+        window.onload = () => {
+            selectAlgorithm('comb');
+        };
+    </script>
+</body>
+</html>

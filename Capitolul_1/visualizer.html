@@ -1,0 +1,1719 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vizualizator Algoritmi - Capitolul 1</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-base: #0f172a;
+            --bg-surface: #1e293b;
+            --bg-code: #0b0f19;
+            --primary: #6366f1;
+            --primary-hover: #4f46e5;
+            --secondary: #0ea5e9;
+            --accent: #f43f5e;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border: #334155;
+            --font-sans: 'Inter', sans-serif;
+            --font-mono: 'Fira Code', monospace;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-base);
+            color: var(--text-main);
+            font-family: var(--font-sans);
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .sidebar {
+            width: 280px;
+            background-color: var(--bg-surface);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+        }
+
+        .sidebar-header {
+            padding: 24px;
+            border-bottom: 1px solid var(--border);
+            background: linear-gradient(135deg, var(--bg-surface), #131b2e);
+        }
+
+        .sidebar-header h1 {
+            font-size: 18px;
+            font-weight: 700;
+            letter-spacing: -0.025em;
+            color: var(--text-main);
+        }
+
+        .sidebar-header p {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        .menu-list {
+            list-style: none;
+            padding: 16px;
+            overflow-y: auto;
+            flex-grow: 1;
+        }
+
+        .menu-item {
+            padding: 12px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            color: var(--text-muted);
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+        }
+
+        .menu-item:hover {
+            background-color: rgba(99, 102, 241, 0.1);
+            color: var(--text-main);
+        }
+
+        .menu-item.active {
+            background-color: var(--primary);
+            color: var(--text-main);
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.25);
+        }
+
+        .main-content {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .top-bar {
+            height: 70px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 32px;
+            background-color: var(--bg-surface);
+        }
+
+        .top-bar h2 {
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .workspace {
+            flex-grow: 1;
+            display: flex;
+            overflow: hidden;
+            padding: 24px;
+            gap: 24px;
+        }
+
+        .visualizer-section {
+            flex: 3;
+            background-color: var(--bg-surface);
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .visualizer-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background-color: rgba(30, 41, 59, 0.5);
+        }
+
+        .controls-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .btn {
+            background-color: var(--border);
+            color: var(--text-main);
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn:hover {
+            background-color: #475569;
+        }
+
+        .btn-primary {
+            background-color: var(--primary);
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-hover);
+        }
+
+        .btn-danger {
+            background-color: var(--accent);
+        }
+
+        .btn-danger:hover {
+            background-color: #e11d48;
+        }
+
+        .visualizer-body {
+            flex-grow: 1;
+            padding: 32px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow-y: auto;
+        }
+
+        .visualizer-footer {
+            padding: 20px;
+            border-top: 1px solid var(--border);
+            background-color: rgba(15, 23, 42, 0.4);
+        }
+
+        .explanation-box {
+            background-color: rgba(99, 102, 241, 0.05);
+            border-left: 4px solid var(--primary);
+            padding: 16px;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .explanation-box p {
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .code-section {
+            flex: 2;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .code-container {
+            background-color: var(--bg-surface);
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .code-tabs {
+            display: flex;
+            border-bottom: 1px solid var(--border);
+            background-color: rgba(30, 41, 59, 0.5);
+        }
+
+        .code-tab {
+            padding: 12px 20px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            border-right: 1px solid var(--border);
+            color: var(--text-muted);
+            transition: all 0.2s ease;
+        }
+
+        .code-tab:hover {
+            color: var(--text-main);
+        }
+
+        .code-tab.active {
+            background-color: var(--bg-code);
+            color: var(--primary);
+            border-bottom: 2px solid var(--primary);
+        }
+
+        .code-viewport {
+            flex-grow: 1;
+            background-color: var(--bg-code);
+            padding: 20px;
+            overflow: auto;
+        }
+
+        pre {
+            font-family: var(--font-mono);
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        .highlighted-line {
+            background-color: rgba(99, 102, 241, 0.2);
+            display: block;
+            margin: 0 -20px;
+            padding: 0 20px;
+            border-left: 3px solid var(--primary);
+        }
+
+        .bars-container {
+            display: flex;
+            align-items: flex-end;
+            gap: 16px;
+            height: 240px;
+            padding-bottom: 20px;
+        }
+
+        .bar-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .bar {
+            width: 36px;
+            background: linear-gradient(180deg, var(--primary), #818cf8);
+            border-radius: 6px 6px 0 0;
+            transition: height 0.3s ease, background 0.3s ease;
+            position: relative;
+        }
+
+        .bar.active {
+            background: linear-gradient(180deg, var(--accent), #fb7185);
+        }
+
+        .bar.comparing {
+            background: linear-gradient(180deg, var(--warning), #fbbf24);
+        }
+
+        .bar.sorted {
+            background: linear-gradient(180deg, var(--success), #34d399);
+        }
+
+        .bar-value {
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .bar-label {
+            font-size: 11px;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        .table-container {
+            width: 100%;
+            overflow-x: auto;
+            max-height: 280px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+            text-align: left;
+        }
+
+        th, td {
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        th {
+            background-color: rgba(30, 41, 59, 0.5);
+            font-weight: 600;
+            color: var(--text-muted);
+        }
+
+        tr.active-row {
+            background-color: rgba(99, 102, 241, 0.15);
+        }
+
+        .input-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .input-field {
+            background-color: var(--bg-base);
+            border: 1px solid var(--border);
+            color: var(--text-main);
+            padding: 6px 12px;
+            border-radius: 6px;
+            width: 80px;
+            font-size: 14px;
+            font-weight: 500;
+            outline: none;
+        }
+
+        .input-field:focus {
+            border-color: var(--primary);
+        }
+
+        .matrix-grid {
+            display: grid;
+            gap: 8px;
+            margin: 16px;
+        }
+
+        .matrix-cell {
+            width: 44px;
+            height: 44px;
+            background-color: var(--bg-base);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 14px;
+            transition: all 0.2s ease;
+        }
+
+        .matrix-cell.highlight-row {
+            background-color: rgba(99, 102, 241, 0.2);
+            border-color: var(--primary);
+        }
+
+        .matrix-cell.highlight-col {
+            background-color: rgba(14, 165, 233, 0.2);
+            border-color: var(--secondary);
+        }
+
+        .matrix-cell.target {
+            background-color: rgba(16, 185, 129, 0.2);
+            border-color: var(--success);
+        }
+
+        .matrices-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+        }
+
+        .matrix-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .matrix-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-muted);
+        }
+
+        .operator {
+            font-size: 24px;
+            font-weight: 600;
+            color: var(--text-muted);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h1>Capitolul 1</h1>
+            <p>Introducere în algoritmi</p>
+        </div>
+        <ul class="menu-list">
+            <li class="menu-item active" onclick="selectAlgorithm('insertion')">1. Insertion Sort</li>
+            <li class="menu-item" onclick="selectAlgorithm('selection')">2. Selection Sort</li>
+            <li class="menu-item" onclick="selectAlgorithm('euclid')">3. Algoritmul lui Euclid</li>
+            <li class="menu-item" onclick="selectAlgorithm('fibonacci')">4. Șirul lui Fibonacci</li>
+            <li class="menu-item" onclick="selectAlgorithm('matrix')">5. Produsul a două matrici</li>
+            <li class="menu-item" onclick="selectAlgorithm('russe')">6. Înmulțirea a la russe</li>
+            <li class="menu-item" onclick="selectAlgorithm('hanoi')">7. Turnurile din Hanoi</li>
+        </ul>
+    </div>
+
+    <div class="main-content">
+        <div class="top-bar">
+            <h2 id="algo-title">Sortarea prin inserție</h2>
+        </div>
+
+        <div class="workspace">
+            <div class="visualizer-section">
+                <div class="visualizer-header">
+                    <div class="controls-row" id="inputs-container">
+                    </div>
+                    <div class="controls-row">
+                        <button class="btn" onclick="stepBackward()">Înapoi</button>
+                        <button class="btn btn-primary" id="play-btn" onclick="togglePlay()">Auto Run</button>
+                        <button class="btn" onclick="stepForward()">Pas Următor</button>
+                        <button class="btn btn-danger" onclick="resetState()">Reset</button>
+                    </div>
+                </div>
+                <div class="visualizer-body" id="canvas">
+                </div>
+                <div class="visualizer-footer">
+                    <div class="explanation-box">
+                        <p id="step-explanation">Inițializează tabloul pentru a începe vizualizarea.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="code-section">
+                <div class="code-container">
+                    <div class="code-tabs">
+                        <div class="code-tab active" id="tab-pseudo" onclick="selectCodeTab('pseudo')">Pseudocod</div>
+                        <div class="code-tab" id="tab-java" onclick="selectCodeTab('java')">Cod Java</div>
+                        <div class="code-tab" id="tab-teorie" onclick="selectCodeTab('teorie')">Teorie</div>
+                    </div>
+                    <div class="code-viewport">
+                        <pre id="code-display"></pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentAlgorithm = 'insertion';
+        let currentCodeTab = 'pseudo';
+        let stepIndex = 0;
+        let states = [];
+        let isPlaying = false;
+        let playInterval = null;
+
+        const pseudocodes = {
+            insertion: `procedure INSERTION-SORT(A)
+  for j = 2 to LENGTH[A] do
+    key = A[j]
+    i = j - 1
+    while i > 0 AND A[i] > key do
+      A[i+1] = A[i]
+      i = i - 1
+    end while
+    A[i+1] = key
+  end for
+end procedure`,
+            selection: `procedure SELECTION-SORT(A[1..n])
+  for i = 1 to n-1 do
+    minj = i; minx = A[i]
+    for j = i+1 to n do
+      if A[j] < minx then
+        minj = j
+        minx = A[j]
+      end if
+    end for
+    A[minj] = A[i]
+    A[i] = minx
+  end for
+end procedure`,
+            euclid: `procedure EUCLID(m, n)
+  while n != 0 do
+    temp = n
+    n = m % n
+    m = temp
+  end while
+  return m
+end procedure`,
+            fibonacci: `procedure FIBO_R(n)
+  if n < 2 then return n
+  else return FIBO_R(n-1) + FIBO_R(n-2)
+end procedure
+
+procedure FIBO_I(n)
+  i = 0; j = 1; s = 1
+  for k = 1 to n do
+    i = j
+    j = s
+    s = i + j
+  end for
+  return i
+end procedure`,
+            matrix: `procedure PRODUS(A, B)
+  for i = 1 to m do
+    for j = 1 to p do
+      for k = 1 to n do
+        C[i,j] = C[i,j] + A[i,k] * B[k,j]
+      end for
+    end for
+  end for
+end procedure`,
+            russe: `procedure RUSSE(a, b)
+  X[1] = a; Y[1] = b
+  i = 1
+  while X[i] > 1 do
+    X[i+1] = X[i]/2
+    Y[i+1] = Y[i] + Y[i]
+    i = i + 1
+  end while
+  prod = 0
+  while i > 0 do
+    if X[i]%2 == 1 then
+      prod = prod + Y[i]
+    end if
+    i = i - 1
+  end while
+  return prod
+end procedure`,
+            hanoi: `procedure HANOI(n, A, B, C)
+  if n != 0 then
+    HANOI(n - 1, A, C, B)
+    afiseaza "Muta discul de pe " + A + " pe " + C
+    HANOI(n - 1, B, A, C)
+  end if
+end procedure`
+        };
+
+        const javacodes = {
+            insertion: `public static void insertionSort(int[] A) {
+    for (int j = 1; j < A.length; j++) {
+        int key = A[j];
+        int i = j - 1;
+        while (i >= 0 && A[i] > key) {
+            A[i + 1] = A[i];
+            i = i - 1;
+        }
+        A[i + 1] = key;
+    }
+}`,
+            selection: `public static void selectionSort(int[] A) {
+    int n = A.length;
+    for (int i = 0; i < n - 1; i++) {
+        int minj = i;
+        int minx = A[i];
+        for (int j = i + 1; j < n; j++) {
+            if (A[j] < minx) {
+                minj = j;
+                minx = A[j];
+            }
+        }
+        A[minj] = A[i];
+        A[i] = minx;
+    }
+}`,
+            euclid: `public static int euclid(int m, int n) {
+    while (n != 0) {
+        int temp = n;
+        n = m % n;
+        m = temp;
+    }
+    return m;
+}`,
+            fibonacci: `public static int fiboR(int n) {
+    if (n < 2) return n;
+    return fiboR(n - 1) + fiboR(n - 2);
+}
+
+public static int fiboI(int n) {
+    int i = 0, j = 1, s = 1;
+    for (int k = 1; k <= n; k++) {
+        i = j;
+        j = s;
+        s = i + j;
+    }
+    return i;
+}`,
+            matrix: `public static int[][] matrixProduct(int[][] A, int[][] B) {
+    int m = A.length;
+    int n = A[0].length;
+    int p = B[0].length;
+    int[][] C = new int[m][p];
+    for (int i = 0; i < m; i++) {
+        for (int j = 0; j < p; j++) {
+            for (int k = 0; k < n; k++) {
+                C[i][j] += A[i][k] * B[k][j];
+            }
+        }
+    }
+    return C;
+}`,
+            russe: `public static int russe(int a, int b) {
+    ArrayList<Integer> X = new ArrayList<>();
+    ArrayList<Integer> Y = new ArrayList<>();
+    X.add(a); Y.add(b);
+    int i = 0;
+    while (X.get(i) > 1) {
+        X.add(X.get(i) / 2);
+        Y.add(Y.get(i) + Y.get(i));
+        i++;
+    }
+    int prod = 0;
+    while (i >= 0) {
+        if (X.get(i) % 2 == 1) {
+            prod += Y.get(i);
+        }
+        i--;
+    }
+    return prod;
+}`,
+            hanoi: `public static void hanoi(int n, char A, char B, char C) {
+    if (n != 0) {
+        hanoi(n - 1, A, C, B);
+        System.out.println("Muta discul de pe " + A + " pe " + C);
+        hanoi(n - 1, B, A, C);
+    }
+}`
+        };
+
+        const titles = {
+            insertion: "1. Sortarea prin inserție",
+            selection: "2. Sortarea prin selecția minimului",
+            euclid: "3. Algoritmul lui Euclid",
+            fibonacci: "4. Șirul lui Fibonacci",
+            matrix: "5. Produsul a două matrici",
+            russe: "6. Înmulțirea a la russe",
+            hanoi: "7. Turnurile din Hanoi"
+        };
+
+        function selectAlgorithm(algo) {
+            currentAlgorithm = algo;
+            document.querySelectorAll('.menu-item').forEach(el => el.classList.remove('active'));
+            const items = document.querySelectorAll('.menu-item');
+            if (algo === 'insertion') items[0].classList.add('active');
+            else if (algo === 'selection') items[1].classList.add('active');
+            else if (algo === 'euclid') items[2].classList.add('active');
+            else if (algo === 'fibonacci') items[3].classList.add('active');
+            else if (algo === 'matrix') items[4].classList.add('active');
+            else if (algo === 'russe') items[5].classList.add('active');
+            else if (algo === 'hanoi') items[6].classList.add('active');
+ 
+            document.getElementById('algo-title').innerText = titles[algo];
+            stopPlay();
+            renderCode();
+            setupInputs();
+            resetState();
+        }
+
+        const teorii = {
+            insertion: `<div style="padding: 10px; font-family: var(--font-sans);">
+                <h3 style="color: var(--primary); margin-bottom: 6px; font-size: 15px;">Scop</h3>
+                <p style="margin-bottom: 12px; color: var(--text-main); font-size: 13px; line-height: 1.5;">Sortarea unui tablou prin plasarea fiecărui element direct în poziția corectă dintr-un subtablou deja sortat.</p>
+                <h3 style="color: var(--primary); margin-bottom: 6px; font-size: 15px;">Funcționare</h3>
+                <p style="margin-bottom: 12px; color: var(--text-main); font-size: 13px; line-height: 1.5;">Parcurge tabloul de la stânga la dreapta. Elementul curent (cheia) este comparat cu elementele din stânga sa și deplasat înapoi până când întâlnește un element mai mic sau egal cu el.</p>
+                <h3 style="color: var(--primary); margin-bottom: 6px; font-size: 15px;">Aplicații</h3>
+                <p style="margin-bottom: 12px; color: var(--text-main); font-size: 13px; line-height: 1.5;">Sortarea seturilor de date de dimensiuni reduse sau a tablourilor deja sortate parțial (unde funcționează aproape liniar).</p>
+                <h3 style="color: var(--primary); margin-bottom: 6px; font-size: 15px;">Complexitate</h3>
+                <p style="color: var(--text-main); font-size: 13px; line-height: 1.5;">Timp: O(n²) în cazul mediu și defavorabil, O(n) în cel favorabil. Spațiu: O(1) auxiliar.</p>
+            </div>`,
+            selection: `<div style="padding: 10px; font-family: var(--font-sans);">
+                <h3 style="color: var(--primary); margin-bottom: 6px; font-size: 15px;">Scop</h3>
+                <p style="margin-bottom: 12px; color: var(--text-main); font-size: 13px; line-height: 1.5;">Sortarea elementelor prin selectarea repetată a elementului minim și mutarea lui pe poziția corectă.</p>
+                <h3 style="color: var(--primary); margin-bottom: 6px; font-size: 15px;">Funcționare</h3>
+                <p style="margin-bottom: 12px; color: var(--text-main); font-size: 13px; line-height: 1.5;">Tabloul este împărțit într-o subsecțiune sortată și una nesortată. Se caută minimul din subsecțiunea nesortată și se interschimbă cu primul element nesortat.</p>
+                <h3 style="color: var(--primary); margin-bottom: 6px; font-size: 15px;">Aplicații</h3>
+                <p style="margin-bottom: 12px; color: var(--text-main); font-size: 13px; line-height: 1.5;">Sisteme unde operațiile de scriere în memorie sunt costisitoare, deoarece realizează cel mult n interschimbări.</p>
+                <h3 style="color: var(--primary); margin-bottom: 6px; font-size: 15px;">Complexitate</h3>
+                <p style="color: var(--text-main); font-size: 13px; line-height: 1.5;">Timp: O(n²) în toate cazurile (favorabil, mediu, defavorabil). Spațiu: O(1) auxiliar.</p>
+            </div>`,
+            euclid: `<div style="padding: 10px; font-family: var(--font-sans);">
+                <h3 style="color: var(--primary); margin-bottom: 6px; font-size: 15px;">Scop</h3>
+                <p style="margin-bottom: 12px; color: var(--text-main); font-size: 13px; line-height: 1.5;">Calcularea celui mai mare divizor comun (CMMDC) pentru două numere întregi.</p>
+                <h3 style="color: var(--primary); margin-bottom: 6px; font-size: 15px;">Funcționare</h3>
+                <p style="margin-bottom: 12px; color: var(--text-main); font-size: 13px; line-height: 1.5;">Algoritmul se bazează pe proprietatea că divizorul comun nu se schimbă dacă numărul mai mare este înlocuit cu restul împărțirii sale la cel mai mic, repetând procesul până la restul 0.</p>
+                <h3 style="color: var(--primary); margin-bottom: 6px; font-size: 15px;">Aplicații</h3>
+                <p style="margin-bottom: 12px; color: var(--text-main); font-size: 13px; line-height: 1.5;">Algoritmi criptografici (generarea cheilor RSA), reducerea fracțiilor la forma ireductibilă.</p>
+                <h3 style="color: var(--primary); margin-bottom: 6px; font-size: 15px;">Complexitate</h3>
+                <p style="color: var(--text-main); font-size: 13px; line-height: 1.5;">Timp: O(log(min(a, b))) conform teoremei lui Lamé. Spațiu: O(1) auxiliar.</p>
+            </div>`,
+            fibonacci: `<div style="padding: 10px; font-family: var(--font-sans);">
+                <h3 style="color: var(--primary); margin-bottom: 6px; font-size: 15px;">Scop</h3>
+                <p style="margin-bottom: 12px; color: var(--text-main); font-size: 13px; line-height: 1.5;">Generarea termenilor din șirul Fibonacci unde fiecare element este suma precedentelor două.</p>
+                <h3 style="color: var(--primary); margin-bottom: 6px; font-size: 15px;">Funcționare</h3>
+                <p style="margin-bottom: 12px; color: var(--text-main); font-size: 13px; line-height: 1.5;">Varianta iterativă calculează secvențial numerele păstrând doar ultimele două stări active. Varianta recursivă se autoapelează ramificat conform relației F(n) = F(n-1) + F(n-2).</p>
+                <h3 style="color: var(--primary); margin-bottom: 6px; font-size: 15px;">Aplicații</h3>
+                <p style="margin-bottom: 12px; color: var(--text-main); font-size: 13px; line-height: 1.5;">Generarea numerelor pseudo-aleatoare, modelarea creșterilor biologice, structuri de date (arbori Fibonacci).</p>
+                <h3 style="color: var(--primary); margin-bottom: 6px; font-size: 15px;">Complexitate</h3>
+                <p style="color: var(--text-main); font-size: 13px; line-height: 1.5;">Iterativ: O(n) timp, O(1) spațiu. Recursiv: O(2ⁿ) timp, O(n) spațiu (stivă).</p>
+            </div>`,
+            matrix: `<div style="padding: 10px; font-family: var(--font-sans);">
+                <h3 style="color: var(--primary); margin-bottom: 6px; font-size: 15px;">Scop</h3>
+                <p style="margin-bottom: 12px; color: var(--text-main); font-size: 13px; line-height: 1.5;">Calcularea matricii rezultate din produsul a două matrici compatibile din punct de vedere dimensional.</p>
+                <h3 style="color: var(--primary); margin-bottom: 6px; font-size: 15px;">Funcționare</h3>
+                <p style="margin-bottom: 12px; color: var(--text-main); font-size: 13px; line-height: 1.5;">Se parcurge fiecare linie din prima matrice și fiecare coloană din a doua. Elementul rezultat se obține însumând produsele elementelor corespunzătoare.</p>
+                <h3 style="color: var(--primary); margin-bottom: 6px; font-size: 15px;">Aplicații</h3>
+                <p style="margin-bottom: 12px; color: var(--text-main); font-size: 13px; line-height: 1.5;">Grafică computerizată, rețele neuronale artificiale, procesare de semnal.</p>
+                <h3 style="color: var(--primary); margin-bottom: 6px; font-size: 15px;">Complexitate</h3>
+                <p style="color: var(--text-main); font-size: 13px; line-height: 1.5;">Timp: O(n³) pentru algoritmul standard naiv. Spațiu: O(n²) pentru stocarea rezultatului.</p>
+            </div>`,
+            russe: `<div style="padding: 10px; font-family: var(--font-sans);">
+                <h3 style="color: var(--primary); margin-bottom: 6px; font-size: 15px;">Scop</h3>
+                <p style="margin-bottom: 12px; color: var(--text-main); font-size: 13px; line-height: 1.5;">Înmulțirea rapidă a două numere întregi folosind exclusiv operații elementare de înjumătățire, dublare și adunare.</p>
+                <h3 style="color: var(--primary); margin-bottom: 6px; font-size: 15px;">Funcționare</h3>
+                <p style="margin-bottom: 12px; color: var(--text-main); font-size: 13px; line-height: 1.5;">Primul număr se împarte repetat la 2 (ignorând restul), iar al doilea se dublează în paralel. La final se însumează valorile dublate asociate înjumătățirilor impare.</p>
+                <h3 style="color: var(--primary); margin-bottom: 6px; font-size: 15px;">Aplicații</h3>
+                <p style="margin-bottom: 12px; color: var(--text-main); font-size: 13px; line-height: 1.5;">Implementări hardware de nivel scăzut (ALU în procesoare vechi sau microcontrollere fără suport nativ de înmulțire).</p>
+                <h3 style="color: var(--primary); margin-bottom: 6px; font-size: 15px;">Complexitate</h3>
+                <p style="color: var(--text-main); font-size: 13px; line-height: 1.5;">Timp: O(log a), unde a este numărul care se înjumătățește. Spațiu: O(1) auxiliar.</p>
+            </div>`,
+            hanoi: `<div style="padding: 10px; font-family: var(--font-sans);">
+                <h3 style="color: var(--primary); margin-bottom: 6px; font-size: 15px;">Scop</h3>
+                <p style="margin-bottom: 12px; color: var(--text-main); font-size: 13px; line-height: 1.5;">Rezolvarea celebrei probleme recursive de mutare a n discuri de pe o tijă pe alta, respectând regula de a nu plasa un disc mai mare peste unul mai mic.</p>
+                <h3 style="color: var(--primary); margin-bottom: 6px; font-size: 15px;">Funcționare</h3>
+                <p style="margin-bottom: 12px; color: var(--text-main); font-size: 13px; line-height: 1.5;">Se bazează pe recursivitate. Pentru a muta n discuri de pe A pe C folosind B ca tijă auxiliară, se mută n-1 discuri de pe A pe B, apoi discul n pe C, și în final cele n-1 discuri de pe B pe C.</p>
+                <h3 style="color: var(--primary); margin-bottom: 6px; font-size: 15px;">Aplicații</h3>
+                <p style="margin-bottom: 12px; color: var(--text-main); font-size: 13px; line-height: 1.5;">Demonstrarea paradigmei Divide et Impera și a conceptului de recursivitate; testarea eficienței procesorului și a stivei.</p>
+                <h3 style="color: var(--primary); margin-bottom: 6px; font-size: 15px;">Complexitate</h3>
+                <p style="color: var(--text-main); font-size: 13px; line-height: 1.5;">Timp: O(2ⁿ), datorită dublării numărului de operații la fiecare incrementare a numărului de discuri. Spațiu: O(n) (adâncimea maximă a stivei).</p>
+            </div>`
+        };
+
+        function selectCodeTab(tab) {
+            currentCodeTab = tab;
+            document.getElementById('tab-pseudo').classList.toggle('active', tab === 'pseudo');
+            document.getElementById('tab-java').classList.toggle('active', tab === 'java');
+            document.getElementById('tab-teorie').classList.toggle('active', tab === 'teorie');
+            renderCode();
+        }
+
+        function renderCode() {
+            const display = document.getElementById('code-display');
+            if (currentCodeTab === 'teorie') {
+                display.innerHTML = teorii[currentAlgorithm] || '';
+                display.style.fontFamily = 'var(--font-sans)';
+                display.style.whiteSpace = 'normal';
+                return;
+            }
+            display.style.fontFamily = '';
+            display.style.whiteSpace = '';
+            const codeText = currentCodeTab === 'pseudo' ? pseudocodes[currentAlgorithm] : javacodes[currentAlgorithm];
+            
+            if (states.length > 0 && stepIndex < states.length) {
+                const lines = codeText.split('\n');
+                const targetLine = states[stepIndex].line;
+                const formattedLines = lines.map((line, idx) => {
+                    if (idx === targetLine) {
+                        return `<span class="highlighted-line">${line}</span>`;
+                    }
+                    return line;
+                });
+                display.innerHTML = formattedLines.join('\n');
+            } else {
+                display.innerText = codeText;
+            }
+        }
+
+        function setupInputs() {
+            const container = document.getElementById('inputs-container');
+            container.innerHTML = '';
+
+            if (currentAlgorithm === 'insertion' || currentAlgorithm === 'selection') {
+                container.innerHTML = `
+                    <div class="input-group">
+                        <span style="font-size: 13px; font-weight:600;">Tablou:</span>
+                        <input type="text" class="input-field" id="array-input" value="5,2,4,6,1,3" style="width: 140px;">
+                        <button class="btn btn-primary" onclick="generateStates()">Setează</button>
+                    </div>
+                `;
+            } else if (currentAlgorithm === 'euclid') {
+                container.innerHTML = `
+                    <div class="input-group">
+                        <span style="font-size: 13px; font-weight:600;">m:</span>
+                        <input type="number" class="input-field" id="euclid-m" value="102">
+                        <span style="font-size: 13px; font-weight:600;">n:</span>
+                        <input type="number" class="input-field" id="euclid-n" value="18">
+                        <button class="btn btn-primary" onclick="generateStates()">Setează</button>
+                    </div>
+                `;
+            } else if (currentAlgorithm === 'fibonacci') {
+                container.innerHTML = `
+                    <div class="input-group">
+                        <span style="font-size: 13px; font-weight:600;">n:</span>
+                        <input type="number" class="input-field" id="fibo-n" value="6">
+                        <button class="btn btn-primary" onclick="generateStates()">Setează</button>
+                    </div>
+                `;
+            } else if (currentAlgorithm === 'matrix') {
+                container.innerHTML = `
+                    <div class="input-group">
+                        <span style="font-size: 13px; font-weight:600;">Dimensiuni (2x2):</span>
+                        <button class="btn btn-primary" onclick="generateStates()">Generează stări</button>
+                    </div>
+                `;
+            } else if (currentAlgorithm === 'russe') {
+                container.innerHTML = `
+                    <div class="input-group">
+                        <span style="font-size: 13px; font-weight:600;">a:</span>
+                        <input type="number" class="input-field" id="russe-a" value="52">
+                        <span style="font-size: 13px; font-weight:600;">b:</span>
+                        <input type="number" class="input-field" id="russe-b" value="15">
+                        <button class="btn btn-primary" onclick="generateStates()">Setează</button>
+                    </div>
+                `;
+            } else if (currentAlgorithm === 'hanoi') {
+                container.innerHTML = `
+                    <div class="input-group">
+                        <span style="font-size: 13px; font-weight:600;">Discuri n:</span>
+                        <input type="number" class="input-field" id="hanoi-n" value="3" min="1" max="8">
+                        <button class="btn btn-primary" onclick="generateStates()">Setează</button>
+                    </div>
+                `;
+            }
+        }
+
+        function generateStates() {
+            states = [];
+            stepIndex = 0;
+            stopPlay();
+
+            if (currentAlgorithm === 'insertion') {
+                const val = document.getElementById('array-input').value;
+                const arr = val.split(',').map(x => parseInt(x.trim())).filter(x => !isNaN(x));
+                
+                states.push({
+                    arr: [...arr],
+                    j: 1,
+                    i: 0,
+                    key: arr[1],
+                    line: 1,
+                    desc: "Inițializăm sortarea. Începem cu al doilea element (indexul j=1, valoarea key=" + arr[1] + ")."
+                });
+
+                let A = [...arr];
+                for (let j = 1; j < A.length; j++) {
+                    let key = A[j];
+                    let i = j - 1;
+                    
+                    states.push({
+                        arr: [...A],
+                        j: j,
+                        i: i,
+                        key: key,
+                        line: 2,
+                        desc: "Selectăm key = " + key + " de pe poziția j = " + j + "."
+                    });
+
+                    states.push({
+                        arr: [...A],
+                        j: j,
+                        i: i,
+                        key: key,
+                        line: 4,
+                        desc: "Pregătim comparările cu elementele din stânga, începând de la indexul i = " + i + "."
+                    });
+
+                    while (i >= 0 && A[i] > key) {
+                        states.push({
+                            arr: [...A],
+                            j: j,
+                            i: i,
+                            key: key,
+                            line: 5,
+                            desc: "Deoarece A[" + i + "] (" + A[i] + ") > key (" + key + "), mutăm elementul la dreapta."
+                        });
+
+                        A[i + 1] = A[i];
+                        
+                        states.push({
+                            arr: [...A],
+                            j: j,
+                            i: i,
+                            key: key,
+                            line: 6,
+                            desc: "Am mutat " + A[i] + " pe poziția " + (i + 1) + ". Decrementăm indexul i."
+                        });
+                        
+                        i = i - 1;
+                    }
+                    
+                    states.push({
+                        arr: [...A],
+                        j: j,
+                        i: i,
+                        key: key,
+                        line: 8,
+                        desc: "Am găsit poziția potrivită sau am atins capătul stâng. Inserăm key = " + key + " pe poziția " + (i + 1) + "."
+                    });
+                    
+                    A[i + 1] = key;
+                    
+                    states.push({
+                        arr: [...A],
+                        j: j,
+                        i: i,
+                        key: key,
+                        line: 8,
+                        desc: "Key = " + key + " a fost inserat cu succes."
+                    });
+                }
+                
+                states.push({
+                    arr: [...A],
+                    j: A.length,
+                    i: A.length - 2,
+                    key: null,
+                    line: 10,
+                    desc: "Algoritmul s-a încheiat. Tabloul este sortat complet."
+                });
+
+            } else if (currentAlgorithm === 'selection') {
+                const val = document.getElementById('array-input').value;
+                const arr = val.split(',').map(x => parseInt(x.trim())).filter(x => !isNaN(x));
+                let A = [...arr];
+                let n = A.length;
+
+                states.push({
+                    arr: [...A],
+                    i: 0,
+                    j: 1,
+                    minj: 0,
+                    minx: A[0],
+                    line: 1,
+                    desc: "Inițializăm sortarea prin selecție pentru tabloul introdus."
+                });
+
+                for (let i = 0; i < n - 1; i++) {
+                    let minj = i;
+                    let minx = A[i];
+
+                    states.push({
+                        arr: [...A],
+                        i: i,
+                        j: i + 1,
+                        minj: minj,
+                        minx: minx,
+                        line: 2,
+                        desc: "Presupunem că minimul este la indexul i = " + i + " (valoarea " + minx + ")."
+                    });
+
+                    for (let j = i + 1; j < n; j++) {
+                        states.push({
+                            arr: [...A],
+                            i: i,
+                            j: j,
+                            minj: minj,
+                            minx: minx,
+                            line: 4,
+                            desc: "Comparăm elementul de pe poziția j = " + j + " (" + A[j] + ") cu valoarea minimă curentă (" + minx + ")."
+                        });
+
+                        if (A[j] < minx) {
+                            minj = j;
+                            minx = A[j];
+                            states.push({
+                                arr: [...A],
+                                i: i,
+                                j: j,
+                                minj: minj,
+                                minx: minx,
+                                line: 6,
+                                desc: "Am găsit un element mai mic: " + minx + " pe poziția " + minj + "."
+                            });
+                        }
+                    }
+
+                    states.push({
+                        arr: [...A],
+                        i: i,
+                        j: n,
+                        minj: minj,
+                        minx: minx,
+                        line: 11,
+                        desc: "Schimbăm elementul de pe poziția i = " + i + " (" + A[i] + ") cu cel mai mic element găsit (" + minx + ")."
+                    });
+
+                    A[minj] = A[i];
+                    A[i] = minx;
+
+                    states.push({
+                        arr: [...A],
+                        i: i,
+                        j: n,
+                        minj: minj,
+                        minx: minx,
+                        line: 13,
+                        desc: "După interschimbare, elementul " + minx + " este plasat pe poziția sa finală."
+                    });
+                }
+
+                states.push({
+                    arr: [...A],
+                    i: n - 1,
+                    j: n,
+                    minj: n - 1,
+                    minx: A[n - 1],
+                    line: 14,
+                    desc: "Tabloul este complet sortat."
+                });
+
+            } else if (currentAlgorithm === 'euclid') {
+                let m = parseInt(document.getElementById('euclid-m').value);
+                let n = parseInt(document.getElementById('euclid-n').value);
+                let initM = m;
+                let initN = n;
+
+                states.push({
+                    m: m,
+                    n: n,
+                    temp: null,
+                    line: 1,
+                    desc: "Calculăm CMMDC pentru m=" + m + " și n=" + n + "."
+                });
+
+                while (n !== 0) {
+                    let temp = n;
+                    states.push({
+                        m: m,
+                        n: n,
+                        temp: temp,
+                        line: 2,
+                        desc: "Salvăm n în temp. temp = " + temp + "."
+                    });
+
+                    let r = m % n;
+                    states.push({
+                        m: m,
+                        n: n,
+                        temp: temp,
+                        line: 3,
+                        desc: "Calculăm noul n ca m % n = " + m + " % " + n + " = " + r + "."
+                    });
+                    n = r;
+
+                    states.push({
+                        m: m,
+                        n: n,
+                        temp: temp,
+                        line: 4,
+                        desc: "Actualizăm m cu valoarea vechiului n din temp (m = " + temp + ")."
+                    });
+                    m = temp;
+                }
+
+                states.push({
+                    m: m,
+                    n: n,
+                    temp: null,
+                    line: 6,
+                    desc: "Variabila n a devenit 0. Algoritmul se încheie. CMMDC-ul este m = " + m + "."
+                });
+
+            } else if (currentAlgorithm === 'fibonacci') {
+                let n = parseInt(document.getElementById('fibo-n').value);
+                
+                states.push({
+                    n: n,
+                    i: 0,
+                    j: 1,
+                    s: 1,
+                    k: 0,
+                    line: 1,
+                    desc: "Inițializăm calculul iterativ al șirului Fibonacci pentru n = " + n + "."
+                });
+
+                let i = 0, j = 1, s = 1;
+                for (let k = 1; k <= n; k++) {
+                    states.push({
+                        n: n,
+                        i: i,
+                        j: j,
+                        s: s,
+                        k: k,
+                        line: 4,
+                        desc: "Pasul k = " + k + ". Salvăm valoarea precedentă a lui j în i."
+                    });
+                    i = j;
+                    
+                    states.push({
+                        n: n,
+                        i: i,
+                        j: j,
+                        s: s,
+                        k: k,
+                        line: 5,
+                        desc: "Actualizăm j cu suma elementelor precedente (s = " + s + ")."
+                    });
+                    j = s;
+
+                    s = i + j;
+                    states.push({
+                        n: n,
+                        i: i,
+                        j: j,
+                        s: s,
+                        k: k,
+                        line: 6,
+                        desc: "Pregătim următorul termen prin însumare: s = i + j = " + i + " + " + j + " = " + s + "."
+                    });
+                }
+
+                states.push({
+                    n: n,
+                    i: i,
+                    j: j,
+                    s: s,
+                    k: n,
+                    line: 8,
+                    desc: "Am finalizat calculul. Termenul Fibonacci este " + i + "."
+                });
+
+            } else if (currentAlgorithm === 'matrix') {
+                let A = [[1, 2], [3, 4]];
+                let B = [[5, 6], [7, 8]];
+                let m = 2, n = 2, p = 2;
+                let C = [[0, 0], [0, 0]];
+
+                states.push({
+                    A: A,
+                    B: B,
+                    C: JSON.parse(JSON.stringify(C)),
+                    activeI: null,
+                    activeJ: null,
+                    activeK: null,
+                    line: 1,
+                    desc: "Inițializăm matricea rezultat C cu 0-uri."
+                });
+
+                for (let i = 0; i < m; i++) {
+                    for (let j = 0; j < p; j++) {
+                        states.push({
+                            A: A,
+                            B: B,
+                            C: JSON.parse(JSON.stringify(C)),
+                            activeI: i,
+                            activeJ: j,
+                            activeK: null,
+                            line: 2,
+                            desc: "Calculăm valoarea pentru celula C[" + i + "][" + j + "]."
+                        });
+
+                        for (let k = 0; k < n; k++) {
+                            let valA = A[i][k];
+                            let valB = B[k][j];
+                            let prod = valA * valB;
+                            C[i][j] += prod;
+
+                            states.push({
+                                A: A,
+                                B: B,
+                                C: JSON.parse(JSON.stringify(C)),
+                                activeI: i,
+                                activeJ: j,
+                                activeK: k,
+                                line: 5,
+                                desc: "Adunăm A[" + i + "][" + k + "] * B[" + k + "][" + j + "] = " + valA + " * " + valB + " = " + prod + ". C[" + i + "][" + j + "] devine " + C[i][j] + "."
+                            });
+                        }
+                    }
+                }
+
+                states.push({
+                    A: A,
+                    B: B,
+                    C: JSON.parse(JSON.stringify(C)),
+                    activeI: null,
+                    activeJ: null,
+                    activeK: null,
+                    line: 9,
+                    desc: "Multiplicarea matricilor s-a finalizat."
+                });
+
+            } else if (currentAlgorithm === 'russe') {
+                let a = parseInt(document.getElementById('russe-a').value);
+                let b = parseInt(document.getElementById('russe-b').value);
+
+                let X = [a];
+                let Y = [b];
+                let i = 0;
+
+                states.push({
+                    X: [...X],
+                    Y: [...Y],
+                    i: i,
+                    prod: 0,
+                    phase: 'halving',
+                    line: 1,
+                    desc: "Inițializăm înmulțirea a la Russe cu a = " + a + " și b = " + b + "."
+                });
+
+                while (X[i] > 1) {
+                    states.push({
+                        X: [...X],
+                        Y: [...Y],
+                        i: i,
+                        prod: 0,
+                        phase: 'halving',
+                        line: 5,
+                        desc: "Deoarece X[" + (i+1) + "] = " + X[i] + " > 1, continuăm înjumătățirea și dublarea."
+                    });
+
+                    X.push(Math.floor(X[i] / 2));
+                    Y.push(Y[i] * 2);
+                    i++;
+
+                    states.push({
+                        X: [...X],
+                        Y: [...Y],
+                        i: i,
+                        prod: 0,
+                        phase: 'halving',
+                        line: 8,
+                        desc: "Adăugăm elementul X[" + (i+1) + "] = " + X[i] + " și Y[" + (i+1) + "] = " + Y[i] + "."
+                    });
+                }
+
+                let prod = 0;
+                let stepsI = i;
+
+                states.push({
+                    X: [...X],
+                    Y: [...Y],
+                    i: stepsI,
+                    prod: prod,
+                    phase: 'summing',
+                    line: 11,
+                    desc: "Finalizăm prima fază. Începem însumarea pentru valorile impare din coloana X de la sfârșit către început."
+                });
+
+                while (stepsI >= 0) {
+                    let isOdd = (X[stepsI] % 2 === 1);
+                    if (isOdd) {
+                        prod += Y[stepsI];
+                        states.push({
+                            X: [...X],
+                            Y: [...Y],
+                            i: stepsI,
+                            prod: prod,
+                            phase: 'summing',
+                            line: 13,
+                            desc: "X[" + (stepsI+1) + "] (" + X[stepsI] + ") este impar. Adunăm Y[" + (stepsI+1) + "] (" + Y[stepsI] + ") la produs. Produs curent = " + prod + "."
+                        });
+                    } else {
+                        states.push({
+                            X: [...X],
+                            Y: [...Y],
+                            i: stepsI,
+                            prod: prod,
+                            phase: 'summing',
+                            line: 12,
+                            desc: "X[" + (stepsI+1) + "] (" + X[stepsI] + ") este par, deci ignorăm această valoare."
+                        });
+                    }
+                    stepsI--;
+                }
+
+                states.push({
+                    X: [...X],
+                    Y: [...Y],
+                    i: -1,
+                    prod: prod,
+                    phase: 'done',
+                    line: 18,
+                    desc: "Algoritmul s-a terminat. Produsul final este " + prod + "."
+                });
+            } else if (currentAlgorithm === 'hanoi') {
+                let nDiscs = parseInt(document.getElementById('hanoi-n').value);
+                let rodA = [];
+                for (let d = nDiscs; d >= 1; d--) {
+                    rodA.push(d);
+                }
+                let rodB = [];
+                let rodC = [];
+
+                states.push({
+                    rods: { A: [...rodA], B: [...rodB], C: [...rodC] },
+                    activeDisc: null,
+                    from: null,
+                    to: null,
+                    line: 1,
+                    desc: "Initializam Turnurile din Hanoi cu " + nDiscs + " discuri pe tija A."
+                });
+
+                function getRodByName(name) {
+                    if (name === 'A') return rodA;
+                    if (name === 'B') return rodB;
+                    return rodC;
+                }
+
+                function moveHanoi(n, fromName, auxName, toName) {
+                    if (n !== 0) {
+                        moveHanoi(n - 1, fromName, toName, auxName);
+
+                        let disc = getRodByName(fromName).pop();
+                        getRodByName(toName).push(disc);
+
+                        states.push({
+                            rods: { A: [...rodA], B: [...rodB], C: [...rodC] },
+                            activeDisc: disc,
+                            from: fromName,
+                            to: toName,
+                            line: 3,
+                            desc: "Mutam discul " + disc + " de pe tija " + fromName + " pe tija " + toName + "."
+                        });
+
+                        moveHanoi(n - 1, auxName, fromName, toName);
+                    }
+                }
+
+                moveHanoi(nDiscs, 'A', 'B', 'C');
+
+                states.push({
+                    rods: { A: [...rodA], B: [...rodB], C: [...rodC] },
+                    activeDisc: null,
+                    from: null,
+                    to: null,
+                    line: 7,
+                    desc: "Toate cele " + nDiscs + " discuri au fost mutate pe tija C."
+                });
+            }
+
+            renderState();
+        }
+
+        function renderState() {
+            if (states.length === 0) return;
+            const state = states[stepIndex];
+            const canvas = document.getElementById('canvas');
+            canvas.innerHTML = '';
+
+            document.getElementById('step-explanation').innerText = state.desc;
+            renderCode();
+
+            if (currentAlgorithm === 'insertion' || currentAlgorithm === 'selection') {
+                const container = document.createElement('div');
+                container.className = 'bars-container';
+                
+                state.arr.forEach((val, idx) => {
+                    const wrapper = document.createElement('div');
+                    wrapper.className = 'bar-wrapper';
+
+                    const bar = document.createElement('div');
+                    bar.className = 'bar';
+                    bar.style.height = (val * 30) + 'px';
+
+                    if (currentAlgorithm === 'insertion') {
+                        if (idx === state.j) bar.classList.add('active');
+                        else if (idx === state.i) bar.classList.add('comparing');
+                        else if (idx < state.j) bar.classList.add('sorted');
+                    } else if (currentAlgorithm === 'selection') {
+                        if (idx === state.i) bar.classList.add('active');
+                        else if (idx === state.j) bar.classList.add('comparing');
+                        else if (idx === state.minj) bar.classList.add('comparing');
+                        else if (idx < state.i) bar.classList.add('sorted');
+                    }
+
+                    const valLabel = document.createElement('span');
+                    valLabel.className = 'bar-value';
+                    valLabel.innerText = val;
+
+                    const barLabel = document.createElement('span');
+                    barLabel.className = 'bar-label';
+                    barLabel.innerText = 'A[' + idx + ']';
+
+                    wrapper.appendChild(valLabel);
+                    wrapper.appendChild(bar);
+                    wrapper.appendChild(barLabel);
+                    container.appendChild(wrapper);
+                });
+                canvas.appendChild(container);
+
+            } else if (currentAlgorithm === 'euclid') {
+                const tableContainer = document.createElement('div');
+                tableContainer.className = 'table-container';
+
+                const table = document.createElement('table');
+                table.innerHTML = `
+                    <thead>
+                        <tr>
+                            <th>Pas</th>
+                            <th>m</th>
+                            <th>n</th>
+                            <th>temp</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                `;
+                const tbody = table.querySelector('tbody');
+                
+                let history = states.slice(0, stepIndex + 1).filter(s => s.line === 4 || s.line === 6);
+                
+                states.slice(0, stepIndex + 1).forEach((s, idx) => {
+                    if (s.line === 1 || s.line === 4 || s.line === 6) {
+                        const tr = document.createElement('tr');
+                        if (idx === stepIndex) tr.className = 'active-row';
+                        tr.innerHTML = `
+                            <td>${idx}</td>
+                            <td>${s.m}</td>
+                            <td>${s.n}</td>
+                            <td>${s.temp !== null ? s.temp : '-'}</td>
+                        `;
+                        tbody.appendChild(tr);
+                    }
+                });
+
+                tableContainer.appendChild(table);
+                canvas.appendChild(tableContainer);
+
+            } else if (currentAlgorithm === 'fibonacci') {
+                const tableContainer = document.createElement('div');
+                tableContainer.className = 'table-container';
+
+                const table = document.createElement('table');
+                table.innerHTML = `
+                    <thead>
+                        <tr>
+                            <th>Pas k</th>
+                            <th>i (Fibo_I)</th>
+                            <th>j</th>
+                            <th>s (termen următor)</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                `;
+                const tbody = table.querySelector('tbody');
+
+                states.slice(0, stepIndex + 1).forEach((s, idx) => {
+                    if (s.line === 4 || s.line === 8) {
+                        const tr = document.createElement('tr');
+                        if (idx === stepIndex) tr.className = 'active-row';
+                        tr.innerHTML = `
+                            <td>${s.k}</td>
+                            <td>${s.i}</td>
+                            <td>${s.j}</td>
+                            <td>${s.s}</td>
+                        `;
+                        tbody.appendChild(tr);
+                    }
+                });
+
+                tableContainer.appendChild(table);
+                canvas.appendChild(tableContainer);
+
+            } else if (currentAlgorithm === 'matrix') {
+                const wrapper = document.createElement('div');
+                wrapper.className = 'matrices-wrapper';
+
+                const renderMatrix = (matrix, title, activeI, activeJ, isA, isB) => {
+                    const container = document.createElement('div');
+                    container.className = 'matrix-container';
+
+                    const t = document.createElement('div');
+                    t.className = 'matrix-title';
+                    t.innerText = title;
+                    container.appendChild(t);
+
+                    const grid = document.createElement('div');
+                    grid.className = 'matrix-grid';
+                    grid.style.gridTemplateColumns = `repeat(${matrix[0].length}, 44px)`;
+
+                    for (let r = 0; r < matrix.length; r++) {
+                        for (let c = 0; c < matrix[r].length; c++) {
+                            const cell = document.createElement('div');
+                            cell.className = 'matrix-cell';
+                            cell.innerText = matrix[r][c];
+
+                            if (isA && r === activeI) cell.classList.add('highlight-row');
+                            if (isB && c === activeJ) cell.classList.add('highlight-col');
+                            if (!isA && !isB && r === activeI && c === activeJ) cell.classList.add('target');
+
+                            grid.appendChild(cell);
+                        }
+                    }
+                    container.appendChild(grid);
+                    return container;
+                };
+
+                wrapper.appendChild(renderMatrix(state.A, 'Matricea A', state.activeI, state.activeJ, true, false));
+                
+                const op = document.createElement('div');
+                op.className = 'operator';
+                op.innerText = '×';
+                wrapper.appendChild(op);
+
+                wrapper.appendChild(renderMatrix(state.B, 'Matricea B', state.activeI, state.activeJ, false, true));
+
+                const eq = document.createElement('div');
+                eq.className = 'operator';
+                eq.innerText = '=';
+                wrapper.appendChild(eq);
+
+                wrapper.appendChild(renderMatrix(state.C, 'Rezultat C', state.activeI, state.activeJ, false, false));
+
+                canvas.appendChild(wrapper);
+
+            } else if (currentAlgorithm === 'russe') {
+                const tableContainer = document.createElement('div');
+                tableContainer.className = 'table-container';
+
+                const table = document.createElement('table');
+                table.innerHTML = `
+                    <thead>
+                        <tr>
+                            <th>Pas (i)</th>
+                            <th>X (a)</th>
+                            <th>Y (b)</th>
+                            <th>Adunare?</th>
+                            <th>Produs intermediar</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                `;
+                const tbody = table.querySelector('tbody');
+
+                const maxLen = Math.max(state.X.length, state.Y.length);
+                for (let k = 0; k < maxLen; k++) {
+                    const tr = document.createElement('tr');
+                    
+                    let isOdd = (state.X[k] % 2 === 1);
+                    let shouldAdd = isOdd ? 'Da (impar)' : 'Nu (par)';
+                    
+                    let showStatus = '';
+                    if (state.phase === 'summing' && k === state.i) {
+                        tr.className = 'active-row';
+                    }
+
+                    tr.innerHTML = `
+                        <td>${k + 1}</td>
+                        <td>${state.X[k] !== undefined ? state.X[k] : ''}</td>
+                        <td>${state.Y[k] !== undefined ? state.Y[k] : ''}</td>
+                        <td>${shouldAdd}</td>
+                        <td>${state.phase === 'summing' && k >= state.i ? state.prod : '-'}</td>
+                    `;
+                    tbody.appendChild(tr);
+                }
+
+                tableContainer.appendChild(table);
+                canvas.appendChild(tableContainer);
+            } else if (currentAlgorithm === 'hanoi') {
+                const container = document.createElement('div');
+                container.style.display = 'flex';
+                container.style.justifyContent = 'space-around';
+                container.style.alignItems = 'flex-end';
+                container.style.width = '100%';
+                container.style.height = '240px';
+                container.style.padding = '20px';
+                container.style.border = '1px solid var(--border)';
+                container.style.borderRadius = '12px';
+                container.style.backgroundColor = 'var(--bg-base)';
+
+                const rodNames = ['A', 'B', 'C'];
+                rodNames.forEach(name => {
+                    const rodWrapper = document.createElement('div');
+                    rodWrapper.style.display = 'flex';
+                    rodWrapper.style.flexDirection = 'column-reverse';
+                    rodWrapper.style.alignItems = 'center';
+                    rodWrapper.style.position = 'relative';
+                    rodWrapper.style.width = '120px';
+                    rodWrapper.style.height = '200px';
+
+                    const rodLine = document.createElement('div');
+                    rodLine.style.position = 'absolute';
+                    rodLine.style.bottom = '0';
+                    rodLine.style.width = '8px';
+                    rodLine.style.height = '180px';
+                    rodLine.style.backgroundColor = 'var(--border)';
+                    rodLine.style.borderRadius = '4px';
+                    rodLine.style.zIndex = '1';
+                    rodWrapper.appendChild(rodLine);
+
+                    const label = document.createElement('div');
+                    label.style.position = 'absolute';
+                    label.style.bottom = '-25px';
+                    label.style.fontWeight = '600';
+                    label.style.fontSize = '14px';
+                    label.style.color = 'var(--text-muted)';
+                    label.innerText = 'Tija ' + name;
+                    rodWrapper.appendChild(label);
+
+                    const discList = state.rods[name];
+                    discList.forEach((discSize, discIdx) => {
+                        const disc = document.createElement('div');
+                        disc.style.width = (discSize * 12 + 25) + 'px';
+                        disc.style.height = '16px';
+                        disc.style.backgroundColor = 'var(--primary)';
+                        disc.style.borderRadius = '4px';
+                        disc.style.zIndex = '5';
+                        disc.style.margin = '2px 0';
+                        disc.style.display = 'flex';
+                        disc.style.alignItems = 'center';
+                        disc.style.justifyContent = 'center';
+                        disc.style.fontSize = '10px';
+                        disc.style.fontWeight = 'bold';
+                        disc.style.color = '#fff';
+                        disc.innerText = discSize;
+
+                        if (state.activeDisc === discSize && name === state.to) {
+                            disc.style.backgroundColor = 'var(--accent)';
+                            disc.style.boxShadow = '0 0 10px var(--accent)';
+                        }
+                        
+                        rodWrapper.appendChild(disc);
+                    });
+
+                    container.appendChild(rodWrapper);
+                });
+                canvas.appendChild(container);
+            }
+        }
+
+        function stepForward() {
+            if (stepIndex < states.length - 1) {
+                stepIndex++;
+                renderState();
+            }
+        }
+
+        function stepBackward() {
+            if (stepIndex > 0) {
+                stepIndex--;
+                renderState();
+            }
+        }
+
+        function resetState() {
+            stepIndex = 0;
+            generateStates();
+        }
+
+        function togglePlay() {
+            if (isPlaying) {
+                stopPlay();
+            } else {
+                isPlaying = true;
+                document.getElementById('play-btn').innerText = 'Stop';
+                playInterval = setInterval(() => {
+                    if (stepIndex < states.length - 1) {
+                        stepForward();
+                    } else {
+                        stopPlay();
+                    }
+                }, 1200);
+            }
+        }
+
+        function stopPlay() {
+            isPlaying = false;
+            document.getElementById('play-btn').innerText = 'Auto Run';
+            if (playInterval) {
+                clearInterval(playInterval);
+                playInterval = null;
+            }
+        }
+
+        window.onload = () => {
+            selectAlgorithm('insertion');
+        };
+    </script>
+</body>
+</html>

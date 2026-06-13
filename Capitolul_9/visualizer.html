@@ -1,0 +1,1777 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vizualizator Algoritmi - Capitolul 9</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-base: #0f172a;
+            --bg-surface: #1e293b;
+            --bg-code: #0b0f19;
+            --primary: #6366f1;
+            --primary-hover: #4f46e5;
+            --secondary: #0ea5e9;
+            --accent: #f43f5e;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border: #334155;
+            --font-sans: 'Inter', sans-serif;
+            --font-mono: 'Fira Code', monospace;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-base);
+            color: var(--text-main);
+            font-family: var(--font-sans);
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .sidebar {
+            width: 280px;
+            background-color: var(--bg-surface);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+        }
+
+        .sidebar-header {
+            padding: 24px;
+            border-bottom: 1px solid var(--border);
+            background: linear-gradient(135deg, var(--bg-surface), #131b2e);
+        }
+
+        .sidebar-header h1 {
+            font-size: 18px;
+            font-weight: 700;
+            letter-spacing: -0.025em;
+            color: var(--text-main);
+        }
+
+        .sidebar-header p {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        .menu-list {
+            list-style: none;
+            padding: 16px;
+            overflow-y: auto;
+            flex-grow: 1;
+        }
+
+        .menu-item {
+            padding: 12px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            color: var(--text-muted);
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+        }
+
+        .menu-item:hover {
+            background-color: rgba(99, 102, 241, 0.1);
+            color: var(--text-main);
+        }
+
+        .menu-item.active {
+            background-color: var(--primary);
+            color: var(--text-main);
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.25);
+        }
+
+        .main-content {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .top-bar {
+            height: 70px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 32px;
+            background-color: var(--bg-surface);
+        }
+
+        .top-bar h2 {
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .workspace {
+            flex-grow: 1;
+            display: flex;
+            overflow: hidden;
+            padding: 24px;
+            gap: 24px;
+        }
+
+        .visualizer-section {
+            flex: 3;
+            background-color: var(--bg-surface);
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .visualizer-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background-color: rgba(30, 41, 59, 0.5);
+        }
+
+        .controls-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .btn {
+            background-color: var(--border);
+            color: var(--text-main);
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn:hover {
+            background-color: #475569;
+        }
+
+        .btn-primary {
+            background-color: var(--primary);
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-hover);
+        }
+
+        .btn-danger {
+            background-color: var(--accent);
+        }
+
+        .btn-danger:hover {
+            background-color: #e11d48;
+        }
+
+        .visualizer-body {
+            flex-grow: 1;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow-y: auto;
+            gap: 20px;
+        }
+
+        .visualizer-footer {
+            padding: 20px;
+            border-top: 1px solid var(--border);
+            background-color: rgba(15, 23, 42, 0.4);
+        }
+
+        .explanation-box {
+            background-color: rgba(99, 102, 241, 0.05);
+            border-left: 4px solid var(--primary);
+            padding: 16px;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .explanation-box p {
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .code-section {
+            flex: 2;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .code-container {
+            background-color: var(--bg-surface);
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .code-tabs {
+            display: flex;
+            border-bottom: 1px solid var(--border);
+            background-color: rgba(30, 41, 59, 0.5);
+        }
+
+        .code-tab {
+            padding: 12px 20px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            border-right: 1px solid var(--border);
+            color: var(--text-muted);
+            transition: all 0.2s ease;
+        }
+
+        .code-tab:hover {
+            color: var(--text-main);
+        }
+
+        .code-tab.active {
+            background-color: var(--bg-code);
+            color: var(--primary);
+            border-bottom: 2px solid var(--primary);
+        }
+
+        .code-viewport {
+            flex-grow: 1;
+            background-color: var(--bg-code);
+            padding: 20px;
+            overflow: auto;
+        }
+
+        pre {
+            font-family: var(--font-mono);
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        .highlighted-line {
+            background-color: rgba(99, 102, 241, 0.2);
+            display: block;
+            margin: 0 -20px;
+            padding: 0 20px;
+            border-left: 3px solid var(--primary);
+        }
+
+        .input-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .input-field {
+            background-color: var(--bg-base);
+            border: 1px solid var(--border);
+            color: var(--text-main);
+            padding: 6px 12px;
+            border-radius: 6px;
+            width: 80px;
+            font-size: 14px;
+            font-weight: 500;
+            outline: none;
+        }
+
+        .input-field:focus {
+            border-color: var(--primary);
+        }
+
+        .lis-cards-row {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            width: 100%;
+        }
+
+        .lis-card {
+            width: 50px;
+            height: 50px;
+            background-color: var(--bg-surface);
+            border: 2.5px solid var(--border);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            font-weight: 700;
+            position: relative;
+            transition: all 0.2s ease;
+        }
+
+        .lis-card.active {
+            border-color: var(--accent);
+            background-color: rgba(244, 63, 94, 0.1);
+        }
+
+        .lis-card.max-sub {
+            border-color: var(--success);
+            background-color: rgba(16, 185, 129, 0.15);
+            box-shadow: 0 0 10px rgba(16, 185, 129, 0.2);
+        }
+
+        .lis-card.cur-sub {
+            border-color: var(--warning);
+            background-color: rgba(245, 158, 11, 0.15);
+        }
+
+        .card-idx-lbl {
+            font-size: 9px;
+            color: var(--text-muted);
+            position: absolute;
+            top: 2px;
+            right: 4px;
+        }
+
+        .card-pointer-lbl {
+            font-size: 10px;
+            font-weight: 600;
+            color: var(--text-muted);
+            position: absolute;
+            top: -20px;
+        }
+
+        .tri-wrapper {
+            display: flex;
+            width: 100%;
+            gap: 20px;
+            align-items: center;
+            justify-content: center;
+        }
+
+        svg {
+            background-color: var(--bg-base);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            width: 320px;
+            height: 320px;
+        }
+
+        .matrix-table {
+            border-collapse: collapse;
+            font-size: 11px;
+            text-align: center;
+            font-family: var(--font-mono);
+        }
+
+        .matrix-table th, .matrix-table td {
+            width: 42px;
+            height: 32px;
+            border: 1px solid var(--border);
+            padding: 2px;
+        }
+
+        .matrix-table th {
+            background-color: rgba(30, 41, 59, 0.5);
+            color: var(--text-muted);
+        }
+
+        .matrix-table td.active-cell {
+            background-color: rgba(244, 63, 94, 0.2);
+            border-color: var(--accent);
+        }
+
+        .matrix-table td.component-cell {
+            background-color: rgba(245, 158, 11, 0.15);
+            border-color: var(--warning);
+        }
+
+        .matrix-table td.diagonal-zero {
+            background-color: rgba(255, 255, 255, 0.05);
+            color: var(--text-muted);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h1>Capitolul 9</h1>
+            <p>Programare dinamică</p>
+        </div>
+        <ul class="menu-list">
+            <li class="menu-item active" onclick="selectAlgorithm('lis')">1. Subsecvența Maximă (LIS)</li>
+            <li class="menu-item" onclick="selectAlgorithm('triangulation')">2. Triangulare Convex-Poligon</li>
+            <li class="menu-item" onclick="selectAlgorithm('serie')">3. Competiția (serie)</li>
+            <li class="menu-item" onclick="selectAlgorithm('matrixchain')">4. Înmulțire de Matrice în Lanț</li>
+            <li class="menu-item" onclick="selectAlgorithm('lcs')">5. Subsecvența Comună Maximă (LCS)</li>
+            <li class="menu-item" onclick="selectAlgorithm('obst')">6. Arbore Binar de Căutare Optim (OBST)</li>
+        </ul>
+    </div>
+
+    <div class="main-content">
+        <div class="top-bar">
+            <h2 id="algo-title">Subsecvența Maximă (LIS)</h2>
+        </div>
+
+        <div class="workspace">
+            <div class="visualizer-section">
+                <div class="visualizer-header">
+                    <div class="controls-row" id="inputs-container">
+                    </div>
+                    <div class="controls-row">
+                        <button class="btn" onclick="stepBackward()">Înapoi</button>
+                        <button class="btn btn-primary" id="play-btn" onclick="togglePlay()">Auto Run</button>
+                        <button class="btn" onclick="stepForward()">Pas Următor</button>
+                        <button class="btn btn-danger" onclick="resetState()">Reset</button>
+                    </div>
+                </div>
+                <div class="visualizer-body" id="canvas">
+                </div>
+                <div class="visualizer-body-extra" id="canvas-extra" style="display:none; width:100%; padding:0 24px;">
+                </div>
+                <div class="visualizer-footer">
+                    <div class="explanation-box">
+                        <p id="step-explanation">Inițializează stările pentru a începe.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="code-section">
+                <div class="code-container">
+                    <div class="code-tabs">
+                        <div class="code-tab active" id="tab-pseudo" onclick="selectCodeTab('pseudo')">Pseudocod</div>
+                        <div class="code-tab" id="tab-java" onclick="selectCodeTab('java')">Cod Java</div>
+                        <div class="code-tab" id="tab-teorie" onclick="selectCodeTab('teorie')">Teorie</div>
+                    </div>
+                    <div class="code-viewport">
+                        <pre id="code-display"></pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentAlgorithm = 'lis';
+        let currentCodeTab = 'pseudo';
+        let stepIndex = 0;
+        let states = [];
+        let isPlaying = false;
+        let playInterval = null;
+
+        const pseudocodes = {
+            lis: `procedure LONGEST-INCREASING-SUBSEQUENCE(A[1..n])
+  current_start = 1; max_start = 1
+  max_len = 1; current_len = 1
+  for i = 2 to n do
+    if A[i] >= A[i-1] then
+      current_len = current_len + 1
+      if current_len > max_len then
+        max_start = current_start
+        max_len = current_len
+      end if
+    else
+      current_start = i
+      current_len = 1
+    end if
+  end for
+  return (max_start, max_len)
+end procedure`,
+            triangulation: `procedure MIN-WEIGHT-TRIANGULATION(P[0..n-1])
+  for gap = 0 to n-1 do
+    for i = 0 to n-gap-1 do
+      j = i + gap
+      if j < i + 2 then MWT[i,j] = 0
+      else
+        MWT[i,j] = infinity
+        for k = i+1 to j-1 do
+          val = MWT[i,k] + MWT[k,j] + weight(i,j,k)
+          if val < MWT[i,j] then MWT[i,j] = val
+        end for
+      end if
+    end for
+  end for
+  return MWT[0,n-1]
+end procedure`,
+            serie: `procedure SERIE(n, p)
+  q = 1 - p
+  for s = 1 to n do
+    P[0, s] = 1; P[s, 0] = 0
+    for k = 1 to s - 1 do
+      P[k, s - k] = p * P[k - 1, s - k] + q * P[k, s - k - 1]
+    end for
+  end for
+  for s = 1 to n do
+    for k = 0 to n - s do
+      P[s + k, n - k] = p * P[s + k - 1, n - k] + q * P[s + k, n - k - 1]
+    end for
+  end for
+  return P[n, n]
+end procedure`,
+            matrixchain: `procedure MATRIX-CHAIN-ORDER(p)
+  n = length(p) - 1
+  for i = 1 to n do m[i, i] = 0
+  for l = 2 to n do
+    for i = 1 to n - l + 1 do
+      j = i + l - 1; m[i, j] = infinity
+      for k = i to j - 1 do
+        q = m[i, k] + m[k + 1, j] + p[i - 1] * p[k] * p[j]
+        if q < m[i, j] then
+          m[i, j] = q; s[i, j] = k
+        end if
+      end for
+    end for
+  end for
+  return m and s
+end procedure`,
+            lcs: `procedure LCS-LENGTH(X, Y)
+  m = length(X); n = length(Y)
+  for i = 1 to m do c[i, 0] = 0
+  for j = 0 to n do c[0, j] = 0
+  for i = 1 to m do
+    for j = 1 to n do
+      if X[i] == Y[j] then
+        c[i, j] = c[i - 1, j - 1] + 1; b[i, j] = "↖"
+      else
+        if c[i - 1, j] >= c[i, j - 1] then
+          c[i, j] = c[i - 1, j]; b[i, j] = "↑"
+        else
+          c[i, j] = c[i, j - 1]; b[i, j] = "←"
+        end if
+      end if
+    end for
+  end for
+  return c and b
+end procedure`,
+            obst: `procedure OPTIMAL-BST(p)
+  n = length(p)
+  for i = 1 to n + 1 do Cost[i, i - 1] = 0
+  for l = 1 to n do
+    for i = 1 to n - l + 1 do
+      j = i + l - 1; Cost[i, j] = infinity
+      sum = Sum(i, j)
+      for r = i to j do
+        val = Cost[i, r - 1] + Cost[r + 1, j] + sum
+        if val < Cost[i, j] then
+          Cost[i, j] = val; root[i, j] = r
+        end if
+      end for
+    end for
+  end for
+  return Cost and root
+end procedure`
+        };
+
+        const javacodes = {
+            lis: `public static LISResult longestIncreasingSubsequence(int[] A) {
+    int currentStart = 0, maxStart = 0;
+    int maxLen = 1, currentLen = 1;
+    for (int i = 1; i < A.length; i++) {
+        if (A[i] >= A[i - 1]) {
+            currentLen++;
+            if (currentLen > maxLen) {
+                maxStart = currentStart;
+                maxLen = currentLen;
+            }
+        } else {
+            currentStart = i;
+            currentLen = 1;
+        }
+    }
+    return new LISResult(maxStart, maxLen);
+}`,
+            triangulation: `public static double minWeightTriangulation(double[][] pts) {
+    int n = pts.length;
+    double[][] MWT = new double[n][n];
+    for (int gap = 0; gap < n; gap++) {
+        for (int i = 0, j = gap; j < n; i++, j++) {
+            if (j < i + 2) {
+                MWT[i][j] = 0.0;
+            } else {
+                MWT[i][j] = Double.MAX_VALUE;
+                for (int k = i + 1; k < j; k++) {
+                    double val = MWT[i][k] + MWT[k][j] + weight(pts, i, j, k);
+                    if (val < MWT[i][j]) {
+                        MWT[i][j] = val;
+                    }
+                }
+            }
+        }
+    }
+    return MWT[0][n - 1];
+}`,
+            serie: `public static double[][] serie(int n, double p) {
+    double[][] P = new double[n + 1][n + 1];
+    double q = 1.0 - p;
+    for (int s = 1; s <= n; s++) {
+        P[0][s] = 1.0; P[s][0] = 0.0;
+        for (int k = 1; k < s; k++) {
+            P[k][s - k] = p * P[k - 1][s - k] + q * P[k][s - k - 1];
+        }
+    }
+    for (int s = 1; s <= n; s++) {
+        for (int k = 0; k <= n - s; k++) {
+            P[s + k][n - k] = p * P[s + k - 1][n - k] + q * P[s + k][n - k - 1];
+        }
+    }
+    return P;
+}`,
+            matrixchain: `public static void matrixChainOrder(int[] p, int[][] m, int[][] s) {
+    int n = p.length - 1;
+    for (int i = 1; i <= n; i++) m[i][i] = 0;
+    for (int l = 2; l <= n; l++) {
+        for (int i = 1; i <= n - l + 1; i++) {
+            int j = i + l - 1; m[i][j] = Integer.MAX_VALUE;
+            for (int k = i; k <= j - 1; k++) {
+                int q = m[i][k] + m[k + 1][j] + p[i - 1] * p[k] * p[j];
+                if (q < m[i][j]) { m[i][j] = q; s[i][j] = k; }
+            }
+        }
+    }
+}`,
+            lcs: `public static void lcsLength(String X, String Y, int[][] c, String[][] b) {
+    int m = X.length(), n = Y.length();
+    for (int i = 1; i <= m; i++) c[i][0] = 0;
+    for (int j = 0; j <= n; j++) c[0][j] = 0;
+    for (int i = 1; i <= m; i++) {
+        for (int j = 1; j <= n; j++) {
+            if (X.charAt(i - 1) == Y.charAt(j - 1)) {
+                c[i][j] = c[i - 1][j - 1] + 1; b[i][j] = "↖";
+            } else if (c[i - 1][j] >= c[i][j - 1]) {
+                c[i][j] = c[i - 1][j]; b[i][j] = "↑";
+            } else {
+                c[i][j] = c[i][j - 1]; b[i][j] = "←";
+            }
+        }
+    }
+}`,
+            obst: `public static void optimalBST(double[] p, double[][] Cost, int[][] root) {
+    int n = p.length - 1;
+    for (int i = 1; i <= n + 1; i++) Cost[i][i - 1] = 0.0;
+    for (int l = 1; l <= n; l++) {
+        for (int i = 1; i <= n - l + 1; i++) {
+            int j = i + l - 1; Cost[i][j] = Double.MAX_VALUE;
+            double sum = 0.0;
+            for (int k = i; k <= j; k++) sum += p[k];
+            for (int r = i; r <= j; r++) {
+                double val = Cost[i][r - 1] + Cost[r + 1][j] + sum;
+                if (val < Cost[i][j]) { Cost[i][j] = val; root[i][j] = r; }
+            }
+        }
+    }
+}`
+        };
+
+        const teorii = {
+            lis: `<div style="padding: 10px; font-family: var(--font-sans);">
+                <h3 style="color: var(--primary); margin-bottom: 6px; font-size: 15px;">Scop</h3>
+                <p style="margin-bottom: 12px; color: var(--text-main); font-size: 13px; line-height: 1.5;">Găsirea celei mai lungi subsecvențe de elemente <i>consecutive</i> (subtablou) care sunt sortate crescător.</p>
+                <h3 style="color: var(--primary); margin-bottom: 6px; font-size: 15px;">Funcționare</h3>
+                <p style="margin-bottom: 12px; color: var(--text-main); font-size: 13px; line-height: 1.5;">Parcurge tabloul de la stânga la dreapta. Menține un contor al lungimii curente crescătoare și poziția de start a acesteia. Dacă elementul curent este mai mare sau egal cu cel anterior, extinde secvența și actualizează maximul global. În caz contrar, resetează secvența curentă începând cu indexul curent.</p>
+                <h3 style="color: var(--primary); margin-bottom: 6px; font-size: 15px;">Aplicații</h3>
+                <p style="margin-bottom: 12px; color: var(--text-main); font-size: 13px; line-height: 1.5;">Analiza seriilor de timp economice, identificarea tendințelor în seturi mari de date fizice sau meteorologice.</p>
+                <h3 style="color: var(--primary); margin-bottom: 6px; font-size: 15px;">Complexitate</h3>
+                <p style="color: var(--text-main); font-size: 13px; line-height: 1.5;">Timp: O(n) parcurgere liniară simplă. Spațiu: O(1) auxiliar.</p>
+            </div>`,
+            triangulation: `<div style="padding: 10px; font-family: var(--font-sans);">
+                <h3 style="color: var(--primary); margin-bottom: 6px; font-size: 15px;">Scop</h3>
+                <p style="margin-bottom: 12px; color: var(--text-main); font-size: 13px; line-height: 1.5;">Determinarea unei triangulări complete a unui poligon convex astfel încât suma perimetrelor tuturor triunghiurilor formate să fie minimă.</p>
+                <h3 style="color: var(--primary); margin-bottom: 6px; font-size: 15px;">Funcționare</h3>
+                <p style="margin-bottom: 12px; color: var(--text-main); font-size: 13px; line-height: 1.5;">Definește ecuația de recurență DP: costul triangulării poligonului format de vârfurile $i$ la $j$ se obține testând toate punctele intermediare $k$ ($i < k < j$). Valoarea optimă este suma costurilor sub-poligoanelor stâng ($i \dots k$) și drept ($k \dots j$) plus perimetrul triunghiului $ikj$. Matricea MWT se completează crescător după diferența (gap) dintre indici.</p>
+                <h3 style="color: var(--primary); margin-bottom: 6px; font-size: 15px;">Aplicații</h3>
+                <p style="margin-bottom: 12px; color: var(--text-main); font-size: 13px; line-height: 1.5;">Optimizarea rețelelor de poligoane în modelarea 3D, generarea de mesh-uri în metode computaționale (FEM), planificarea traseelor.</p>
+                <h3 style="color: var(--primary); margin-bottom: 6px; font-size: 15px;">Complexitate</h3>
+                <p style="color: var(--text-main); font-size: 13px; line-height: 1.5;">Timp: O(n³). Spațiu: O(n²) pentru matricea DP.</p>
+            </div>`,
+            serie: `<div style="padding: 10px; font-family: var(--font-sans);">
+                <h3 style="color: var(--primary); margin-bottom: 6px; font-size: 15px;">Scop</h3>
+                <p style="margin-bottom: 12px; color: var(--text-main); font-size: 13px; line-height: 1.5;">Calcularea probabilității ca un jucător să câștige o competiție constând dintr-o serie de partide.</p>
+                <h3 style="color: var(--primary); margin-bottom: 6px; font-size: 15px;">Funcționare</h3>
+                <p style="margin-bottom: 12px; color: var(--text-main); font-size: 13px; line-height: 1.5;">Problema folosește recurența P(i, j) = p*P(i-1, j) + q*P(i, j-1) pentru a calcula probabilitatea ca jucătorul A să acumuleze primul n victorii. Completarea matricei DP se face diagonală cu diagonală de jos în sus, reducând complexitatea de la timp exponențial la timp pătratic.</p>
+                <h3 style="color: var(--primary); margin-bottom: 6px; font-size: 15px;">Complexitate</h3>
+                <p style="color: var(--text-main); font-size: 13px; line-height: 1.5;">Timp: O(n²). Spațiu: O(n²) sau O(n) (folosind doar diagonala anterioară).</p>
+            </div>`,
+            matrixchain: `<div style="padding: 10px; font-family: var(--font-sans);">
+                <h3 style="color: var(--primary); margin-bottom: 6px; font-size: 15px;">Scop</h3>
+                <p style="margin-bottom: 12px; color: var(--text-main); font-size: 13px; line-height: 1.5;">Determinarea ordinii optime de înmulțire a unui șir de matrice pentru a minimiza numărul total de operații scalare.</p>
+                <h3 style="color: var(--primary); margin-bottom: 6px; font-size: 15px;">Funcționare</h3>
+                <p style="margin-bottom: 12px; color: var(--text-main); font-size: 13px; line-height: 1.5;">Se calculează o matrice m[i, j] reprezentând costul minim pentru produsul matricelor de la i la j, prin testarea tuturor punctelor de divizare k (i <= k < j). În paralel, se completează s[i, j] pentru a stoca indexul k optim, care este folosit la reconstrucția structurii de paranteze.</p>
+                <h3 style="color: var(--primary); margin-bottom: 6px; font-size: 15px;">Complexitate</h3>
+                <p style="color: var(--text-main); font-size: 13px; line-height: 1.5;">Timp: O(n³). Spațiu: O(n²) pentru matricile DP.</p>
+            </div>`,
+            lcs: `<div style="padding: 10px; font-family: var(--font-sans);">
+                <h3 style="color: var(--primary); margin-bottom: 6px; font-size: 15px;">Scop</h3>
+                <p style="margin-bottom: 12px; color: var(--text-main); font-size: 13px; line-height: 1.5;">Găsirea celui mai lung subșir de caractere comun la două secvențe date (fără cerința de a fi pe poziții adiacente).</p>
+                <h3 style="color: var(--primary); margin-bottom: 6px; font-size: 15px;">Funcționare</h3>
+                <p style="margin-bottom: 12px; color: var(--text-main); font-size: 13px; line-height: 1.5;">Umple o matrice c[i, j] de lungimi de jos în sus: dacă caracterele X[i] și Y[j] sunt egale, c[i, j] = c[i-1, j-1] + 1; în caz contrar, se ia maximul dintre celulele din nord sau vest. Matricea b stochează direcțiile pentru a reconstrui șirul final prin backtracking.</p>
+                <h3 style="color: var(--primary); margin-bottom: 6px; font-size: 15px;">Complexitate</h3>
+                <p style="color: var(--text-main); font-size: 13px; line-height: 1.5;">Timp: O(m*n). Spațiu: O(m*n) pentru stocarea direcțiilor.</p>
+            </div>`,
+            obst: `<div style="padding: 10px; font-family: var(--font-sans);">
+                <h3 style="color: var(--primary); margin-bottom: 6px; font-size: 15px;">Scop</h3>
+                <p style="margin-bottom: 12px; color: var(--text-main); font-size: 13px; line-height: 1.5;">Construirea unui arbore binar de căutare optim, care minimizează numărul mediu de comparații, bazat pe frecvențele de căutare ale fiecărei chei.</p>
+                <h3 style="color: var(--primary); margin-bottom: 6px; font-size: 15px;">Funcționare</h3>
+                <p style="margin-bottom: 12px; color: var(--text-main); font-size: 13px; line-height: 1.5;">Folosește recurența DP: costul unui subinterval [i, j] se calculează prin încercarea fiecărei chei r ca rădăcină locală, adăugând costul subarborilor stâng [i, r-1] și drept [r+1, j], plus suma probabilităților pentru a reflecta creșterea cu 1 a adâncimii fiecărei chei din subarbore.</p>
+                <h3 style="color: var(--primary); margin-bottom: 6px; font-size: 15px;">Complexitate</h3>
+                <p style="color: var(--text-main); font-size: 13px; line-height: 1.5;">Timp: O(n³). Spațiu: O(n²) pentru stocarea costurilor intermediare.</p>
+            </div>`
+        };
+
+        const titles = {
+            lis: "1. Subsecvența Crescătoare Continuă (LIS)",
+            triangulation: "2. Triangulare Convex-Poligon",
+            serie: "3. Competiția (serie)",
+            matrixchain: "4. Înmulțire de Matrice în Lanț",
+            lcs: "5. Subsecvența Comună Maximă (LCS)",
+            obst: "6. Arbore Binar de Căutare Optim (OBST)"
+        };
+
+        function selectAlgorithm(algo) {
+            currentAlgorithm = algo;
+            document.querySelectorAll('.menu-item').forEach(el => el.classList.remove('active'));
+            const items = document.querySelectorAll('.menu-item');
+            if (algo === 'lis') items[0].classList.add('active');
+            else if (algo === 'triangulation') items[1].classList.add('active');
+            else if (algo === 'serie') items[2].classList.add('active');
+            else if (algo === 'matrixchain') items[3].classList.add('active');
+            else if (algo === 'lcs') items[4].classList.add('active');
+            else if (algo === 'obst') items[5].classList.add('active');
+
+            document.getElementById('algo-title').innerText = titles[algo];
+            stopPlay();
+            renderCode();
+            setupInputs();
+            resetState();
+        }
+
+        function selectCodeTab(tab) {
+            currentCodeTab = tab;
+            document.getElementById('tab-pseudo').classList.toggle('active', tab === 'pseudo');
+            document.getElementById('tab-java').classList.toggle('active', tab === 'java');
+            document.getElementById('tab-teorie').classList.toggle('active', tab === 'teorie');
+            renderCode();
+        }
+
+        function renderCode() {
+            const display = document.getElementById('code-display');
+            if (currentCodeTab === 'teorie') {
+                display.innerHTML = teorii[currentAlgorithm] || '';
+                display.style.fontFamily = 'var(--font-sans)';
+                display.style.whiteSpace = 'normal';
+                return;
+            }
+            display.style.fontFamily = '';
+            display.style.whiteSpace = '';
+            const codeText = currentCodeTab === 'pseudo' ? pseudocodes[currentAlgorithm] : javacodes[currentAlgorithm];
+            
+            if (states.length > 0 && stepIndex < states.length && states[stepIndex].line !== undefined) {
+                const lines = codeText.split('\n');
+                const targetLine = states[stepIndex].line;
+                const formattedLines = lines.map((line, idx) => {
+                    if (idx === targetLine) {
+                        return `<span class="highlighted-line">${line}</span>`;
+                    }
+                    return line;
+                });
+                display.innerHTML = formattedLines.join('\n');
+            } else {
+                display.innerText = codeText;
+            }
+        }
+
+        function setupInputs() {
+            const container = document.getElementById('inputs-container');
+            if (currentAlgorithm === 'lis') {
+                container.innerHTML = `
+                    <div class="input-group">
+                        <span style="font-size: 13px; font-weight:600;">Tablou:</span>
+                        <input type="text" class="input-field" id="lis-arr" value="2,5,4,8,10,7,12" style="width: 160px;">
+                        <button class="btn btn-primary" onclick="generateStates()">Setează</button>
+                    </div>
+                `;
+            } else if (currentAlgorithm === 'triangulation') {
+                container.innerHTML = `
+                    <div class="input-group">
+                        <span style="font-size: 13px; font-weight:600;">Poligon regulat (6 laturi)</span>
+                        <button class="btn btn-primary" onclick="generateStates()">Calculează DP</button>
+                    </div>
+                `;
+            } else if (currentAlgorithm === 'serie') {
+                container.innerHTML = `
+                    <div class="input-group">
+                        <span style="font-size: 13px; font-weight:600;">n:</span>
+                        <input type="number" class="input-field" id="serie-n" value="3" style="width: 50px;">
+                        <span style="font-size: 13px; font-weight:600;">p:</span>
+                        <input type="number" class="input-field" id="serie-p" value="0.6" step="0.1" style="width: 60px;">
+                        <button class="btn btn-primary" onclick="generateStates()">Calculează</button>
+                    </div>
+                `;
+            } else if (currentAlgorithm === 'matrixchain') {
+                container.innerHTML = `
+                    <div class="input-group">
+                        <span style="font-size: 13px; font-weight:600;">Dimensiuni:</span>
+                        <input type="text" class="input-field" id="dims-input" value="10,100,5,50" style="width: 150px;">
+                        <button class="btn btn-primary" onclick="generateStates()">Setează</button>
+                    </div>
+                `;
+            } else if (currentAlgorithm === 'lcs') {
+                container.innerHTML = `
+                    <div class="input-group">
+                        <span style="font-size: 13px; font-weight:600;">X:</span>
+                        <input type="text" class="input-field" id="lcs-x" value="ABCBDAB" style="width: 100px;">
+                        <span style="font-size: 13px; font-weight:600;">Y:</span>
+                        <input type="text" class="input-field" id="lcs-y" value="BDCABA" style="width: 100px;">
+                        <button class="btn btn-primary" onclick="generateStates()">Setează</button>
+                    </div>
+                `;
+            } else if (currentAlgorithm === 'obst') {
+                container.innerHTML = `
+                    <div class="input-group">
+                        <span style="font-size: 13px; font-weight:600;">Probabilități:</span>
+                        <input type="text" class="input-field" id="obst-p" value="0.2,0.5,0.3" style="width: 120px;">
+                        <button class="btn btn-primary" onclick="generateStates()">Setează</button>
+                    </div>
+                `;
+            }
+        }
+
+        function dist(p1, p2) {
+            return Math.sqrt((p1.x - p2.x)*(p1.x - p2.x) + (p1.y - p2.y)*(p1.y - p2.y));
+        }
+
+        function weightVal(pts, i, j, k) {
+            return dist(pts[i], pts[j]) + dist(pts[j], pts[k]) + dist(pts[k], pts[i]);
+        }
+
+        function getChordsList(bestSplit, i, j) {
+            let list = [];
+            const getChords = (l, r) => {
+                if (r < l + 2) return;
+                let k = bestSplit[l][r];
+                if (k !== -1 && k !== undefined) {
+                    if (k > l + 1) list.push({u: l, v: k});
+                    if (r > k + 1) list.push({u: k, v: r});
+                    getChords(l, k);
+                    getChords(k, r);
+                }
+            };
+            getChords(i, j);
+            return list;
+        }
+
+        function generateStates() {
+            states = [];
+            stepIndex = 0;
+            stopPlay();
+
+            if (currentAlgorithm === 'lis') {
+                const val = document.getElementById('lis-arr').value;
+                const A = val.split(',').map(x => parseInt(x.trim())).filter(x => !isNaN(x));
+
+                states.push({
+                    A: [...A],
+                    i: 0,
+                    currentStart: 0,
+                    maxStart: 0,
+                    maxLen: 1,
+                    currentLen: 1,
+                    line: 1,
+                    desc: "Inițializăm subsecvența continuă maximă pentru: [" + A.join(', ') + "]."
+                });
+
+                let currentStart = 0;
+                let maxStart = 0;
+                let maxLen = 1;
+                let currentLen = 1;
+
+                for (let i = 1; i < A.length; i++) {
+                    states.push({
+                        A: [...A],
+                        i: i,
+                        currentStart: currentStart,
+                        maxStart: maxStart,
+                        maxLen: maxLen,
+                        currentLen: currentLen,
+                        line: 4,
+                        desc: "Analizăm elementul de pe poziția i = " + i + " (valoare: " + A[i] + ") comparat cu cel de la i-1 (" + A[i-1] + ")."
+                    });
+
+                    if (A[i] >= A[i - 1]) {
+                        currentLen++;
+                        let update = false;
+                        if (currentLen > maxLen) {
+                            maxStart = currentStart;
+                            maxLen = currentLen;
+                            update = true;
+                        }
+                        states.push({
+                            A: [...A],
+                            i: i,
+                            currentStart: currentStart,
+                            maxStart: maxStart,
+                            maxLen: maxLen,
+                            currentLen: currentLen,
+                            line: 5,
+                            desc: "A[i] >= A[i-1] (" + A[i] + " >= " + A[i-1] + "). Creștem lungimea curentă la " + currentLen + "." + (update ? " Actualizăm maximul global (lungime: " + maxLen + ")." : "")
+                        });
+                    } else {
+                        currentStart = i;
+                        currentLen = 1;
+                        states.push({
+                            A: [...A],
+                            i: i,
+                            currentStart: currentStart,
+                            maxStart: maxStart,
+                            maxLen: maxLen,
+                            currentLen: currentLen,
+                            line: 11,
+                            desc: "A[i] < A[i-1] (" + A[i] + " < " + A[i-1] + "). Întrerupem secvența crescătoare. Resetăm începutul curent la indexul " + i + "."
+                        });
+                    }
+                }
+
+                states.push({
+                    A: [...A],
+                    i: -1,
+                    currentStart: currentStart,
+                    maxStart: maxStart,
+                    maxLen: maxLen,
+                    currentLen: currentLen,
+                    finished: true,
+                    line: 15,
+                    desc: "Algoritmul s-a încheiat! Cea mai lungă subsecvență crescătoare continuă începe la indexul " + maxStart + " și are lungimea " + maxLen + "."
+                });
+
+            } else if (currentAlgorithm === 'triangulation') {
+                const pts = [
+                    {x: 160, y: 50},
+                    {x: 270, y: 100},
+                    {x: 270, y: 220},
+                    {x: 160, y: 270},
+                    {x: 50, y: 220},
+                    {x: 50, y: 100}
+                ];
+                const n = pts.length;
+                const MWT = Array(n).fill(null).map(() => Array(n).fill(0));
+                const bestSplit = Array(n).fill(null).map(() => Array(n).fill(-1));
+
+                states.push({
+                    pts: pts,
+                    MWT: MWT.map(r => [...r]),
+                    activeI: -1,
+                    activeJ: -1,
+                    activeK: -1,
+                    chords: [],
+                    line: 1,
+                    desc: "Inițializăm matricea MWT de dimensiune 6x6 cu 0 pe subdiagonalele unde distanța dintre vârfuri este mai mică de 2."
+                });
+
+                for (let gap = 2; gap < n; gap++) {
+                    for (let i = 0; i < n - gap; i++) {
+                        let j = i + gap;
+                        MWT[i][j] = Infinity;
+
+                        states.push({
+                            pts: pts,
+                            MWT: MWT.map(r => [...r]),
+                            activeI: i,
+                            activeJ: j,
+                            activeK: -1,
+                            chords: getChordsList(bestSplit, i, j),
+                            line: 7,
+                            desc: "Calculăm costul minim de triangulare pentru sub-poligonul cu vârfurile i = " + i + " și j = " + j + "."
+                        });
+
+                        let bestK = -1;
+                        for (let k = i + 1; k < j; k++) {
+                            let w = weightVal(pts, i, j, k);
+                            let val = MWT[i][k] + MWT[k][j] + w;
+
+                            states.push({
+                                pts: pts,
+                                MWT: MWT.map(r => [...r]),
+                                activeI: i,
+                                activeJ: j,
+                                activeK: k,
+                                chords: getChordsList(bestSplit, i, j),
+                                line: 10,
+                                desc: "Evaluăm punctul de split k = " + k + ". Cost total: MWT[" + i + "][" + k + "] (" + Math.round(MWT[i][k]) + ") + MWT[" + k + "][" + j + "] (" + Math.round(MWT[k][j]) + ") + perimetru_triunghi (" + Math.round(w) + ") = " + Math.round(val) + "."
+                            });
+
+                            if (val < MWT[i][j]) {
+                                MWT[i][j] = val;
+                                bestK = k;
+                            }
+                        }
+                        bestSplit[i][j] = bestK;
+
+                        states.push({
+                            pts: pts,
+                            MWT: MWT.map(r => [...r]),
+                            activeI: i,
+                            activeJ: j,
+                            activeK: -1,
+                            chords: getChordsList(bestSplit, i, j),
+                            line: 11,
+                            desc: "S-a ales divizarea optimă la k = " + bestK + " cu costul minim: " + Math.round(MWT[i][j]) + "."
+                        });
+                    }
+                }
+
+                states.push({
+                    pts: pts,
+                    MWT: MWT.map(r => [...r]),
+                    activeI: -1,
+                    activeJ: -1,
+                    activeK: -1,
+                    chords: getChordsList(bestSplit, 0, n - 1),
+                    finished: true,
+                    line: 15,
+                    desc: "Triangularea s-a încheiat! Ponderea minimă a perimetrelor totale este MWT[0][" + (n-1) + "] = " + Math.round(MWT[0][n - 1]) + "."
+                });
+            } else if (currentAlgorithm === 'serie') {
+                let n = parseInt(document.getElementById('serie-n').value);
+                let p = parseFloat(document.getElementById('serie-p').value);
+                if (isNaN(n) || n < 1) n = 3;
+                if (isNaN(p) || p < 0 || p > 1) p = 0.6;
+                let q = 1.0 - p;
+
+                let P = Array(n + 1).fill(null).map(() => Array(n + 1).fill(0.0));
+
+                states.push({
+                    P: P.map(r => [...r]),
+                    activeRow: -1,
+                    activeCol: -1,
+                    compCells: [],
+                    line: 2,
+                    desc: "Inițializăm matricea P de dimensiune (n+1)x(n+1) pentru competiție."
+                });
+
+                for (let s = 1; s <= n; s++) {
+                    P[0][s] = 1.0;
+                    P[s][0] = 0.0;
+                    states.push({
+                        P: P.map(r => [...r]),
+                        activeRow: s,
+                        activeCol: 0,
+                        compCells: [],
+                        line: 5,
+                        desc: "Completăm cazurile de bază: P[0][" + s + "] = 1 (A are deja victorii și B are 0) și P[" + s + "][0] = 0."
+                    });
+
+                    for (let k = 1; k < s; k++) {
+                        P[k][s - k] = p * P[k - 1][s - k] + q * P[k][s - k - 1];
+                        states.push({
+                            P: P.map(r => [...r]),
+                            activeRow: k,
+                            activeCol: s - k,
+                            compCells: [[k - 1, s - k], [k, s - k - 1]],
+                            line: 7,
+                            desc: "Calculăm P[" + k + "][" + (s - k) + "] = p * P[" + (k - 1) + "][" + (s - k) + "] + q * P[" + k + "][" + (s - k - 1) + "] = " + P[k][s - k].toFixed(4) + "."
+                        });
+                    }
+                }
+
+                for (let s = 1; s <= n; s++) {
+                    for (let k = 0; k <= n - s; k++) {
+                        P[s + k][n - k] = p * P[s + k - 1][n - k] + q * P[s + k][n - k - 1];
+                        states.push({
+                            P: P.map(r => [...r]),
+                            activeRow: s + k,
+                            activeCol: n - k,
+                            compCells: [[s + k - 1, n - k], [s + k, n - k - 1]],
+                            line: 12,
+                            desc: "Calculăm diagonalele rămase: P[" + (s + k) + "][" + (n - k) + "] = " + P[s + k][n - k].toFixed(4) + "."
+                        });
+                    }
+                }
+
+                states.push({
+                    P: P.map(r => [...r]),
+                    activeRow: n,
+                    activeCol: n,
+                    compCells: [],
+                    line: 15,
+                    desc: "Algoritmul s-a încheiat! Probabilitatea ca A să câștige prima cele n victorii este P[" + n + "][" + n + "] = " + P[n][n].toFixed(4) + "."
+                });
+            } else if (currentAlgorithm === 'matrixchain') {
+                const val = document.getElementById('dims-input').value;
+                const pArr = val.split(',').map(x => parseInt(x.trim())).filter(x => !isNaN(x));
+                let n = pArr.length - 1;
+
+                let mTable = Array(n + 1).fill(null).map(() => Array(n + 1).fill(0));
+                let sTable = Array(n + 1).fill(null).map(() => Array(n + 1).fill(0));
+
+                states.push({
+                    mTable: mTable.map(r => [...r]),
+                    sTable: sTable.map(r => [...r]),
+                    activeI: -1,
+                    activeJ: -1,
+                    activeK: -1,
+                    line: 1,
+                    desc: "Inițializăm tabelele de costuri m și s."
+                });
+
+                for (let i = 1; i <= n; i++) {
+                    mTable[i][i] = 0;
+                }
+
+                for (let l = 2; l <= n; l++) {
+                    for (let i = 1; i <= n - l + 1; i++) {
+                        let j = i + l - 1;
+                        mTable[i][j] = Infinity;
+
+                        states.push({
+                            mTable: mTable.map(r => [...r]),
+                            sTable: sTable.map(r => [...r]),
+                            activeI: i,
+                            activeJ: j,
+                            activeK: -1,
+                            line: 9,
+                            desc: "Calculăm costul minim pentru produsul matricelor de la A" + i + " la A" + j + "."
+                        });
+
+                        let bestK = -1;
+                        for (let k = i; k <= j - 1; k++) {
+                            let cost = mTable[i][k] + mTable[k + 1][j] + pArr[i - 1] * pArr[k] * pArr[j];
+
+                            states.push({
+                                mTable: mTable.map(r => [...r]),
+                                sTable: sTable.map(r => [...r]),
+                                activeI: i,
+                                activeJ: j,
+                                activeK: k,
+                                testCost: cost,
+                                line: 11,
+                                desc: "Încercăm divizarea la k = " + k + ": m[" + i + "][" + k + "] (" + mTable[i][k] + ") + m[" + (k + 1) + "][" + j + "] (" + mTable[k + 1][j] + ") + " + pArr[i - 1] + "*" + pArr[k] + "*" + pArr[j] + " = " + cost + "."
+                            });
+
+                            if (cost < mTable[i][j]) {
+                                mTable[i][j] = cost;
+                                bestK = k;
+                            }
+                        }
+                        sTable[i][j] = bestK;
+
+                        states.push({
+                            mTable: mTable.map(r => [...r]),
+                            sTable: sTable.map(r => [...r]),
+                            activeI: i,
+                            activeJ: j,
+                            activeK: -1,
+                            line: 13,
+                            desc: "Am obținut costul optim m[" + i + "][" + j + "] = " + mTable[i][j] + " prin divizarea la k = " + bestK + "."
+                        });
+                    }
+                }
+
+                states.push({
+                    mTable: mTable.map(r => [...r]),
+                    sTable: sTable.map(r => [...r]),
+                    activeI: 1,
+                    activeJ: n,
+                    activeK: -1,
+                    line: 19,
+                    desc: "Algoritmul s-a încheiat! Numărul minim de multiplicări scalare este m[1][" + n + "] = " + mTable[1][n] + "."
+                });
+            } else if (currentAlgorithm === 'lcs') {
+                const X = document.getElementById('lcs-x').value.trim();
+                const Y = document.getElementById('lcs-y').value.trim();
+                const m = X.length;
+                const n = Y.length;
+
+                let cTable = Array(m + 1).fill(null).map(() => Array(n + 1).fill(0));
+                let bTable = Array(m + 1).fill(null).map(() => Array(n + 1).fill(""));
+
+                states.push({
+                    cTable: cTable.map(r => [...r]),
+                    bTable: bTable.map(r => [...r]),
+                    X: X,
+                    Y: Y,
+                    activeI: -1,
+                    activeJ: -1,
+                    lcsPath: [],
+                    line: 1,
+                    desc: "Inițializăm tabelele c (lungime) și b (direcții) pentru LCS."
+                });
+
+                for (let i = 1; i <= m; i++) {
+                    for (let j = 1; j <= n; j++) {
+                        states.push({
+                            cTable: cTable.map(r => [...r]),
+                            bTable: bTable.map(r => [...r]),
+                            X: X,
+                            Y: Y,
+                            activeI: i,
+                            activeJ: j,
+                            lcsPath: [],
+                            line: 11,
+                            desc: "Comparăm X[" + (i-1) + "] ('" + X[i-1] + "') cu Y[" + (j-1) + "] ('" + Y[j-1] + "')."
+                        });
+
+                        if (X[i - 1] === Y[j - 1]) {
+                            cTable[i][j] = cTable[i - 1][j - 1] + 1;
+                            bTable[i][j] = "↖";
+                            states.push({
+                                cTable: cTable.map(r => [...r]),
+                                bTable: bTable.map(r => [...r]),
+                                X: X,
+                                Y: Y,
+                                activeI: i,
+                                activeJ: j,
+                                lcsPath: [],
+                                line: 13,
+                                desc: "Caracterele sunt egale! Incrementăm lungimea c[" + i + "][" + j + "] = c[" + (i-1) + "][" + (j-1) + "] + 1 = " + cTable[i][j] + "."
+                            });
+                        } else {
+                            if (cTable[i - 1][j] >= cTable[i][j - 1]) {
+                                cTable[i][j] = cTable[i - 1][j];
+                                bTable[i][j] = "↑";
+                                states.push({
+                                    cTable: cTable.map(r => [...r]),
+                                    bTable: bTable.map(r => [...r]),
+                                    X: X,
+                                    Y: Y,
+                                    activeI: i,
+                                    activeJ: j,
+                                    lcsPath: [],
+                                    line: 17,
+                                    desc: "Caracterele sunt diferite. Alegem valoarea maximă din nord: c[" + (i-1) + "][" + j + "] = " + cTable[i][j] + "."
+                                });
+                            } else {
+                                cTable[i][j] = cTable[i][j - 1];
+                                bTable[i][j] = "←";
+                                states.push({
+                                    cTable: cTable.map(r => [...r]),
+                                    bTable: bTable.map(r => [...r]),
+                                    X: X,
+                                    Y: Y,
+                                    activeI: i,
+                                    activeJ: j,
+                                    lcsPath: [],
+                                    line: 20,
+                                    desc: "Caracterele sunt diferite. Alegem valoarea maximă din vest: c[" + i + "][" + (j-1) + "] = " + cTable[i][j] + "."
+                                });
+                            }
+                        }
+                    }
+                }
+
+                let path = [];
+                let currI = m, currJ = n;
+                while (currI > 0 && currJ > 0) {
+                    path.push([currI, currJ]);
+                    states.push({
+                        cTable: cTable.map(r => [...r]),
+                        bTable: bTable.map(r => [...r]),
+                        X: X,
+                        Y: Y,
+                        activeI: currI,
+                        activeJ: currJ,
+                        lcsPath: [...path],
+                        line: 26,
+                        desc: "Reconstruim drumul înapoi: ne aflăm la celula (" + currI + ", " + currJ + "), direcția indică " + bTable[currI][currJ] + "."
+                    });
+
+                    if (bTable[currI][currJ] === "↖") {
+                        currI--;
+                        currJ--;
+                    } else if (bTable[currI][currJ] === "↑") {
+                        currI--;
+                    } else {
+                        currJ--;
+                    }
+                }
+
+                states.push({
+                    cTable: cTable.map(r => [...r]),
+                    bTable: bTable.map(r => [...r]),
+                    X: X,
+                    Y: Y,
+                    activeI: -1,
+                    activeJ: -1,
+                    lcsPath: [...path],
+                    finished: true,
+                    line: 26,
+                    desc: "Algoritmul s-a încheiat! Lungimea celui mai lung subșir comun este " + cTable[m][n] + "."
+                });
+            } else if (currentAlgorithm === 'obst') {
+                const val = document.getElementById('obst-p').value;
+                const probsVal = val.split(',').map(x => parseFloat(x.trim())).filter(x => !isNaN(x));
+                const p = [0.0, ...probsVal];
+                const n = p.length - 1;
+
+                let Cost = Array(n + 2).fill(null).map(() => Array(n + 1).fill(0.0));
+                let root = Array(n + 2).fill(null).map(() => Array(n + 1).fill(0));
+
+                for (let i = 1; i <= n + 1; i++) {
+                    Cost[i][i - 1] = 0.0;
+                }
+
+                states.push({
+                    Cost: Cost.map(r => [...r]),
+                    root: root.map(r => [...r]),
+                    activeI: -1,
+                    activeJ: -1,
+                    activeR: -1,
+                    p: p,
+                    line: 1,
+                    desc: "Inițializăm matricea Cost cu 0 pe diagonala principală (subintervale goale)."
+                });
+
+                for (let l = 1; l <= n; l++) {
+                    for (let i = 1; i <= n - l + 1; i++) {
+                        let j = i + l - 1;
+                        Cost[i][j] = Infinity;
+
+                        let sum = 0.0;
+                        for (let k = i; k <= j; k++) {
+                            sum += p[k];
+                        }
+
+                        states.push({
+                            Cost: Cost.map(r => [...r]),
+                            root: root.map(r => [...r]),
+                            activeI: i,
+                            activeJ: j,
+                            activeR: -1,
+                            p: p,
+                            line: 2,
+                            desc: "Calculăm costul minim pentru subintervalul [K" + i + ", K" + j + "]. Suma probabilităților este " + sum.toFixed(2) + "."
+                        });
+
+                        let bestR = -1;
+                        for (let r = i; r <= j; r++) {
+                            let val = Cost[i][r - 1] + Cost[r + 1][j] + sum;
+
+                            states.push({
+                                Cost: Cost.map(r => [...r]),
+                                root: root.map(r => [...r]),
+                                activeI: i,
+                                activeJ: j,
+                                activeR: r,
+                                p: p,
+                                line: 2,
+                                desc: "Încercăm rădăcina K" + r + ": Cost[" + i + "][" + (r-1) + "] (" + Cost[i][r-1].toFixed(2) + ") + Cost[" + (r+1) + "][" + j + "] (" + Cost[r+1][j].toFixed(2) + ") + Sum (" + sum.toFixed(2) + ") = " + val.toFixed(2) + "."
+                            });
+
+                            if (val < Cost[i][j]) {
+                                Cost[i][j] = val;
+                                bestR = r;
+                            }
+                        }
+                        root[i][j] = bestR;
+
+                        states.push({
+                            Cost: Cost.map(r => [...r]),
+                            root: root.map(r => [...r]),
+                            activeI: i,
+                            activeJ: j,
+                            activeR: -1,
+                            p: p,
+                            line: 2,
+                            desc: "Am ales rădăcina optimă K" + bestR + " cu costul minim: " + Cost[i][j].toFixed(2) + "."
+                        });
+                    }
+                }
+
+                states.push({
+                    Cost: Cost.map(r => [...r]),
+                    root: root.map(r => [...r]),
+                    activeI: 1,
+                    activeJ: n,
+                    activeR: -1,
+                    p: p,
+                    finished: true,
+                    line: 2,
+                    desc: "Algoritmul s-a încheiat! Costul minim al arborelui optim este Cost[1][" + n + "] = " + Cost[1][n].toFixed(2) + "."
+                });
+            }
+
+            renderState();
+        }
+
+        function renderState() {
+            if (states.length === 0) return;
+            const state = states[stepIndex];
+            document.getElementById('step-explanation').innerText = state.desc;
+
+            const canvas = document.getElementById('canvas');
+            const canvasExtra = document.getElementById('canvas-extra');
+
+            if (currentAlgorithm === 'lis') {
+                canvasExtra.style.display = 'none';
+                let html = '<div class="lis-cards-row">';
+                state.A.forEach((val, idx) => {
+                    let cardClass = 'lis-card';
+                    let label = '';
+                    if (state.finished) {
+                        if (idx >= state.maxStart && idx < state.maxStart + state.maxLen) {
+                            cardClass += ' max-sub';
+                        }
+                    } else {
+                        if (idx === state.i) {
+                            cardClass += ' active';
+                        } else if (idx >= state.currentStart && idx < state.currentStart + state.currentLen) {
+                            cardClass += ' cur-sub';
+                        }
+                        if (idx === state.currentStart) label = 'cur_start';
+                        if (idx === state.maxStart) label = label ? 'cur/max' : 'max_start';
+                    }
+
+                    html += `
+                        <div class="${cardClass}">
+                            ${label ? `<span class="card-pointer-lbl">${label}</span>` : ''}
+                            <span class="card-idx-lbl">${idx}</span>
+                            <span>${val}</span>
+                        </div>
+                    `;
+                });
+                html += '</div>';
+                canvas.innerHTML = html;
+            } else if (currentAlgorithm === 'triangulation') {
+                canvasExtra.style.display = 'block';
+                
+                let svgHtml = '<svg>';
+                const n = state.pts.length;
+                let polyPoints = state.pts.map(p => `${p.x},${p.y}`).join(' ');
+                svgHtml += `<polygon points="${polyPoints}" fill="none" stroke="var(--border)" stroke-width="2.5" />`;
+
+                if (state.activeI !== -1 && state.activeJ !== -1) {
+                    svgHtml += `<line x1="${state.pts[state.activeI].x}" y1="${state.pts[state.activeI].y}" x2="${state.pts[state.activeJ].x}" y2="${state.pts[state.activeJ].y}" stroke="var(--warning)" stroke-width="3" />`;
+                }
+
+                if (state.activeK !== -1) {
+                    let triPoints = `${state.pts[state.activeI].x},${state.pts[state.activeI].y} ${state.pts[state.activeK].x},${state.pts[state.activeK].y} ${state.pts[state.activeJ].x},${state.pts[state.activeJ].y}`;
+                    svgHtml += `<polygon points="${triPoints}" fill="rgba(99, 102, 241, 0.15)" stroke="var(--accent)" stroke-width="2" stroke-dasharray="2" />`;
+                }
+
+                state.chords.forEach(c => {
+                    svgHtml += `<line x1="${state.pts[c.u].x}" y1="${state.pts[c.u].y}" x2="${state.pts[c.v].x}" y2="${state.pts[c.v].y}" stroke="var(--success)" stroke-width="2" />`;
+                });
+
+                state.pts.forEach((p, idx) => {
+                    svgHtml += `
+                        <circle cx="${p.x}" cy="${p.y}" r="12" fill="var(--bg-surface)" stroke="var(--primary)" stroke-width="2" />
+                        <text x="${p.x}" y="${p.y + 4}" font-family="var(--font-sans)" font-size="10" font-weight="700" fill="var(--text-main)" text-anchor="middle">${idx}</text>
+                    `;
+                });
+                svgHtml += '</svg>';
+                canvas.innerHTML = svgHtml;
+
+                let tblHtml = '<table class="matrix-table">';
+                tblHtml += '<tr><th>i \\ j</th>';
+                for (let c = 0; c < n; c++) tblHtml += `<th>${c}</th>`;
+                tblHtml += '</tr>';
+
+                for (let r = 0; r < n; r++) {
+                    tblHtml += `<tr><th>${r}</th>`;
+                    for (let c = 0; c < n; c++) {
+                        let cellClass = '';
+                        if (c < r + 2) cellClass = 'diagonal-zero';
+                        if (r === state.activeI && c === state.activeJ) cellClass = 'active-cell';
+                        else if (state.activeK !== -1 && ((r === state.activeI && c === state.activeK) || (r === state.activeK && c === state.activeJ))) {
+                            cellClass = 'component-cell';
+                        }
+                        let valStr = state.MWT[r][c] === Infinity ? 'INF' : Math.round(state.MWT[r][c]).toString();
+                        if (c < r) valStr = '-';
+                        tblHtml += `<td class="${cellClass}">${valStr}</td>`;
+                    }
+                    tblHtml += '</tr>';
+                }
+                tblHtml += '</table>';
+                canvasExtra.innerHTML = tblHtml;
+            } else if (currentAlgorithm === 'serie') {
+                canvasExtra.style.display = 'none';
+                let html = '<div style="font-size:14px; margin-bottom:12px; font-weight:600; text-align:center;">Matricea Probabilităților P</div>';
+                let n = state.P.length - 1;
+                let tblHtml = '<table class="matrix-table">';
+                tblHtml += '<tr><th>k \\ s</th>';
+                for (let c = 0; c <= n; c++) tblHtml += `<th>${c}</th>`;
+                tblHtml += '</tr>';
+
+                for (let r = 0; r <= n; r++) {
+                    tblHtml += `<tr><th>${r}</th>`;
+                    for (let c = 0; c <= n; c++) {
+                        let cellClass = '';
+                        if (r === state.activeRow && c === state.activeCol) {
+                            cellClass = 'active-cell';
+                        } else if (state.compCells.some(cell => cell[0] === r && cell[1] === c)) {
+                            cellClass = 'component-cell';
+                        }
+                        tblHtml += `<td class="${cellClass}">${state.P[r][c].toFixed(4)}</td>`;
+                    }
+                    tblHtml += '</tr>';
+                }
+                tblHtml += '</table>';
+                canvas.innerHTML = html + tblHtml;
+                canvasExtra.innerHTML = '';
+            } else if (currentAlgorithm === 'matrixchain') {
+                canvasExtra.style.display = 'block';
+                let n = state.mTable.length - 1;
+                
+                let html = '<div style="display:flex; flex-direction:column; gap:8px; align-items:center; width:100%;">';
+                html += '<div style="font-size:13px; font-weight:600;">Matricea de Costuri m</div>';
+                let tblM = '<table class="matrix-table">';
+                tblM += '<tr><th>i \\ j</th>';
+                for (let c = 0; c <= n; c++) tblM += `<th>${c}</th>`;
+                tblM += '</tr>';
+                for (let r = 1; r <= n; r++) {
+                    tblM += `<tr><th>${r}</th>`;
+                    for (let c = 0; c <= n; c++) {
+                        if (c < r) {
+                            tblM += '<td>-</td>';
+                        } else {
+                            let cellClass = '';
+                            if (r === state.activeI && c === state.activeJ) {
+                                cellClass = 'active-cell';
+                            } else if (state.activeK !== -1 && (c === state.activeK || r === state.activeK + 1)) {
+                                cellClass = 'component-cell';
+                            }
+                            let valStr = state.mTable[r][c] === Infinity ? 'INF' : state.mTable[r][c];
+                            tblM += `<td class="${cellClass}">${valStr}</td>`;
+                        }
+                    }
+                    tblM += '</tr>';
+                }
+                tblM += '</table></div>';
+                canvas.innerHTML = html + tblM;
+
+                let extraHtml = '<div style="display:flex; flex-direction:column; gap:8px; align-items:center; width:100%;">';
+                extraHtml += '<div style="font-size:13px; font-weight:600;">Matricea de Divizări s</div>';
+                let tblS = '<table class="matrix-table">';
+                tblS += '<tr><th>i \\ j</th>';
+                for (let c = 0; c <= n; c++) tblS += `<th>${c}</th>`;
+                tblS += '</tr>';
+                for (let r = 1; r <= n; r++) {
+                    tblS += `<tr><th>${r}</th>`;
+                    for (let c = 0; c <= n; c++) {
+                        if (c < r) {
+                            tblS += '<td>-</td>';
+                        } else {
+                            let cellClass = '';
+                            if (r === state.activeI && c === state.activeJ) {
+                                cellClass = 'active-cell';
+                            }
+                            tblS += `<td class="${cellClass}">${state.sTable[r][c]}</td>`;
+                        }
+                    }
+                    tblS += '</tr>';
+                }
+                tblS += '</table></div>';
+                canvasExtra.innerHTML = extraHtml + tblS;
+            } else if (currentAlgorithm === 'lcs') {
+                canvasExtra.style.display = 'none';
+                let m = state.X.length;
+                let n = state.Y.length;
+
+                let tblHtml = '<table class="matrix-table">';
+                tblHtml += '<tr><th></th><th></th>';
+                for (let j = 0; j < n; j++) tblHtml += `<th>${state.Y[j]}</th>`;
+                tblHtml += '</tr>';
+
+                tblHtml += '<tr><th></th><th>j\\i</th>';
+                for (let j = 0; j <= n; j++) tblHtml += `<th>${j}</th>`;
+                tblHtml += '</tr>';
+
+                for (let i = 0; i <= m; i++) {
+                    let rowChar = i > 0 ? state.X[i - 1] : "";
+                    tblHtml += `<tr><th>${rowChar}</th><th>${i}</th>`;
+                    for (let j = 0; j <= n; j++) {
+                        let cellClass = '';
+                        let arrow = state.bTable[i][j] || '';
+                        
+                        if (state.lcsPath.some(cell => cell[0] === i && cell[1] === j)) {
+                            cellClass = 'found';
+                        } else if (i === state.activeI && j === state.activeJ) {
+                            cellClass = 'active-cell';
+                        }
+                        
+                        tblHtml += `<td class="${cellClass}">${state.cTable[i][j]} ${arrow}</td>`;
+                    }
+                    tblHtml += '</tr>';
+                }
+                tblHtml += '</table>';
+                canvas.innerHTML = tblHtml;
+                canvasExtra.innerHTML = '';
+            } else if (currentAlgorithm === 'obst') {
+                canvasExtra.style.display = 'block';
+                let n = state.p.length - 1;
+
+                let html = '<div style="display:flex; flex-direction:column; gap:8px; align-items:center; width:100%;">';
+                html += '<div style="font-size:13px; font-weight:600;">Matricea Costuri</div>';
+                let tblC = '<table class="matrix-table">';
+                tblC += '<tr><th>i \\ j</th>';
+                for (let c = 0; c <= n; c++) tblC += `<th>${c}</th>`;
+                tblC += '</tr>';
+                for (let r = 1; r <= n + 1; r++) {
+                    tblC += `<tr><th>${r}</th>`;
+                    for (let c = 0; c <= n; c++) {
+                        if (c < r - 1) {
+                            tblC += '<td>-</td>';
+                        } else {
+                            let cellClass = '';
+                            if (r === state.activeI && c === state.activeJ) {
+                                cellClass = 'active-cell';
+                            } else if (state.activeR !== -1 && (c === state.activeR || r === state.activeR + 1)) {
+                                cellClass = 'component-cell';
+                            }
+                            let valStr = state.Cost[r][c] === Infinity ? 'INF' : state.Cost[r][c].toFixed(2);
+                            tblC += `<td class="${cellClass}">${valStr}</td>`;
+                        }
+                    }
+                    tblC += '</tr>';
+                }
+                tblC += '</table></div>';
+                canvas.innerHTML = html + tblC;
+
+                let extraHtml = '<div style="display:flex; flex-direction:column; gap:8px; align-items:center; width:100%;">';
+                extraHtml += '<div style="font-size:13px; font-weight:600;">Rădăcini Optime root</div>';
+                let tblR = '<table class="matrix-table">';
+                tblR += '<tr><th>i \\ j</th>';
+                for (let c = 0; c <= n; c++) tblR += `<th>${c}</th>`;
+                tblR += '</tr>';
+                for (let r = 1; r <= n + 1; r++) {
+                    tblR += `<tr><th>${r}</th>`;
+                    for (let c = 0; c <= n; c++) {
+                        if (c < r - 1) {
+                            tblR += '<td>-</td>';
+                        } else {
+                            let cellClass = '';
+                            if (r === state.activeI && c === state.activeJ) {
+                                cellClass = 'active-cell';
+                            }
+                            tblR += `<td class="${cellClass}">${state.root[r][c]}</td>`;
+                        }
+                    }
+                    tblR += '</tr>';
+                }
+                tblR += '</table>';
+
+                if (state.finished) {
+                    let svgTree = '<div style="margin-top:20px; display:flex; flex-direction:column; align-items:center;">';
+                    svgTree += '<div style="font-size:12px; font-weight:600; margin-bottom:8px;">Arborele Binar de Căutare Optim Rezultat</div>';
+                    svgTree += '<svg style="width:300px; height:180px;">';
+                    
+                    const rootMatrix = state.root;
+                    const coords = {};
+
+                    const assignTreeCoords = (l, r, x, y, dx) => {
+                        if (l > r) return null;
+                        let rt = rootMatrix[l][r];
+                        if (rt === 0 || rt === -1) return null;
+                        coords[rt] = { x, y };
+                        assignTreeCoords(l, rt - 1, x - dx, y + 40, dx / 1.8);
+                        assignTreeCoords(rt + 1, r, x + dx, y + 40, dx / 1.8);
+                    };
+
+                    assignTreeCoords(1, n, 150, 30, 60);
+
+                    let linesHtml = '';
+                    const drawTreeLines = (l, r) => {
+                        if (l > r) return;
+                        let rt = rootMatrix[l][r];
+                        if (rt === 0) return;
+                        
+                        let leftChild = rootMatrix[l][rt - 1];
+                        if (leftChild && leftChild !== 0 && coords[rt] && coords[leftChild]) {
+                            linesHtml += `<line x1="${coords[rt].x}" y1="${coords[rt].y}" x2="${coords[leftChild].x}" y2="${coords[leftChild].y}" stroke="var(--border)" stroke-width="2" />`;
+                        }
+                        let rightChild = rootMatrix[rt + 1][r];
+                        if (rightChild && rightChild !== 0 && coords[rt] && coords[rightChild]) {
+                            linesHtml += `<line x1="${coords[rt].x}" y1="${coords[rt].y}" x2="${coords[rightChild].x}" y2="${coords[rightChild].y}" stroke="var(--border)" stroke-width="2" />`;
+                        }
+                        drawTreeLines(l, rt - 1);
+                        drawTreeLines(rt + 1, r);
+                    };
+                    drawTreeLines(1, n);
+                    svgTree += linesHtml;
+
+                    for (let keyIdx in coords) {
+                        let c = coords[keyIdx];
+                        svgTree += `
+                            <circle cx="${c.x}" cy="${c.y}" r="14" fill="var(--bg-surface)" stroke="var(--success)" stroke-width="2.5" />
+                            <text x="${c.x}" y="${c.y + 4}" font-family="var(--font-sans)" font-size="10" font-weight="700" fill="var(--text-main)" text-anchor="middle">K${keyIdx}</text>
+                        `;
+                    }
+                    svgTree += '</svg></div>';
+                    extraHtml += svgTree;
+                }
+
+                extraHtml += '</div>';
+                canvasExtra.innerHTML = extraHtml + tblR;
+            }
+
+            renderCode();
+        }
+
+        function stepForward() {
+            if (stepIndex < states.length - 1) {
+                stepIndex++;
+                renderState();
+            } else {
+                stopPlay();
+            }
+        }
+
+        function stepBackward() {
+            if (stepIndex > 0) {
+                stepIndex--;
+                renderState();
+            }
+        }
+
+        function togglePlay() {
+            if (isPlaying) {
+                stopPlay();
+            } else {
+                startPlay();
+            }
+        }
+
+        function startPlay() {
+            isPlaying = true;
+            document.getElementById('play-btn').innerText = 'Pauză';
+            document.getElementById('play-btn').classList.add('btn-danger');
+            playInterval = setInterval(() => {
+                stepForward();
+            }, 800);
+        }
+
+        function stopPlay() {
+            isPlaying = false;
+            document.getElementById('play-btn').innerText = 'Auto Run';
+            document.getElementById('play-btn').classList.remove('btn-danger');
+            if (playInterval) {
+                clearInterval(playInterval);
+                playInterval = null;
+            }
+        }
+
+        function resetState() {
+            stepIndex = 0;
+            stopPlay();
+            renderState();
+        }
+
+        selectAlgorithm('lis');
+    </script>
+</body>
+</html>

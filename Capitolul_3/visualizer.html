@@ -1,0 +1,1825 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vizualizator Algoritmi - Capitolul 3</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-base: #0f172a;
+            --bg-surface: #1e293b;
+            --bg-code: #0b0f19;
+            --primary: #6366f1;
+            --primary-hover: #4f46e5;
+            --secondary: #0ea5e9;
+            --accent: #f43f5e;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border: #334155;
+            --font-sans: 'Inter', sans-serif;
+            --font-mono: 'Fira Code', monospace;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-base);
+            color: var(--text-main);
+            font-family: var(--font-sans);
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .sidebar {
+            width: 280px;
+            background-color: var(--bg-surface);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+        }
+
+        .sidebar-header {
+            padding: 24px;
+            border-bottom: 1px solid var(--border);
+            background: linear-gradient(135deg, var(--bg-surface), #131b2e);
+        }
+
+        .sidebar-header h1 {
+            font-size: 18px;
+            font-weight: 700;
+            letter-spacing: -0.025em;
+            color: var(--text-main);
+        }
+
+        .sidebar-header p {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        .menu-list {
+            list-style: none;
+            padding: 16px;
+            overflow-y: auto;
+            flex-grow: 1;
+        }
+
+        .menu-item {
+            padding: 12px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            color: var(--text-muted);
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+        }
+
+        .menu-item:hover {
+            background-color: rgba(99, 102, 241, 0.1);
+            color: var(--text-main);
+        }
+
+        .menu-item.active {
+            background-color: var(--primary);
+            color: var(--text-main);
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.25);
+        }
+
+        .main-content {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .top-bar {
+            height: 70px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 32px;
+            background-color: var(--bg-surface);
+        }
+
+        .top-bar h2 {
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .workspace {
+            flex-grow: 1;
+            display: flex;
+            overflow: hidden;
+            padding: 24px;
+            gap: 24px;
+        }
+
+        .visualizer-section {
+            flex: 3;
+            background-color: var(--bg-surface);
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .visualizer-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background-color: rgba(30, 41, 59, 0.5);
+        }
+
+        .controls-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .btn {
+            background-color: var(--border);
+            color: var(--text-main);
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn:hover {
+            background-color: #475569;
+        }
+
+        .btn-primary {
+            background-color: var(--primary);
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-hover);
+        }
+
+        .btn-danger {
+            background-color: var(--accent);
+        }
+
+        .btn-danger:hover {
+            background-color: #e11d48;
+        }
+
+        .visualizer-body {
+            flex-grow: 1;
+            padding: 32px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow-y: auto;
+        }
+
+        .visualizer-footer {
+            padding: 20px;
+            border-top: 1px solid var(--border);
+            background-color: rgba(15, 23, 42, 0.4);
+        }
+
+        .explanation-box {
+            background-color: rgba(99, 102, 241, 0.05);
+            border-left: 4px solid var(--primary);
+            padding: 16px;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .explanation-box p {
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .code-section {
+            flex: 2;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .code-container {
+            background-color: var(--bg-surface);
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .code-tabs {
+            display: flex;
+            border-bottom: 1px solid var(--border);
+            background-color: rgba(30, 41, 59, 0.5);
+        }
+
+        .code-tab {
+            padding: 12px 20px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            border-right: 1px solid var(--border);
+            color: var(--text-muted);
+            transition: all 0.2s ease;
+        }
+
+        .code-tab:hover {
+            color: var(--text-main);
+        }
+
+        .code-tab.active {
+            background-color: var(--bg-code);
+            color: var(--primary);
+            border-bottom: 2px solid var(--primary);
+        }
+
+        .code-viewport {
+            flex-grow: 1;
+            background-color: var(--bg-code);
+            padding: 20px;
+            overflow: auto;
+        }
+
+        pre {
+            font-family: var(--font-mono);
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        .highlighted-line {
+            background-color: rgba(99, 102, 241, 0.2);
+            display: block;
+            margin: 0 -20px;
+            padding: 0 20px;
+            border-left: 3px solid var(--primary);
+        }
+
+        .graph-wrapper {
+            display: flex;
+            gap: 32px;
+            width: 100%;
+            height: 100%;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .graph-canvas {
+            width: 320px;
+            height: 320px;
+            background-color: var(--bg-base);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            position: relative;
+        }
+
+        .graph-node {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, var(--primary), #818cf8);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 14px;
+            position: absolute;
+            cursor: pointer;
+            z-index: 10;
+        }
+
+        .graph-node.highlighted {
+            background: linear-gradient(135deg, var(--accent), #fb7185);
+            box-shadow: 0 0 12px rgba(244, 63, 94, 0.5);
+        }
+
+        .tables-container {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            flex-grow: 1;
+        }
+
+        .table-container {
+            background-color: rgba(15, 23, 42, 0.3);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+            text-align: left;
+        }
+
+        th, td {
+            padding: 8px 12px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        th {
+            background-color: rgba(30, 41, 59, 0.5);
+            font-weight: 600;
+            color: var(--text-muted);
+        }
+
+        tr.active-row {
+            background-color: rgba(99, 102, 241, 0.15);
+        }
+
+        .input-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .input-field {
+            background-color: var(--bg-base);
+            border: 1px solid var(--border);
+            color: var(--text-main);
+            padding: 6px 12px;
+            border-radius: 6px;
+            width: 80px;
+            font-size: 14px;
+            font-weight: 500;
+            outline: none;
+        }
+
+        .input-field:focus {
+            border-color: var(--primary);
+        }
+
+        .tree-viewport {
+            width: 100%;
+            height: 320px;
+            background-color: var(--bg-base);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            position: relative;
+            overflow: auto;
+        }
+
+        .tree-svg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        .tree-node-wrapper {
+            position: absolute;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            z-index: 10;
+        }
+
+        .tree-node-circle {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, var(--secondary), #38bdf8);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 13px;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            transition: all 0.2s;
+        }
+
+        .tree-node-circle.active {
+            background: linear-gradient(135deg, var(--accent), #fb7185);
+            box-shadow: 0 0 12px rgba(244, 63, 94, 0.5);
+            transform: scale(1.1);
+        }
+
+        .tree-node-circle.highlight-search {
+            background: linear-gradient(135deg, var(--warning), #fbbf24);
+            box-shadow: 0 0 12px rgba(245, 158, 11, 0.5);
+        }
+
+        .array-visual {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            width: 100%;
+            padding: 16px;
+        }
+
+        .array-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .array-label {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-muted);
+            min-width: 140px;
+        }
+
+        .array-cells {
+            display: flex;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            overflow: hidden;
+            background-color: var(--bg-base);
+        }
+
+        .array-cell {
+            width: 44px;
+            height: 44px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border-right: 1px solid var(--border);
+            font-weight: 600;
+        }
+
+        .array-cell:last-child {
+            border-right: none;
+        }
+
+        .array-cell-index {
+            font-size: 9px;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+
+        .struct-cell {
+            padding: 6px 12px;
+            background-color: var(--bg-base);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            min-width: 70px;
+            align-items: center;
+        }
+
+        .structs-row {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding: 8px 0;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h1>Capitolul 3</h1>
+            <p>Reprezentarea grafurilor și arborilor</p>
+        </div>
+        <ul class="menu-list">
+            <li class="menu-item active" onclick="selectAlgorithm('graph')">1. Reprezentare Graf</li>
+            <li class="menu-item" onclick="selectAlgorithm('arrays')">2. Optimizare Vectori</li>
+            <li class="menu-item" onclick="selectAlgorithm('tree')">3. Inserare & Căutare Arbore</li>
+            <li class="menu-item" onclick="selectAlgorithm('bst')">4. Arbore Binar de Căutare</li>
+        </ul>
+    </div>
+
+    <div class="main-content">
+        <div class="top-bar">
+            <h2 id="algo-title">Reprezentare Graf (Figura 3.2a)</h2>
+        </div>
+
+        <div class="workspace">
+            <div class="visualizer-section">
+                <div class="visualizer-header">
+                    <div class="controls-row" id="inputs-container">
+                    </div>
+                    <div class="controls-row">
+                        <button class="btn" onclick="stepBackward()">Înapoi</button>
+                        <button class="btn btn-primary" id="play-btn" onclick="togglePlay()">Auto Run</button>
+                        <button class="btn" onclick="stepForward()">Pas Următor</button>
+                        <button class="btn btn-danger" onclick="resetState()">Reset</button>
+                    </div>
+                </div>
+                <div class="visualizer-body" id="canvas">
+                </div>
+                <div class="visualizer-footer">
+                    <div class="explanation-box">
+                        <p id="step-explanation">Inițializează stările pentru a începe.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="code-section">
+                <div class="code-container">
+                    <div class="code-tabs">
+                        <div class="code-tab active" id="tab-pseudo" onclick="selectCodeTab('pseudo')">Pseudocod</div>
+                        <div class="code-tab" id="tab-java" onclick="selectCodeTab('java')">Cod Java</div>
+                        <div class="code-tab" id="tab-teorie" onclick="selectCodeTab('teorie')">Teorie</div>
+                    </div>
+                    <div class="code-viewport">
+                        <pre id="code-display"></pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <script>
+        let currentAlgorithm = 'graph';
+        let currentCodeTab = 'pseudo';
+        let stepIndex = 0;
+        let states = [];
+        let isPlaying = false;
+        let playInterval = null;
+
+        let bstData = {
+            key: 15,
+            parent: null,
+            left: {
+                key: 6,
+                parent: null,
+                left: { key: 3, parent: null, left: null, right: null },
+                right: { key: 7, parent: null, left: null, right: null }
+            },
+            right: {
+                key: 18,
+                parent: null,
+                left: { key: 17, parent: null, left: null, right: null },
+                right: { key: 20, parent: null, left: null, right: null }
+            }
+        };
+
+        function setBSTParents(node, parent = null) {
+            if (!node) return;
+            node.parent = parent;
+            setBSTParents(node.left, node);
+            setBSTParents(node.right, node);
+        }
+
+        function cloneBST(node, parent = null) {
+            if (!node) return null;
+            const newNode = {
+                key: node.key,
+                parent: parent,
+                left: null,
+                right: null
+            };
+            newNode.left = cloneBST(node.left, newNode);
+            newNode.right = cloneBST(node.right, newNode);
+            return newNode;
+        }
+
+        function findBSTNode(node, key) {
+            if (!node) return null;
+            if (node.key === key) return node;
+            if (key < node.key) return findBSTNode(node.left, key);
+            return findBSTNode(node.right, key);
+        }
+
+        function bstResetDemo() {
+            bstData = {
+                key: 15,
+                parent: null,
+                left: {
+                    key: 6,
+                    parent: null,
+                    left: { key: 3, parent: null, left: null, right: null },
+                    right: { key: 7, parent: null, left: null, right: null }
+                },
+                right: {
+                    key: 18,
+                    parent: null,
+                    left: { key: 17, parent: null, left: null, right: null },
+                    right: { key: 20, parent: null, left: null, right: null }
+                }
+            };
+            setBSTParents(bstData);
+            generateStates();
+        }
+
+        const pseudocodes = {
+            graph: `procedure GRAPH-REPRESENTATION(edges)
+  for each edge (u, v) in edges do
+    Matrix[u][v] = 1
+    Node = CREATE-NODE(v)
+    Node.next = List[u]
+    List[u] = Node
+  end for
+end procedure`,
+            arrays: `procedure OPTIMIZE-REPRESENTATION(T, V)
+  for i = 1 to n do
+    Tree[i] = new NodeInfo(parent: T[i], key: V[i])
+  end for
+end procedure`,
+            tree: `procedure SEARCH-KEY(node, key)
+  if node == null then return null
+  if node.key == key then return node
+  for each child in node.children do
+    found = SEARCH-KEY(child, key)
+    if found != null then return found
+  end for
+  return null
+end procedure
+
+procedure INSERT-NEW(root, parentKey, newKey)
+  parent = SEARCH-KEY(root, parentKey)
+  if parent != null then
+    child = new TreeNode(newKey)
+    child.parent = parent
+    ADD-TO-CHILDREN(parent, child)
+  end if
+end procedure`,
+            bst: `procedure BST-INSERT(T, z)
+  y = NIL
+  x = T.root
+  while x != NIL do
+    y = x
+    if z.key < x.key then
+      x = x.left
+    else
+      x = x.right
+    end if
+  end while
+  z.parent = y
+  if y == NIL then
+    T.root = z
+  else if z.key < y.key then
+    y.left = z
+  else
+    y.right = z
+  end if
+end procedure
+
+procedure LEFT-ROTATE(T, x)
+  y = x.right
+  x.right = y.left
+  if y.left != NIL then
+    y.left.parent = x
+  end if
+  y.parent = x.parent
+  if x.parent == NIL then
+    T.root = y
+  else if x == x.parent.left then
+    x.parent.left = y
+  else
+    x.parent.right = y
+  end if
+  y.left = x
+  x.parent = y
+end procedure`
+        };
+
+        const javacodes = {
+            graph: `public static void buildGraph(List<Edge> edges) {
+    int[][] adjMatrix = new int[7][7];
+    Node[] adjList = new Node[7];
+    for (Edge edge : edges) {
+        adjMatrix[edge.u][edge.v] = 1;
+        Node newNode = new Node(edge.v);
+        newNode.next = adjList[edge.u];
+        adjList[edge.u] = newNode;
+    }
+}`,
+            arrays: `public static class NodeInfo {
+    int parent;
+    int key;
+    public NodeInfo(int parent, int key) {
+        this.parent = parent;
+        this.key = key;
+    }
+}
+NodeInfo[] treeArray = new NodeInfo[13];
+// treeArray[i] contine direct cheia si parintele`,
+            tree: `public static TreeNode searchTreeByKey(TreeNode node, int key) {
+    if (node == null) return null;
+    if (node.key == key) return node;
+    for (TreeNode child : node.children) {
+        TreeNode found = searchTreeByKey(child, key);
+        if (found != null) return found;
+    }
+    return null;
+}
+
+public static boolean insertNew(TreeNode root, int parentKey, int newKey) {
+    TreeNode parentNode = searchTreeByKey(root, parentKey);
+    if (parentNode != null) {
+        TreeNode newNode = new TreeNode(newKey);
+        newNode.parent = parentNode;
+        parentNode.children.add(newNode);
+        return true;
+    }
+    return false;
+}`,
+            bst: `public static class BST {
+    public BSTNode root;
+
+    public void insert(BSTNode z) {
+        BSTNode y = null;
+        BSTNode x = this.root;
+        while (x != null) {
+            y = x;
+            if (z.key < x.key) x = x.left;
+            else x = x.right;
+        }
+        z.parent = y;
+        if (y == null) this.root = z;
+        else if (z.key < y.key) y.left = z;
+        else y.right = z;
+    }
+
+    public void leftRotate(BSTNode x) {
+        BSTNode y = x.right;
+        x.right = y.left;
+        if (y.left != null) y.left.parent = x;
+        y.parent = x.parent;
+        if (x.parent == null) this.root = y;
+        else if (x == x.parent.left) x.parent.left = y;
+        else x.parent.right = y;
+        y.left = x;
+        x.parent = y;
+    }
+}`
+        };
+
+        const titles = {
+            graph: "1. Reprezentare Graf (Figura 3.2a)",
+            arrays: "2. Optimizare Vectori (Figura 3.12)",
+            tree: "3. Inserare & Căutare Arbore",
+            bst: "4. Arbore Binar de Căutare & Rotații"
+        };
+
+        const nodeCoords = {
+            1: {x: 60, y: 60},
+            2: {x: 180, y: 60},
+            3: {x: 270, y: 60},
+            4: {x: 60, y: 220},
+            5: {x: 180, y: 220},
+            6: {x: 270, y: 220}
+        };
+
+        const edges = [
+            {u: 1, v: 2},
+            {u: 4, v: 1},
+            {u: 2, v: 2},
+            {u: 2, v: 5},
+            {u: 4, v: 5},
+            {u: 5, v: 4},
+            {u: 3, v: 6}
+        ];
+
+        let treeData = {
+            key: 7,
+            children: [
+                {
+                    key: 3,
+                    children: [
+                        {
+                            key: 8,
+                            children: [
+                                { key: 6, children: [] },
+                                {
+                                    key: 5,
+                                    children: [
+                                        { key: 9, children: [] }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            key: 12,
+                            children: [
+                                { key: 1, children: [] }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    key: 10,
+                    children: [
+                        { key: 11, children: [] }
+                    ]
+                },
+                {
+                    key: 4,
+                    children: [
+                        { key: 2, children: [] }
+                    ]
+                }
+            ]
+        };
+
+        function selectAlgorithm(algo) {
+            currentAlgorithm = algo;
+            document.querySelectorAll('.menu-item').forEach(el => el.classList.remove('active'));
+            const items = document.querySelectorAll('.menu-item');
+            if (algo === 'graph') items[0].classList.add('active');
+            else if (algo === 'arrays') items[1].classList.add('active');
+            else if (algo === 'tree') items[2].classList.add('active');
+            else if (algo === 'bst') items[3].classList.add('active');
+
+            document.getElementById('algo-title').innerText = titles[algo];
+            stopPlay();
+            renderCode();
+            setupInputs();
+            resetState();
+        }
+
+        const teorii = {
+            graph: `<div style="padding: 10px; font-family: var(--font-sans);">
+                <h3 style="color: var(--primary); margin-bottom: 6px; font-size: 15px;">Scop</h3>
+                <p style="margin-bottom: 12px; color: var(--text-main); font-size: 13px; line-height: 1.5;">Reprezentarea structurii unui graf în memorie pentru a permite accesul facil la noduri și conexiuni.</p>
+                <h3 style="color: var(--primary); margin-bottom: 6px; font-size: 15px;">Funcționare</h3>
+                <p style="margin-bottom: 12px; color: var(--text-main); font-size: 13px; line-height: 1.5;">Se utilizează două metode clasice: matricea de adiacență (o matrice pătratică unde M[i][j]=1 dacă există muchie) sau listele de adiacență (unde fiecare nod deține o listă cu vecinii săi direct conectați).</p>
+                <h3 style="color: var(--primary); margin-bottom: 6px; font-size: 15px;">Aplicații</h3>
+                <p style="margin-bottom: 12px; color: var(--text-main); font-size: 13px; line-height: 1.5;">Modelarea rețelelor de calculatoare, hărților rutiere, structurilor sociale și a sistemelor de dependințe.</p>
+                <h3 style="color: var(--primary); margin-bottom: 6px; font-size: 15px;">Complexitate</h3>
+                <p style="color: var(--text-main); font-size: 13px; line-height: 1.5;">Matrice: O(V²) spațiu, verificare muchie O(1). Liste: O(V + E) spațiu, verificare muchie O(grad(v)).</p>
+            </div>`,
+            arrays: `<div style="padding: 10px; font-family: var(--font-sans);">
+                <h3 style="color: var(--primary); margin-bottom: 6px; font-size: 15px;">Scop</h3>
+                <p style="margin-bottom: 12px; color: var(--text-main); font-size: 13px; line-height: 1.5;">Reprezentarea compactă a arborilor și a relațiilor ierarhice în vectori auxiliari.</p>
+                <h3 style="color: var(--primary); margin-bottom: 6px; font-size: 15px;">Funcționare</h3>
+                <p style="margin-bottom: 12px; color: var(--text-main); font-size: 13px; line-height: 1.5;">Folosește vectori paraleli pentru a modela caracteristicile arborelui. De exemplu, vectorul de tați (unde T[i] reprezintă părintele nodului i) sau vectorul de grade.</p>
+                <h3 style="color: var(--primary); margin-bottom: 6px; font-size: 15px;">Aplicații</h3>
+                <p style="margin-bottom: 12px; color: var(--text-main); font-size: 13px; line-height: 1.5;">Reprezentarea arborilor de acoperire, algoritmi pe arbori cu resurse reduse, heap-uri.</p>
+                <h3 style="color: var(--primary); margin-bottom: 6px; font-size: 15px;">Complexitate</h3>
+                <p style="color: var(--text-main); font-size: 13px; line-height: 1.5;">Timp: O(1) acces părinte. Spațiu: O(V) extrem de eficient comparativ cu pointerii dinamici.</p>
+            </div>`,
+            tree: `<div style="padding: 10px; font-family: var(--font-sans);">
+                <h3 style="color: var(--primary); margin-bottom: 6px; font-size: 15px;">Scop</h3>
+                <p style="margin-bottom: 12px; color: var(--text-main); font-size: 13px; line-height: 1.5;">Gestionarea dinamică a unui set de elemente ordonate pentru a permite operații rapide de inserare și căutare.</p>
+                <h3 style="color: var(--primary); margin-bottom: 6px; font-size: 15px;">Funcționare</h3>
+                <p style="margin-bottom: 12px; color: var(--text-main); font-size: 13px; line-height: 1.5;">Într-un BST, fiecare nod respectă regula: toate valorile din subarborele stâng sunt mai mici decât nodul curent, iar toate din subarborele drept sunt mai mari.</p>
+                <h3 style="color: var(--primary); margin-bottom: 6px; font-size: 15px;">Aplicații</h3>
+                <p style="margin-bottom: 12px; color: var(--text-main); font-size: 13px; line-height: 1.5;">Tabele de simboluri în compilatoare, indexare în baze de date, implementarea mulțimilor (Sets) și dicționarelor.</p>
+                <h3 style="color: var(--primary); margin-bottom: 6px; font-size: 15px;">Complexitate</h3>
+                <p style="color: var(--text-main); font-size: 13px; line-height: 1.5;">Timp: O(log n) în medie, O(n) în cazul degenerat (liniarizat). Spațiu: O(n).</p>
+            </div>`,
+            bst: `<div style="padding: 10px; font-family: var(--font-sans);">
+                <h3 style="color: var(--primary); margin-bottom: 6px; font-size: 15px;">Scop</h3>
+                <p style="margin-bottom: 12px; color: var(--text-main); font-size: 13px; line-height: 1.5;">Structurarea datelor în arbori binari de căutare pentru căutare, inserare și ștergere în timp mediu O(log n).</p>
+                <h3 style="color: var(--primary); margin-bottom: 6px; font-size: 15px;">Rotații (Left-Rotate / Right-Rotate)</h3>
+                <p style="margin-bottom: 12px; color: var(--text-main); font-size: 13px; line-height: 1.5;">Sunt operații locale fundamentale folosite în arborii echilibrați (cum ar fi arborii Roșu-Negru - Red-Black Trees) pentru a restabili echilibrul după inserări sau ștergeri, menținând înălțimea O(log n).</p>
+                <h3 style="color: var(--primary); margin-bottom: 6px; font-size: 15px;">Proprietăți</h3>
+                <p style="color: var(--text-main); font-size: 13px; line-height: 1.5;">Parcurgerea inorder a unui BST vizitează cheile în ordine strict crescătoare. Înălțimea arborelui determină direct eficiența tuturor operațiilor.</p>
+            </div>`
+        };
+
+        function selectCodeTab(tab) {
+            currentCodeTab = tab;
+            document.getElementById('tab-pseudo').classList.toggle('active', tab === 'pseudo');
+            document.getElementById('tab-java').classList.toggle('active', tab === 'java');
+            document.getElementById('tab-teorie').classList.toggle('active', tab === 'teorie');
+            renderCode();
+        }
+
+        function renderCode() {
+            const display = document.getElementById('code-display');
+            if (currentCodeTab === 'teorie') {
+                display.innerHTML = teorii[currentAlgorithm] || '';
+                display.style.fontFamily = 'var(--font-sans)';
+                display.style.whiteSpace = 'normal';
+                return;
+            }
+            display.style.fontFamily = '';
+            display.style.whiteSpace = '';
+            const codeText = currentCodeTab === 'pseudo' ? pseudocodes[currentAlgorithm] : javacodes[currentAlgorithm];
+            
+            if (states.length > 0 && stepIndex < states.length) {
+                const lines = codeText.split('\n');
+                const targetLine = states[stepIndex].line;
+                const formattedLines = lines.map((line, idx) => {
+                    if (idx === targetLine) {
+                        return `<span class="highlighted-line">${line}</span>`;
+                    }
+                    return line;
+                });
+                display.innerHTML = formattedLines.join('\n');
+            } else {
+                display.innerText = codeText;
+            }
+        }
+
+        function setupInputs() {
+            const container = document.getElementById('inputs-container');
+            container.innerHTML = '';
+
+            if (currentAlgorithm === 'tree') {
+                container.innerHTML = `
+                    <div class="input-group">
+                        <span style="font-size: 13px; font-weight:600;">Căutare Cheie:</span>
+                        <input type="number" class="input-field" id="search-input" value="12" style="width: 60px;">
+                        <button class="btn btn-primary" onclick="searchDemo()">Caută</button>
+                    </div>
+                    <div class="input-group" style="margin-left: 16px;">
+                        <span style="font-size: 13px; font-weight:600;">Părinte:</span>
+                        <input type="number" class="input-field" id="parent-input" value="12" style="width: 50px;">
+                        <span style="font-size: 13px; font-weight:600;">Noua Cheie:</span>
+                        <input type="number" class="input-field" id="child-input" value="99" style="width: 50px;">
+                        <button class="btn btn-primary" onclick="insertDemo()">Inserează</button>
+                    </div>
+                `;
+            } else if (currentAlgorithm === 'bst') {
+                container.innerHTML = `
+                    <div class="input-group">
+                        <span style="font-size: 13px; font-weight:600;">Cheie:</span>
+                        <input type="number" class="input-field" id="bst-key" value="13" style="width: 55px;">
+                        <button class="btn btn-primary" onclick="bstInsertDemo()">Inserează</button>
+                        <button class="btn" onclick="bstDeleteDemo()">Șterge</button>
+                        <button class="btn" onclick="bstLeftRotateDemo()">Left-Rotate</button>
+                        <button class="btn" onclick="bstRightRotateDemo()">Right-Rotate</button>
+                        <button class="btn btn-danger" onclick="bstResetDemo()">Reset BST</button>
+                    </div>
+                `;
+            }
+        }
+
+        function searchDemo() {
+            const key = parseInt(document.getElementById('search-input').value);
+            states = [];
+            stepIndex = 0;
+            stopPlay();
+
+            let foundPath = [];
+            let searchOrder = [];
+
+            const search = (node, path) => {
+                if (!node) return false;
+                let currentPath = [...path, node.key];
+                searchOrder.push({
+                    nodeKey: node.key,
+                    line: 2,
+                    path: [...currentPath],
+                    desc: "Cercetăm nodul curent cu cheia " + node.key + "."
+                });
+
+                if (node.key === key) {
+                    searchOrder.push({
+                        nodeKey: node.key,
+                        line: 2,
+                        path: [...currentPath],
+                        desc: "Cheia " + key + " a fost găsită!"
+                    });
+                    foundPath = currentPath;
+                    return true;
+                }
+
+                for (let i = 0; i < node.children.length; i++) {
+                    searchOrder.push({
+                        nodeKey: node.key,
+                        line: 3,
+                        path: [...currentPath],
+                        desc: "Căutăm recursiv în subarborele copilului " + node.children[i].key + "."
+                    });
+                    if (search(node.children[i], currentPath)) return true;
+                }
+                return false;
+            };
+
+            const success = search(treeData, []);
+
+            searchOrder.forEach((step, idx) => {
+                states.push({
+                    activeKey: step.nodeKey,
+                    searchPath: step.path,
+                    line: step.line,
+                    desc: step.desc
+                });
+            });
+
+            if (!success) {
+                states.push({
+                    activeKey: null,
+                    searchPath: [],
+                    line: 6,
+                    desc: "Cheia " + key + " nu a fost găsită în arbore."
+                });
+            }
+
+            renderState();
+        }
+
+        function insertDemo() {
+            const parentKey = parseInt(document.getElementById('parent-input').value);
+            const childKey = parseInt(document.getElementById('child-input').value);
+
+            states = [];
+            stepIndex = 0;
+            stopPlay();
+
+            const findAndInsert = (node) => {
+                if (!node) return false;
+                if (node.key === parentKey) {
+                    node.children.push({key: childKey, children: []});
+                    return true;
+                }
+                for (let i = 0; i < node.children.length; i++) {
+                    if (findAndInsert(node.children[i])) return true;
+                }
+                return false;
+            };
+
+            const success = findAndInsert(treeData);
+            if (success) {
+                states.push({
+                    activeKey: childKey,
+                    searchPath: [],
+                    line: 11,
+                    desc: "Am găsit părintele " + parentKey + " și am inserat cu succes nodul nou cu cheia " + childKey + "."
+                });
+            } else {
+                states.push({
+                    activeKey: null,
+                    searchPath: [],
+                    line: 10,
+                    desc: "Eroare: Părintele " + parentKey + " nu există în arbore."
+                });
+            }
+            renderState();
+        }
+
+        function generateStates() {
+            states = [];
+            stepIndex = 0;
+            stopPlay();
+
+            if (currentAlgorithm === 'graph') {
+                let currentMatrix = Array.from({length: 7}, () => Array(7).fill(0));
+                let currentLists = Array.from({length: 7}, () => []);
+
+                states.push({
+                    matrix: JSON.parse(JSON.stringify(currentMatrix)),
+                    lists: JSON.parse(JSON.stringify(currentLists)),
+                    activeEdge: null,
+                    line: 1,
+                    desc: "Inițializăm matricea și listele de adiacență pentru graful din Figura 3.2a."
+                });
+
+                edges.forEach((edge, idx) => {
+                    currentMatrix[edge.u][edge.v] = 1;
+                    currentLists[edge.u].unshift(edge.v);
+
+                    states.push({
+                        matrix: JSON.parse(JSON.stringify(currentMatrix)),
+                        lists: JSON.parse(JSON.stringify(currentLists)),
+                        activeEdge: edge,
+                        line: 2,
+                        desc: "Citim muchia orientată (" + edge.u + ", " + edge.v + "). Actualizăm matricea și listele."
+                    });
+                });
+
+                states.push({
+                    matrix: JSON.parse(JSON.stringify(currentMatrix)),
+                    lists: JSON.parse(JSON.stringify(currentLists)),
+                    activeEdge: null,
+                    line: 6,
+                    desc: "Reprezentarea grafului s-a finalizat complet."
+                });
+
+            } else if (currentAlgorithm === 'arrays') {
+                let T = [0, 1, 1, 1, 2, 2, 3, 4, 5, 5, 6, 10];
+                let V = [7, 3, 10, 4, 8, 12, 11, 2, 6, 5, 1, 9];
+
+                states.push({
+                    T: T,
+                    V: V,
+                    opt: [],
+                    idx: -1,
+                    line: 1,
+                    desc: "Avem cele două tablouri paralele inițiale: T (părinți, indexat de la 1 la 12) și V (chei)."
+                });
+
+                let opt = [];
+                for (let i = 0; i < T.length; i++) {
+                    opt.push({parent: T[i], key: V[i]});
+                    states.push({
+                        T: T,
+                        V: V,
+                        opt: [...opt],
+                        idx: i,
+                        line: 2,
+                        desc: "Grupăm elementele pentru nodul " + (i+1) + ": cheia " + V[i] + " cu părintele de la indexul " + T[i] + "."
+                    });
+                }
+
+                states.push({
+                    T: T,
+                    V: V,
+                    opt: [...opt],
+                    idx: -1,
+                    line: 4,
+                    desc: "Reprezentarea a fost optimizată într-un singur vector de structuri de date."
+                });
+
+            } else if (currentAlgorithm === 'tree') {
+                states.push({
+                    activeKey: null,
+                    searchPath: [],
+                    line: -1,
+                    desc: "Vizualizează arborele multiplu înlănțuit. Folosește panoul de sus pentru a căuta sau insera noduri."
+                });
+            } else if (currentAlgorithm === 'bst') {
+                states.push({
+                    bstRoot: cloneBST(bstData),
+                    activeKey: null,
+                    searchPath: [],
+                    line: -1,
+                    desc: "Vizualizează arborele binar de căutare (BST). Folosește controalele de sus pentru inserări, ștergeri și rotații."
+                });
+            }
+
+            renderState();
+        }
+
+        function renderState() {
+            if (states.length === 0) return;
+            const state = states[stepIndex];
+            const canvas = document.getElementById('canvas');
+            canvas.innerHTML = '';
+
+            document.getElementById('step-explanation').innerText = state.desc;
+            renderCode();
+
+            if (currentAlgorithm === 'graph') {
+                const wrapper = document.createElement('div');
+                wrapper.className = 'graph-wrapper';
+
+                const graphArea = document.createElement('div');
+                graphArea.className = 'graph-canvas';
+
+                Object.keys(nodeCoords).forEach(nodeId => {
+                    const node = document.createElement('div');
+                    node.className = 'graph-node';
+                    node.innerText = nodeId;
+                    node.style.left = nodeCoords[nodeId].x + 'px';
+                    node.style.top = nodeCoords[nodeId].y + 'px';
+
+                    if (state.activeEdge && (parseInt(nodeId) === state.activeEdge.u || parseInt(nodeId) === state.activeEdge.v)) {
+                        node.classList.add('highlighted');
+                    }
+                    graphArea.appendChild(node);
+                });
+
+                const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+                svg.className = 'tree-svg';
+                svg.style.width = '320px';
+                svg.style.height = '320px';
+
+                edges.forEach((edge, idx) => {
+                    const uCoord = nodeCoords[edge.u];
+                    const vCoord = nodeCoords[edge.v];
+
+                    const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                    line.setAttribute('x1', uCoord.x + 18);
+                    line.setAttribute('y1', uCoord.y + 18);
+                    line.setAttribute('x2', vCoord.x + 18);
+                    line.setAttribute('y2', vCoord.y + 18);
+                    line.setAttribute('stroke', '#475569');
+                    line.setAttribute('stroke-width', '2');
+
+                    if (state.activeEdge && state.activeEdge.u === edge.u && state.activeEdge.v === edge.v) {
+                        line.setAttribute('stroke', '#f43f5e');
+                        line.setAttribute('stroke-width', '4');
+                    }
+
+                    svg.appendChild(line);
+                });
+
+                graphArea.appendChild(svg);
+                wrapper.appendChild(graphArea);
+
+                const tables = document.createElement('div');
+                tables.className = 'tables-container';
+
+                const matrixCont = document.createElement('div');
+                matrixCont.className = 'table-container';
+                matrixCont.innerHTML = '<div style="padding:8px 12px; font-weight:600;">Matrice de adiacență</div>';
+                
+                const tableMat = document.createElement('table');
+                let matHead = '<tr><th>Node</th>';
+                for (let i = 1; i <= 6; i++) matHead += `<th>${i}</th>`;
+                matHead += '</tr>';
+
+                let matBody = '';
+                for (let i = 1; i <= 6; i++) {
+                    matBody += `<tr><td><strong>${i}</strong></td>`;
+                    for (let j = 1; j <= 6; j++) {
+                        matBody += `<td>${state.matrix[i][j]}</td>`;
+                    }
+                    matBody += '</tr>';
+                }
+                tableMat.innerHTML = `<thead>${matHead}</thead><tbody>${matBody}</tbody>`;
+                matrixCont.appendChild(tableMat);
+                tables.appendChild(matrixCont);
+
+                const listCont = document.createElement('div');
+                listCont.className = 'table-container';
+                listCont.innerHTML = '<div style="padding:8px 12px; font-weight:600;">Liste de adiacență</div>';
+
+                const tableList = document.createElement('table');
+                let listBody = '';
+                for (let i = 1; i <= 6; i++) {
+                    let d = state.lists[i].join(' → ') || 'null';
+                    listBody += `<tr><td><strong>${i}</strong></td><td>${d}</td></tr>`;
+                }
+                tableList.innerHTML = `<tbody>${listBody}</tbody>`;
+                listCont.appendChild(tableList);
+                tables.appendChild(listCont);
+
+                wrapper.appendChild(tables);
+                canvas.appendChild(wrapper);
+
+            } else if (currentAlgorithm === 'arrays') {
+                const wrapper = document.createElement('div');
+                wrapper.className = 'array-visual';
+
+                const renderRow = (arr, label) => {
+                    const row = document.createElement('div');
+                    row.className = 'array-row';
+
+                    const l = document.createElement('div');
+                    l.className = 'array-label';
+                    l.innerText = label;
+                    row.appendChild(l);
+
+                    const cells = document.createElement('div');
+                    cells.className = 'array-cells';
+
+                    arr.forEach((val, idx) => {
+                        const cell = document.createElement('div');
+                        cell.className = 'array-cell';
+                        if (state.idx === idx) {
+                            cell.style.backgroundColor = 'rgba(99, 102, 241, 0.3)';
+                        }
+                        cell.innerHTML = `
+                            <div>${val}</div>
+                            <div class="array-cell-index">${idx + 1}</div>
+                        `;
+                        cells.appendChild(cell);
+                    });
+                    row.appendChild(cells);
+                    return row;
+                };
+
+                wrapper.appendChild(renderRow(state.T, 'Vectorul T (Părinți)'));
+                wrapper.appendChild(renderRow(state.V, 'Vectorul V (Chei)'));
+
+                const spacing = document.createElement('div');
+                spacing.style.height = '16px';
+                wrapper.appendChild(spacing);
+
+                const structLabel = document.createElement('div');
+                structLabel.className = 'array-label';
+                structLabel.innerText = 'Reprezentare optimizată (un singur vector de structuri):';
+                wrapper.appendChild(structLabel);
+
+                const sRow = document.createElement('div');
+                sRow.className = 'structs-row';
+
+                state.opt.forEach((s, idx) => {
+                    const cell = document.createElement('div');
+                    cell.className = 'struct-cell';
+                    if (state.idx === idx) {
+                        cell.style.borderColor = 'var(--primary)';
+                        cell.style.backgroundColor = 'rgba(99, 102, 241, 0.1)';
+                    }
+                    cell.innerHTML = `
+                        <div style="font-size:10px; color:var(--text-muted);">Node ${idx+1}</div>
+                        <div style="font-size:14px; font-weight:700; color:var(--secondary);">K: ${s.key}</div>
+                        <div style="font-size:11px; color:var(--text-muted);">P: ${s.parent}</div>
+                    `;
+                    sRow.appendChild(cell);
+                });
+                wrapper.appendChild(sRow);
+
+                canvas.appendChild(wrapper);
+
+            } else if (currentAlgorithm === 'tree') {
+                const viewport = document.createElement('div');
+                viewport.className = 'tree-viewport';
+
+                const container = document.createElement('div');
+                container.style.width = '600px';
+                container.style.height = '340px';
+                container.style.position = 'relative';
+                viewport.appendChild(container);
+
+                const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+                svg.setAttribute('width', '600');
+                svg.setAttribute('height', '340');
+                svg.style.position = 'absolute';
+                svg.style.top = '0';
+                svg.style.left = '0';
+                svg.style.pointerEvents = 'none';
+                container.appendChild(svg);
+
+                const drawTree = (node, x, y, dx) => {
+                    const nodeWrapper = document.createElement('div');
+                    nodeWrapper.className = 'tree-node-wrapper';
+                    nodeWrapper.style.left = (x - 16) + 'px';
+                    nodeWrapper.style.top = y + 'px';
+
+                    const circle = document.createElement('div');
+                    circle.className = 'tree-node-circle';
+                    circle.innerText = node.key;
+
+                    if (state.activeKey === node.key) {
+                        circle.classList.add('active');
+                    }
+                    if (state.searchPath && state.searchPath.includes(node.key)) {
+                        circle.classList.add('highlight-search');
+                    }
+
+                    nodeWrapper.appendChild(circle);
+                    container.appendChild(nodeWrapper);
+
+                    const childCount = node.children.length;
+                    const startX = x - ((childCount - 1) * dx) / 2;
+
+                    node.children.forEach((child, i) => {
+                        const childX = startX + i * dx;
+                        const childY = y + 70;
+
+                        const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                        line.setAttribute('x1', x);
+                        line.setAttribute('y1', y + 16);
+                        line.setAttribute('x2', childX);
+                        line.setAttribute('y2', childY + 16);
+                        line.setAttribute('stroke', '#475569');
+                        line.setAttribute('stroke-width', '2');
+                        svg.appendChild(line);
+
+                        drawTree(child, childX, childY, dx * 0.5);
+                    });
+                };
+
+                drawTree(treeData, 300, 20, 160);
+                canvas.appendChild(viewport);
+            } else if (currentAlgorithm === 'bst') {
+                const viewport = document.createElement('div');
+                viewport.className = 'tree-viewport';
+
+                const container = document.createElement('div');
+                container.style.width = '600px';
+                container.style.height = '340px';
+                container.style.position = 'relative';
+                viewport.appendChild(container);
+
+                const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+                svg.setAttribute('width', '600');
+                svg.setAttribute('height', '340');
+                svg.style.position = 'absolute';
+                svg.style.top = '0';
+                svg.style.left = '0';
+                svg.style.pointerEvents = 'none';
+                container.appendChild(svg);
+
+                const coords = {};
+                const computeCoords = (n, x, y, dx) => {
+                    if (!n) return;
+                    coords[n.key] = { x: x, y: y };
+                    computeCoords(n.left, x - dx, y + 70, dx * 0.5);
+                    computeCoords(n.right, x + dx, y + 70, dx * 0.5);
+                };
+                computeCoords(state.bstRoot, 300, 20, 140);
+
+                const drawBST = (n) => {
+                    if (!n) return;
+                    const coord = coords[n.key];
+
+                    const nodeWrapper = document.createElement('div');
+                    nodeWrapper.className = 'tree-node-wrapper';
+                    nodeWrapper.style.left = (coord.x - 16) + 'px';
+                    nodeWrapper.style.top = coord.y + 'px';
+
+                    const circle = document.createElement('div');
+                    circle.className = 'tree-node-circle';
+                    circle.innerText = n.key;
+
+                    if (state.activeKey === n.key) {
+                        circle.classList.add('active');
+                    }
+                    if (state.searchPath && state.searchPath.includes(n.key)) {
+                        circle.classList.add('highlight-search');
+                    }
+
+                    nodeWrapper.appendChild(circle);
+                    container.appendChild(nodeWrapper);
+
+                    if (n.left) {
+                        const leftCoord = coords[n.left.key];
+                        const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                        line.setAttribute('x1', coord.x);
+                        line.setAttribute('y1', coord.y + 16);
+                        line.setAttribute('x2', leftCoord.x);
+                        line.setAttribute('y2', leftCoord.y + 16);
+                        line.setAttribute('stroke', '#475569');
+                        line.setAttribute('stroke-width', '2');
+                        svg.appendChild(line);
+                        drawBST(n.left);
+                    }
+                    if (n.right) {
+                        const rightCoord = coords[n.right.key];
+                        const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                        line.setAttribute('x1', coord.x);
+                        line.setAttribute('y1', coord.y + 16);
+                        line.setAttribute('x2', rightCoord.x);
+                        line.setAttribute('y2', rightCoord.y + 16);
+                        line.setAttribute('stroke', '#475569');
+                        line.setAttribute('stroke-width', '2');
+                        svg.appendChild(line);
+                        drawBST(n.right);
+                    }
+                };
+
+                drawBST(state.bstRoot);
+                canvas.appendChild(viewport);
+            }
+        }
+
+        function stepForward() {
+            if (stepIndex < states.length - 1) {
+                stepIndex++;
+                renderState();
+            }
+        }
+
+        function stepBackward() {
+            if (stepIndex > 0) {
+                stepIndex--;
+                renderState();
+            }
+        }
+
+        function resetState() {
+            stepIndex = 0;
+            generateStates();
+        }
+
+        function togglePlay() {
+            if (isPlaying) {
+                stopPlay();
+            } else {
+                isPlaying = true;
+                document.getElementById('play-btn').innerText = 'Stop';
+                playInterval = setInterval(() => {
+                    if (stepIndex < states.length - 1) {
+                        stepForward();
+                    } else {
+                        stopPlay();
+                    }
+                }, 1200);
+            }
+        }
+
+        function stopPlay() {
+            isPlaying = false;
+            document.getElementById('play-btn').innerText = 'Auto Run';
+            if (playInterval) {
+                clearInterval(playInterval);
+                playInterval = null;
+            }
+        }
+
+        function bstInsertDemo() {
+            const key = parseInt(document.getElementById('bst-key').value);
+            if (isNaN(key)) return;
+
+            states = [];
+            stepIndex = 0;
+            stopPlay();
+
+            let currentTree = cloneBST(bstData);
+            
+            states.push({
+                bstRoot: cloneBST(currentTree),
+                activeKey: null,
+                searchPath: [],
+                line: 1,
+                desc: "Inițializăm BST-INSERT pentru cheia " + key + ". Rădăcina curentă este " + (currentTree ? currentTree.key : 'null') + "."
+            });
+
+            let y = null;
+            let x = currentTree;
+            let path = [];
+
+            while (x !== null) {
+                y = x;
+                path.push(x.key);
+                states.push({
+                    bstRoot: cloneBST(currentTree),
+                    activeKey: x.key,
+                    searchPath: [...path],
+                    line: 3,
+                    desc: "Coborâm în arbore. Nodul curent este " + x.key + "."
+                });
+
+                if (key < x.key) {
+                    states.push({
+                        bstRoot: cloneBST(currentTree),
+                        activeKey: x.key,
+                        searchPath: [...path],
+                        line: 5,
+                        desc: "Cheia " + key + " < " + x.key + ". Mergem pe stânga."
+                    });
+                    x = x.left;
+                } else {
+                    states.push({
+                        bstRoot: cloneBST(currentTree),
+                        activeKey: x.key,
+                        searchPath: [...path],
+                        line: 7,
+                        desc: "Cheia " + key + " >= " + x.key + ". Mergem pe dreapta."
+                    });
+                    x = x.right;
+                }
+            }
+
+            const z = { key: key, left: null, right: null, parent: y };
+
+            if (y === null) {
+                currentTree = z;
+                states.push({
+                    bstRoot: cloneBST(currentTree),
+                    activeKey: key,
+                    searchPath: [key],
+                    line: 13,
+                    desc: "Arborele era gol. Noul nod devine rădăcină."
+                });
+            } else {
+                if (key < y.key) {
+                    y.left = z;
+                    states.push({
+                        bstRoot: cloneBST(currentTree),
+                        activeKey: key,
+                        searchPath: [...path, key],
+                        line: 15,
+                        desc: "Inserăm nodul " + key + " ca fiu stâng al lui " + y.key + "."
+                    });
+                } else {
+                    y.right = z;
+                    states.push({
+                        bstRoot: cloneBST(currentTree),
+                        activeKey: key,
+                        searchPath: [...path, key],
+                        line: 17,
+                        desc: "Inserăm nodul " + key + " ca fiu drept al lui " + y.key + "."
+                    });
+                }
+            }
+
+            bstData = currentTree;
+            renderState();
+        }
+
+        function bstDeleteDemo() {
+            const key = parseInt(document.getElementById('bst-key').value);
+            if (isNaN(key)) return;
+
+            states = [];
+            stepIndex = 0;
+            stopPlay();
+
+            let currentTree = cloneBST(bstData);
+            let targetNode = findBSTNode(currentTree, key);
+
+            if (!targetNode) {
+                alert("Nodul cu cheia " + key + " nu există în BST!");
+                return;
+            }
+
+            states.push({
+                bstRoot: cloneBST(currentTree),
+                activeKey: targetNode.key,
+                searchPath: [],
+                line: 1,
+                desc: "Inițializăm BST-DELETE pentru nodul cu cheia " + key + "."
+            });
+
+            const transplant = (u, v) => {
+                if (u.parent === null) {
+                    currentTree = v;
+                } else if (u === u.parent.left) {
+                    u.parent.left = v;
+                } else {
+                    u.parent.right = v;
+                }
+                if (v !== null) {
+                    v.parent = u.parent;
+                }
+            };
+
+            const minimum = (node) => {
+                let temp = node;
+                while (temp.left !== null) {
+                    temp = temp.left;
+                }
+                return temp;
+            };
+
+            if (targetNode.left === null) {
+                transplant(targetNode, targetNode.right);
+                states.push({
+                    bstRoot: cloneBST(currentTree),
+                    activeKey: targetNode.right ? targetNode.right.key : null,
+                    searchPath: [],
+                    line: 2,
+                    desc: "Nodul " + key + " nu are fiu stâng. Îl transplantăm cu fiul drept."
+                });
+            } else if (targetNode.right === null) {
+                transplant(targetNode, targetNode.left);
+                states.push({
+                    bstRoot: cloneBST(currentTree),
+                    activeKey: targetNode.left ? targetNode.left.key : null,
+                    searchPath: [],
+                    line: 4,
+                    desc: "Nodul " + key + " nu are fiu drept. Îl transplantăm cu fiul stâng."
+                });
+            } else {
+                let y = minimum(targetNode.right);
+                states.push({
+                    bstRoot: cloneBST(currentTree),
+                    activeKey: y.key,
+                    searchPath: [],
+                    line: 6,
+                    desc: "Nodul are doi fii. Găsim succesorul minim din subarborele drept: nodul " + y.key + "."
+                });
+
+                if (y.parent !== targetNode) {
+                    transplant(y, y.right);
+                    y.right = targetNode.right;
+                    y.right.parent = y;
+                    states.push({
+                        bstRoot: cloneBST(currentTree),
+                        activeKey: y.key,
+                        searchPath: [],
+                        line: 8,
+                        desc: "Succesorul nu este fiul direct al nodului șters. Transplantăm succesorul cu fiul său drept și atașăm subarborele drept."
+                    });
+                }
+                transplant(targetNode, y);
+                y.left = targetNode.left;
+                y.left.parent = y;
+                states.push({
+                    bstRoot: cloneBST(currentTree),
+                    activeKey: y.key,
+                    searchPath: [],
+                    line: 12,
+                    desc: "Transplantăm nodul șters " + key + " cu succesorul " + y.key + " și atașăm fiul stâng."
+                });
+            }
+
+            bstData = currentTree;
+            renderState();
+        }
+
+        function bstLeftRotateDemo() {
+            const key = parseInt(document.getElementById('bst-key').value);
+            if (isNaN(key)) return;
+
+            states = [];
+            stepIndex = 0;
+            stopPlay();
+
+            let currentTree = cloneBST(bstData);
+            let x = findBSTNode(currentTree, key);
+
+            if (!x) {
+                alert("Nodul cu cheia " + key + " nu există!");
+                return;
+            }
+            if (x.right === null) {
+                alert("Rotația stângă nu este posibilă deoarece fiul drept al nodului " + key + " este NULL!");
+                return;
+            }
+
+            states.push({
+                bstRoot: cloneBST(currentTree),
+                activeKey: x.key,
+                searchPath: [],
+                line: 1,
+                desc: "Inițializăm LEFT-ROTATE pe nodul x = " + key + "."
+            });
+
+            let y = x.right;
+            x.right = y.left;
+            if (y.left !== null) {
+                y.left.parent = x;
+            }
+            y.parent = x.parent;
+            if (x.parent === null) {
+                currentTree = y;
+            } else if (x === x.parent.left) {
+                x.parent.left = y;
+            } else {
+                x.parent.right = y;
+            }
+            y.left = x;
+            x.parent = y;
+
+            states.push({
+                bstRoot: cloneBST(currentTree),
+                activeKey: y.key,
+                searchPath: [],
+                line: 14,
+                desc: "Rotația stângă s-a finalizat. Noua rădăcină locală este y = " + y.key + "."
+            });
+
+            bstData = currentTree;
+            renderState();
+        }
+
+        function bstRightRotateDemo() {
+            const key = parseInt(document.getElementById('bst-key').value);
+            if (isNaN(key)) return;
+
+            states = [];
+            stepIndex = 0;
+            stopPlay();
+
+            let currentTree = cloneBST(bstData);
+            let y = findBSTNode(currentTree, key);
+
+            if (!y) {
+                alert("Nodul cu cheia " + key + " nu există!");
+                return;
+            }
+            if (y.left === null) {
+                alert("Rotația dreaptă nu este posibilă deoarece fiul stâng al nodului " + key + " este NULL!");
+                return;
+            }
+
+            states.push({
+                bstRoot: cloneBST(currentTree),
+                activeKey: y.key,
+                searchPath: [],
+                line: 1,
+                desc: "Inițializăm RIGHT-ROTATE pe nodul y = " + key + "."
+            });
+
+            let x = y.left;
+            y.left = x.right;
+            if (x.right !== null) {
+                x.right.parent = y;
+            }
+            x.parent = y.parent;
+            if (y.parent === null) {
+                currentTree = x;
+            } else if (y === y.parent.right) {
+                y.parent.right = x;
+            } else {
+                y.parent.left = x;
+            }
+            x.right = y;
+            y.parent = x;
+
+            states.push({
+                bstRoot: cloneBST(currentTree),
+                activeKey: x.key,
+                searchPath: [],
+                line: 14,
+                desc: "Rotația dreaptă s-a finalizat. Noua rădăcină locală este x = " + x.key + "."
+            });
+
+            bstData = currentTree;
+            renderState();
+        }
+
+        window.onload = () => {
+            setBSTParents(bstData);
+            selectAlgorithm('graph');
+        };
+    </script>
+</body>
+</html>

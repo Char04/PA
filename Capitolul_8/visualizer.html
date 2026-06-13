@@ -1,0 +1,1079 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vizualizator Algoritmi - Capitolul 8</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-base: #0f172a;
+            --bg-surface: #1e293b;
+            --bg-code: #0b0f19;
+            --primary: #6366f1;
+            --primary-hover: #4f46e5;
+            --secondary: #0ea5e9;
+            --accent: #f43f5e;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border: #334155;
+            --font-sans: 'Inter', sans-serif;
+            --font-mono: 'Fira Code', monospace;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-base);
+            color: var(--text-main);
+            font-family: var(--font-sans);
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .sidebar {
+            width: 280px;
+            background-color: var(--bg-surface);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+        }
+
+        .sidebar-header {
+            padding: 24px;
+            border-bottom: 1px solid var(--border);
+            background: linear-gradient(135deg, var(--bg-surface), #131b2e);
+        }
+
+        .sidebar-header h1 {
+            font-size: 18px;
+            font-weight: 700;
+            letter-spacing: -0.025em;
+            color: var(--text-main);
+        }
+
+        .sidebar-header p {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        .menu-list {
+            list-style: none;
+            padding: 16px;
+            overflow-y: auto;
+            flex-grow: 1;
+        }
+
+        .menu-item {
+            padding: 12px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            color: var(--text-muted);
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+        }
+
+        .menu-item:hover {
+            background-color: rgba(99, 102, 241, 0.1);
+            color: var(--text-main);
+        }
+
+        .menu-item.active {
+            background-color: var(--primary);
+            color: var(--text-main);
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.25);
+        }
+
+        .main-content {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .top-bar {
+            height: 70px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 32px;
+            background-color: var(--bg-surface);
+        }
+
+        .top-bar h2 {
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .workspace {
+            flex-grow: 1;
+            display: flex;
+            overflow: hidden;
+            padding: 24px;
+            gap: 24px;
+        }
+
+        .visualizer-section {
+            flex: 3;
+            background-color: var(--bg-surface);
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .visualizer-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background-color: rgba(30, 41, 59, 0.5);
+        }
+
+        .controls-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .btn {
+            background-color: var(--border);
+            color: var(--text-main);
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn:hover {
+            background-color: #475569;
+        }
+
+        .btn-primary {
+            background-color: var(--primary);
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-hover);
+        }
+
+        .btn-danger {
+            background-color: var(--accent);
+        }
+
+        .btn-danger:hover {
+            background-color: #e11d48;
+        }
+
+        .visualizer-body {
+            flex-grow: 1;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow-y: auto;
+        }
+
+        .visualizer-footer {
+            padding: 20px;
+            border-top: 1px solid var(--border);
+            background-color: rgba(15, 23, 42, 0.4);
+        }
+
+        .explanation-box {
+            background-color: rgba(99, 102, 241, 0.05);
+            border-left: 4px solid var(--primary);
+            padding: 16px;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .explanation-box p {
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .code-section {
+            flex: 2;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .code-container {
+            background-color: var(--bg-surface);
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .code-tabs {
+            display: flex;
+            border-bottom: 1px solid var(--border);
+            background-color: rgba(30, 41, 59, 0.5);
+        }
+
+        .code-tab {
+            padding: 12px 20px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            border-right: 1px solid var(--border);
+            color: var(--text-muted);
+            transition: all 0.2s ease;
+        }
+
+        .code-tab:hover {
+            color: var(--text-main);
+        }
+
+        .code-tab.active {
+            background-color: var(--bg-code);
+            color: var(--primary);
+            border-bottom: 2px solid var(--primary);
+        }
+
+        .code-viewport {
+            flex-grow: 1;
+            background-color: var(--bg-code);
+            padding: 20px;
+            overflow: auto;
+        }
+
+        pre {
+            font-family: var(--font-mono);
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        .highlighted-line {
+            background-color: rgba(99, 102, 241, 0.2);
+            display: block;
+            margin: 0 -20px;
+            padding: 0 20px;
+            border-left: 3px solid var(--primary);
+        }
+
+        .input-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        svg {
+            background-color: var(--bg-base);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            width: 100%;
+            height: 320px;
+            cursor: crosshair;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h1>Capitolul 8</h1>
+            <p>Acoperirea convexă</p>
+        </div>
+        <ul class="menu-list">
+            <li class="menu-item active" onclick="selectAlgorithm('graham')">1. Graham Scan</li>
+            <li class="menu-item" onclick="selectAlgorithm('quickhull')">2. Algoritmul Quickhull</li>
+            <li class="menu-item" onclick="selectAlgorithm('giftwrap')">3. Gift Wrapping (Jarvis)</li>
+        </ul>
+    </div>
+
+    <div class="main-content">
+        <div class="top-bar">
+            <h2 id="algo-title">Graham Scan</h2>
+        </div>
+
+        <div class="workspace">
+            <div class="visualizer-section">
+                <div class="visualizer-header">
+                    <div class="controls-row" id="inputs-container">
+                    </div>
+                    <div class="controls-row">
+                        <button class="btn" onclick="stepBackward()">Înapoi</button>
+                        <button class="btn btn-primary" id="play-btn" onclick="togglePlay()">Auto Run</button>
+                        <button class="btn" onclick="stepForward()">Pas Următor</button>
+                        <button class="btn btn-danger" onclick="resetState()">Reset</button>
+                    </div>
+                </div>
+                <div class="visualizer-body" id="canvas">
+                    <svg id="canvas-svg" onclick="addPointByClick(event)"></svg>
+                </div>
+                <div class="visualizer-footer">
+                    <div class="explanation-box">
+                        <p id="step-explanation">Inițializează stările pentru a începe.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="code-section">
+                <div class="code-container">
+                    <div class="code-tabs">
+                        <div class="code-tab active" id="tab-pseudo" onclick="selectCodeTab('pseudo')">Pseudocod</div>
+                        <div class="code-tab" id="tab-java" onclick="selectCodeTab('java')">Cod Java</div>
+                        <div class="code-tab" id="tab-teorie" onclick="selectCodeTab('teorie')">Teorie</div>
+                    </div>
+                    <div class="code-viewport">
+                        <pre id="code-display"></pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentAlgorithm = 'graham';
+        let currentCodeTab = 'pseudo';
+        let stepIndex = 0;
+        let states = [];
+        let isPlaying = false;
+        let playInterval = null;
+
+        let pointsList = [
+            {x: 100, y: 220},
+            {x: 150, y: 260},
+            {x: 220, y: 180},
+            {x: 320, y: 80},
+            {x: 100, y: 70},
+            {x: 200, y: 130},
+            {x: 420, y: 150},
+            {x: 350, y: 240}
+        ];
+
+        const pseudocodes = {
+            graham: `procedure GRAHAM_SCAN(P[1..n])
+  stivas = stiva_goala
+  gaseste P0 (y minim, apoi x minim)
+  sorteaza punctele polar fata de P0
+  push P0, P1, P2 pe stivas
+  for point in P3..Pn do
+    while lungime stiva > 1 AND ccw(next_to_top, top, point) <= 0 do
+      pop stivas
+    end while
+    push point pe stivas
+  end for
+end procedure`,
+            quickhull: `procedure QUICKHULL(P)
+  gaseste A (x minim) si B (x maxim)
+  adauga A si B la convex_hull
+  S1 = punctele la stanga de AB
+  S2 = punctele la stanga de BA
+  FindHull(S1, A, B)
+  FindHull(S2, B, A)
+end procedure
+
+procedure FINDHULL(Sk, P, Q)
+  if Sk este vida return
+  gaseste C cel mai departat de PQ
+  adauga C la convex_hull intre P si Q
+  S1 = stanga de PC; S2 = stanga de CQ
+  FindHull(S1, P, C)
+  FindHull(S2, C, Q)
+end procedure`,
+            giftwrap: `procedure GIFT_WRAPPING(S)
+  pointOnHull = cel mai din stanga punct
+  repeat
+    adauga pointOnHull la convex_hull
+    endpoint = S[1]
+    for j = 2 to n do
+      if endpoint == pointOnHull OR ccw(pointOnHull, endpoint, S[j]) > 0
+        endpoint = S[j]
+      end if
+    end for
+    pointOnHull = endpoint
+  until pointOnHull == cel mai din stanga punct
+end procedure`
+        };
+
+        const javacodes = {
+            graham: `public static List<Point> grahamScan(List<Point> points) {
+    Point p0 = getLowestPoint(points);
+    sortByPolarAngle(points, p0);
+    Stack<Point> stack = new Stack<>();
+    stack.push(p0);
+    stack.push(points.get(0));
+    stack.push(points.get(1));
+    for (int i = 2; i < points.size(); i++) {
+        Point pi = points.get(i);
+        while (stack.size() > 1) {
+            Point top = stack.pop();
+            Point nextToTop = stack.peek();
+            if (ccw(nextToTop, top, pi) > 0) {
+                stack.push(top);
+                break;
+            }
+        }
+        stack.push(pi);
+    }
+    return new ArrayList<>(stack);
+}`,
+            quickhull: `public static List<Point> quickHull(List<Point> points) {
+    Point minX = getMinX(points), maxX = getMaxX(points);
+    List<Point> hull = new ArrayList<>();
+    hull.add(minX); hull.add(maxX);
+    List<Point> s1 = getLeftPoints(minX, maxX, points);
+    List<Point> s2 = getLeftPoints(maxX, minX, points);
+    findHull(s1, minX, maxX, hull);
+    findHull(s2, maxX, minX, hull);
+    return hull;
+}
+
+public static void findHull(List<Point> sk, Point p, Point q, List<Point> hull) {
+    if (sk.isEmpty()) return;
+    Point farthest = getFarthestPoint(p, q, sk);
+    hull.add(hull.indexOf(q), farthest);
+    List<Point> s1 = getLeftPoints(p, farthest, sk);
+    List<Point> s2 = getLeftPoints(farthest, q, sk);
+    findHull(s1, p, farthest, hull);
+    findHull(s2, farthest, q, hull);
+}`,
+            giftwrap: `public static List<Point> giftWrapping(List<Point> points) {
+    List<Point> hull = new ArrayList<>();
+    Point minX = getLeftmostPoint(points);
+    Point pointOnHull = minX;
+    do {
+        hull.add(pointOnHull);
+        Point endpoint = points.get(0);
+        for (int j = 1; j < points.size(); j++) {
+            if (endpoint == pointOnHull || ccw(pointOnHull, endpoint, points.get(j)) > 0) {
+                endpoint = points.get(j);
+            }
+        }
+        pointOnHull = endpoint;
+    } while (pointOnHull != minX);
+    return hull;
+}`
+        };
+
+        const teorii = {
+            graham: `<div style="padding: 10px; font-family: var(--font-sans);">
+                <h3 style="color: var(--primary); margin-bottom: 6px; font-size: 15px;">Scop</h3>
+                <p style="margin-bottom: 12px; color: var(--text-main); font-size: 13px; line-height: 1.5;">Calcularea acoperirii convexe (conturul minimal închizător) pentru o mulțime finită de puncte într-un plan bidimensional.</p>
+                <h3 style="color: var(--primary); margin-bottom: 6px; font-size: 15px;">Funcționare</h3>
+                <p style="margin-bottom: 12px; color: var(--text-main); font-size: 13px; line-height: 1.5;">Selectează un punct de referință $P_0$ (cel mai de jos). Sortează polar celelalte puncte în raport cu acesta. Parcurge punctele sortate și menține o stivă cu punctele active ale acoperirii. Pentru fiecare punct nou, dacă orientarea determinată de ultimele două din stivă și cel nou este spre dreapta sau coliniară (concavitate), elimină elementul din vârful stivei până când orientarea devine spre stânga.</p>
+                <h3 style="color: var(--primary); margin-bottom: 6px; font-size: 15px;">Aplicații</h3>
+                <p style="margin-bottom: 12px; color: var(--text-main); font-size: 13px; line-height: 1.5;">Geometrie computațională, recunoașterea formelor, detectarea coliziunilor în jocuri 2D.</p>
+                <h3 style="color: var(--primary); margin-bottom: 6px; font-size: 15px;">Complexitate</h3>
+                <p style="color: var(--text-main); font-size: 13px; line-height: 1.5;">Timp: O(n log n) datorită etapei de sortare polare. Spațiu: O(n) pentru stivă.</p>
+            </div>`,
+            quickhull: `<div style="padding: 10px; font-family: var(--font-sans);">
+                <h3 style="color: var(--primary); margin-bottom: 6px; font-size: 15px;">Scop</h3>
+                <p style="margin-bottom: 12px; color: var(--text-main); font-size: 13px; line-height: 1.5;">Găsirea acoperirii convexe folosind o abordare Divide et Impera similară cu QuickSort.</p>
+                <h3 style="color: var(--primary); margin-bottom: 6px; font-size: 15px;">Funcționare</h3>
+                <p style="margin-bottom: 12px; color: var(--text-main); font-size: 13px; line-height: 1.5;">Găsește punctele cu coordonatele x minime (A) și maxime (B) care sigur fac parte din acoperire. Segmentul AB împarte spațiul în două. Pentru fiecare parte, caută cel mai îndepărtat punct de linie (C). Punctele din interiorul triunghiului ABC sunt ignorate. Se repeta recursiv căutarea pentru regiunile rămase la stânga segmentelor AC și CB.</p>
+                <h3 style="color: var(--primary); margin-bottom: 6px; font-size: 15px;">Aplicații</h3>
+                <p style="margin-bottom: 12px; color: var(--text-main); font-size: 13px; line-height: 1.5;">Analiza spațială a datelor, generare de mesh-uri 2D, calculul volumului limitator.</p>
+                <h3 style="color: var(--primary); margin-bottom: 6px; font-size: 15px;">Complexitate</h3>
+                <p style="color: var(--text-main); font-size: 13px; line-height: 1.5;">Timp: O(n log n) în medie, O(n²) în cazul cel mai defavorabil (puncte coliniare sau distribuite pe cerc). Spațiu: O(log n) recursiv.</p>
+            </div>`,
+            giftwrap: `<div style="padding: 10px; font-family: var(--font-sans);">
+                <h3 style="color: var(--primary); margin-bottom: 6px; font-size: 15px;">Scop</h3>
+                <p style="margin-bottom: 12px; color: var(--text-main); font-size: 13px; line-height: 1.5;">Calcularea acoperirii convexe printr-o metodă intuitivă, cunoscută și sub numele de Jarvis March.</p>
+                <h3 style="color: var(--primary); margin-bottom: 6px; font-size: 15px;">Funcționare</h3>
+                <p style="margin-bottom: 12px; color: var(--text-main); font-size: 13px; line-height: 1.5;">Începe cu cel mai din stânga punct (A). Repetă căutarea următorului punct de pe contur (B) baleind celelalte puncte pentru a-l găsi pe cel aflat în unghiul cel mai din stânga (contra acelor de ceasornic) în raport cu punctul curent. Căutarea continuă circular până când se revine la punctul de pornire.</p>
+                <h3 style="color: var(--primary); margin-bottom: 6px; font-size: 15px;">Aplicații</h3>
+                <p style="margin-bottom: 12px; color: var(--text-main); font-size: 13px; line-height: 1.5;">Algoritmi de navigație simpli, prelucrări GIS de bază, cazuri când numărul h de puncte de pe contur este foarte mic.</p>
+                <h3 style="color: var(--primary); margin-bottom: 6px; font-size: 15px;">Complexitate</h3>
+                <p style="color: var(--text-main); font-size: 13px; line-height: 1.5;">Timp: O(n * h) unde h este numărul de vârfuri din acoperire. Spațiu: O(h) pentru conturul rezultat.</p>
+            </div>`
+        };
+
+        const titles = {
+            graham: "1. Graham Scan",
+            quickhull: "2. Algoritmul Quickhull",
+            giftwrap: "3. Gift Wrapping (Jarvis)"
+        };
+
+        function selectAlgorithm(algo) {
+            currentAlgorithm = algo;
+            document.querySelectorAll('.menu-item').forEach(el => el.classList.remove('active'));
+            const items = document.querySelectorAll('.menu-item');
+            if (algo === 'graham') items[0].classList.add('active');
+            else if (algo === 'quickhull') items[1].classList.add('active');
+            else if (algo === 'giftwrap') items[2].classList.add('active');
+
+            document.getElementById('algo-title').innerText = titles[algo];
+            stopPlay();
+            renderCode();
+            setupInputs();
+            resetState();
+        }
+
+        function selectCodeTab(tab) {
+            currentCodeTab = tab;
+            document.getElementById('tab-pseudo').classList.toggle('active', tab === 'pseudo');
+            document.getElementById('tab-java').classList.toggle('active', tab === 'java');
+            document.getElementById('tab-teorie').classList.toggle('active', tab === 'teorie');
+            renderCode();
+        }
+
+        function renderCode() {
+            const display = document.getElementById('code-display');
+            if (currentCodeTab === 'teorie') {
+                display.innerHTML = teorii[currentAlgorithm] || '';
+                display.style.fontFamily = 'var(--font-sans)';
+                display.style.whiteSpace = 'normal';
+                return;
+            }
+            display.style.fontFamily = '';
+            display.style.whiteSpace = '';
+            const codeText = currentCodeTab === 'pseudo' ? pseudocodes[currentAlgorithm] : javacodes[currentAlgorithm];
+            
+            if (states.length > 0 && stepIndex < states.length && states[stepIndex].line !== undefined) {
+                const lines = codeText.split('\n');
+                const targetLine = states[stepIndex].line;
+                const formattedLines = lines.map((line, idx) => {
+                    if (idx === targetLine) {
+                        return `<span class="highlighted-line">${line}</span>`;
+                    }
+                    return line;
+                });
+                display.innerHTML = formattedLines.join('\n');
+            } else {
+                display.innerText = codeText;
+            }
+        }
+
+        function setupInputs() {
+            const container = document.getElementById('inputs-container');
+            container.innerHTML = `
+                <div class="input-group">
+                    <button class="btn btn-primary" onclick="generateRandomPoints()">Puncte Aleatorii</button>
+                    <button class="btn btn-danger" onclick="clearPoints()">Șterge Tot</button>
+                    <span style="font-size: 12px; color: var(--text-muted);">*Clic pe panoul negru pentru a adăuga puncte personalizate</span>
+                </div>
+            `;
+        }
+
+        function generateRandomPoints() {
+            pointsList = [];
+            for (let i = 0; i < 12; i++) {
+                pointsList.push({
+                    x: 40 + Math.random() * 420,
+                    y: 40 + Math.random() * 240
+                });
+            }
+            generateStates();
+        }
+
+        function clearPoints() {
+            pointsList = [];
+            states = [];
+            stepIndex = 0;
+            stopPlay();
+            drawCanvas();
+            document.getElementById('step-explanation').innerText = "Adăugați puncte pe panou prin clic pentru a începe.";
+        }
+
+        function addPointByClick(event) {
+            const rect = document.getElementById('canvas-svg').getBoundingClientRect();
+            const x = event.clientX - rect.left;
+            const y = event.clientY - rect.top;
+            pointsList.push({ x, y });
+            generateStates();
+        }
+
+        function ccw(p1, p2, p3) {
+            return (p2.x - p1.x) * (p3.y - p1.y) - (p2.y - p1.y) * (p3.x - p1.x);
+        }
+
+        function distance(p1, p2) {
+            return Math.pow(p1.x - p2.x, 2) + Math.pow(p1.y - p2.y, 2);
+        }
+
+        function distLinePoint(a, b, p) {
+            return Math.abs((b.y - a.y) * p.x - (b.x - a.x) * p.y + b.x * a.y - b.y * a.x);
+        }
+
+        function generateStates() {
+            states = [];
+            stepIndex = 0;
+            stopPlay();
+
+            if (pointsList.length < 3) {
+                document.getElementById('step-explanation').innerText = "Pentru acoperire convexă este nevoie de minim 3 puncte.";
+                drawCanvas();
+                return;
+            }
+
+            if (currentAlgorithm === 'graham') {
+                let pts = [...pointsList];
+                states.push({
+                    pts: [...pts],
+                    stack: [],
+                    activeP: null,
+                    p0: null,
+                    line: 2,
+                    desc: "Inițializăm Graham Scan. Căutăm punctul de referință P0."
+                });
+
+                let p0 = pts[0];
+                for (let p of pts) {
+                    if (p.y > p0.y || (p.y === p0.y && p.x < p0.x)) {
+                        p0 = p;
+                    }
+                }
+
+                states.push({
+                    pts: [...pts],
+                    stack: [],
+                    activeP: null,
+                    p0: p0,
+                    line: 2,
+                    desc: "Punctul P0 (" + Math.round(p0.x) + ", " + Math.round(p0.y) + ") cu Y maxim a fost identificat."
+                });
+
+                pts = pts.filter(p => p !== p0);
+                pts.sort((a, b) => {
+                    let val = ccw(p0, a, b);
+                    if (val === 0) {
+                        return distance(p0, a) - distance(p0, b);
+                    }
+                    return val > 0 ? -1 : 1;
+                });
+
+                states.push({
+                    pts: [p0, ...pts],
+                    stack: [],
+                    activeP: null,
+                    p0: p0,
+                    sorted: true,
+                    line: 3,
+                    desc: "Sortăm polar restul punctelor față de P0."
+                });
+
+                let stack = [p0, pts[0], pts[1]];
+                states.push({
+                    pts: [p0, ...pts],
+                    stack: [...stack],
+                    activeP: null,
+                    p0: p0,
+                    line: 4,
+                    desc: "Adăugăm primele 3 puncte sortate în stivă."
+                });
+
+                for (let i = 2; i < pts.size || i < pts.length; i++) {
+                    let pi = pts[i];
+                    states.push({
+                        pts: [p0, ...pts],
+                        stack: [...stack],
+                        activeP: pi,
+                        p0: p0,
+                        line: 5,
+                        desc: "Analizăm punctul curent (" + Math.round(pi.x) + ", " + Math.round(pi.y) + ") și verificăm orientarea virajului."
+                    });
+
+                    while (stack.length > 1) {
+                        let top = stack[stack.length - 1];
+                        let nextToTop = stack[stack.length - 2];
+                        let turn = ccw(nextToTop, top, pi);
+                        if (turn > 0) {
+                            states.push({
+                                pts: [p0, ...pts],
+                                stack: [...stack],
+                                activeP: pi,
+                                p0: p0,
+                                line: 6,
+                                desc: "Virajul este spre stânga (ccw > 0). Stiva se menține."
+                            });
+                            break;
+                        } else {
+                            stack.pop();
+                            states.push({
+                                pts: [p0, ...pts],
+                                stack: [...stack],
+                                activeP: pi,
+                                p0: p0,
+                                line: 7,
+                                desc: "Viraj spre dreapta sau coliniar. Eliminăm elementul din vârful stivei (backtrack)."
+                            });
+                        }
+                    }
+                    stack.push(pi);
+                    states.push({
+                        pts: [p0, ...pts],
+                        stack: [...stack],
+                        activeP: null,
+                        p0: p0,
+                        line: 10,
+                        desc: "Adăugăm punctul curent în stiva acoperirii convexe."
+                    });
+                }
+
+                states.push({
+                    pts: [p0, ...pts],
+                    stack: [...stack],
+                    activeP: null,
+                    p0: p0,
+                    finished: true,
+                    line: 12,
+                    desc: "Graham Scan s-a finalizat! Toate punctele acoperirii au fost determinate."
+                });
+
+            } else if (currentAlgorithm === 'quickhull') {
+                let pts = [...pointsList];
+                let minX = pts[0], maxX = pts[0];
+                for (let p of pts) {
+                    if (p.x < minX.x) minX = p;
+                    if (p.x > maxX.x) maxX = p;
+                }
+
+                let hull = [minX, maxX];
+                states.push({
+                    pts: [...pts],
+                    hull: [...hull],
+                    activeLine: [minX, maxX],
+                    line: 1,
+                    desc: "Inițializăm Quickhull. Găsim punctele extreme A (" + Math.round(minX.x) + ") și B (" + Math.round(maxX.x) + ")."
+                });
+
+                let s1 = [], s2 = [];
+                for (let p of pts) {
+                    if (p === minX || p === maxX) continue;
+                    if (ccw(minX, maxX, p) > 0) s1.add ? s1.add(p) : s1.push(p);
+                    else if (ccw(maxX, minX, p) > 0) s2.add ? s2.add(p) : s2.push(p);
+                }
+
+                const findHullStates = (sk, p, q) => {
+                    if (sk.length === 0) return;
+                    let farthest = null;
+                    let maxD = -1;
+                    for (let pt of sk) {
+                        let dist = distLinePoint(p, q, pt);
+                        if (dist > maxD) {
+                            maxD = dist;
+                            farthest = pt;
+                        }
+                    }
+
+                    states.push({
+                        pts: [...pts],
+                        hull: [...hull],
+                        activeLine: [p, q],
+                        farthest: farthest,
+                        line: 9,
+                        desc: "Căutăm cel mai îndepărtat punct față de segmentul definit: (" + Math.round(farthest.x) + ", " + Math.round(farthest.y) + ")."
+                    });
+
+                    let idx = hull.indexOf(q);
+                    hull.splice(idx, 0, farthest);
+
+                    states.push({
+                        pts: [...pts],
+                        hull: [...hull],
+                        activeLine: null,
+                        farthest: null,
+                        line: 11,
+                        desc: "Introducem punctul pe contur între legăturile existente."
+                    });
+
+                    let l1 = [], l2 = [];
+                    for (let pt of sk) {
+                        if (pt === farthest) continue;
+                        if (ccw(p, farthest, pt) > 0) l1.push(pt);
+                        else if (ccw(farthest, q, pt) > 0) l2.push(pt);
+                    }
+
+                    findHullStates(l1, p, farthest);
+                    findHullStates(l2, farthest, q);
+                };
+
+                findHullStates(s1, minX, maxX);
+                findHullStates(s2, maxX, minX);
+
+                states.push({
+                    pts: [...pts],
+                    hull: [...hull],
+                    activeLine: null,
+                    farthest: null,
+                    finished: true,
+                    line: 5,
+                    desc: "Quickhull s-a încheiat. Acoperirea convexă a fost determinată complet."
+                });
+
+            } else if (currentAlgorithm === 'giftwrap') {
+                let pts = [...pointsList];
+                let minX = pts[0];
+                for (let p of pts) {
+                    if (p.x < minX.x) {
+                        minX = p;
+                    }
+                }
+
+                let hull = [];
+                let pointOnHull = minX;
+
+                states.push({
+                    pts: [...pts],
+                    hull: [],
+                    pointOnHull: pointOnHull,
+                    line: 2,
+                    desc: "Inițializăm Jarvis March. Punctul de pornire este cel mai din stânga: (" + Math.round(minX.x) + ", " + Math.round(minX.y) + ")."
+                });
+
+                do {
+                    hull.push(pointOnHull);
+                    let endpoint = pts[0];
+
+                    states.push({
+                        pts: [...pts],
+                        hull: [...hull],
+                        pointOnHull: pointOnHull,
+                        endpoint: endpoint,
+                        line: 4,
+                        desc: "Adăugăm punctul curent pe contur și inițializăm căutarea următorului punct."
+                    });
+
+                    for (let j = 1; j < pts.length; j++) {
+                        let candidate = pts[j];
+                        let isBetter = (endpoint === pointOnHull) || ccw(pointOnHull, endpoint, candidate) > 0;
+                        
+                        states.push({
+                            pts: [...pts],
+                            hull: [...hull],
+                            pointOnHull: pointOnHull,
+                            endpoint: endpoint,
+                            candidate: candidate,
+                            line: 7,
+                            desc: "Baleiem și comparăm orientarea pentru a alege punctul cel mai exterior."
+                        });
+
+                        if (isBetter) {
+                            endpoint = candidate;
+                        }
+                    }
+                    pointOnHull = endpoint;
+                } while (pointOnHull !== minX);
+
+                states.push({
+                    pts: [...pts],
+                    hull: [...hull],
+                    pointOnHull: null,
+                    finished: true,
+                    line: 14,
+                    desc: "Gift Wrapping s-a terminat! S-a închis conturul acoperirii convexe."
+                });
+            }
+
+            drawCanvas();
+        }
+
+        function drawCanvas() {
+            const svg = document.getElementById('canvas-svg');
+            svg.innerHTML = '';
+
+            let state = states[stepIndex];
+            
+            if (!state) {
+                pointsList.forEach(p => {
+                    svg.innerHTML += `<circle cx="${p.x}" cy="${p.y}" r="6" fill="var(--primary)" />`;
+                });
+                return;
+            }
+
+            if (currentAlgorithm === 'graham') {
+                if (state.sorted) {
+                    for (let i = 0; i < state.pts.length - 1; i++) {
+                        svg.innerHTML += `<line x1="${state.pts[i].x}" y1="${state.pts[i].y}" x2="${state.pts[i+1].x}" y2="${state.pts[i+1].y}" stroke="rgba(99, 102, 241, 0.2)" stroke-width="1.5" />`;
+                    }
+                }
+                
+                if (state.stack.length > 1) {
+                    let pathData = `M ${state.stack[0].x} ${state.stack[0].y}`;
+                    for (let i = 1; i < state.stack.length; i++) {
+                        pathData += ` L ${state.stack[i].x} ${state.stack[i].y}`;
+                    }
+                    if (state.finished) {
+                        pathData += ' Z';
+                        svg.innerHTML += `<path d="${pathData}" fill="rgba(16, 185, 129, 0.1)" stroke="var(--success)" stroke-width="3" />`;
+                    } else {
+                        svg.innerHTML += `<path d="${pathData}" fill="none" stroke="var(--success)" stroke-width="3" />`;
+                    }
+                }
+
+                if (state.activeP) {
+                    const top = state.stack[state.stack.length - 1];
+                    svg.innerHTML += `<line x1="${top.x}" y1="${top.y}" x2="${state.activeP.x}" y2="${state.activeP.y}" stroke="var(--accent)" stroke-width="2.5" stroke-dasharray="4" />`;
+                }
+
+                state.pts.forEach(p => {
+                    let color = 'var(--text-muted)';
+                    let size = 6;
+                    if (p === state.p0) {
+                        color = 'var(--accent)';
+                        size = 8;
+                    } else if (state.stack.includes(p)) {
+                        color = 'var(--success)';
+                    } else if (p === state.activeP) {
+                        color = 'var(--warning)';
+                        size = 7;
+                    }
+                    svg.innerHTML += `<circle cx="${p.x}" cy="${p.y}" r="${size}" fill="${color}" />`;
+                });
+
+            } else if (currentAlgorithm === 'quickhull') {
+                if (state.hull.length > 1) {
+                    let pathData = `M ${state.hull[0].x} ${state.hull[0].y}`;
+                    for (let i = 1; i < state.hull.length; i++) {
+                        pathData += ` L ${state.hull[i].x} ${state.hull[i].y}`;
+                    }
+                    if (state.finished) {
+                        pathData += ' Z';
+                        svg.innerHTML += `<path d="${pathData}" fill="rgba(16, 185, 129, 0.1)" stroke="var(--success)" stroke-width="3" />`;
+                    } else {
+                        svg.innerHTML += `<path d="${pathData}" fill="none" stroke="var(--primary)" stroke-width="2.5" />`;
+                    }
+                }
+
+                if (state.activeLine) {
+                    svg.innerHTML += `<line x1="${state.activeLine[0].x}" y1="${state.activeLine[0].y}" x2="${state.activeLine[1].x}" y2="${state.activeLine[1].y}" stroke="var(--warning)" stroke-width="2.5" />`;
+                }
+
+                if (state.farthest) {
+                    svg.innerHTML += `<line x1="${state.activeLine[0].x}" y1="${state.activeLine[0].y}" x2="${state.farthest.x}" y2="${state.farthest.y}" stroke="var(--accent)" stroke-width="1.5" stroke-dasharray="2" />`;
+                    svg.innerHTML += `<line x1="${state.activeLine[1].x}" y1="${state.activeLine[1].y}" x2="${state.farthest.x}" y2="${state.farthest.y}" stroke="var(--accent)" stroke-width="1.5" stroke-dasharray="2" />`;
+                }
+
+                state.pts.forEach(p => {
+                    let color = 'var(--text-muted)';
+                    let size = 6;
+                    if (state.hull.includes(p)) {
+                        color = 'var(--success)';
+                    } else if (p === state.farthest) {
+                        color = 'var(--accent)';
+                        size = 8;
+                    }
+                    svg.innerHTML += `<circle cx="${p.x}" cy="${p.y}" r="${size}" fill="${color}" />`;
+                });
+
+            } else if (currentAlgorithm === 'giftwrap') {
+                if (state.hull.length > 0) {
+                    let pathData = `M ${state.hull[0].x} ${state.hull[0].y}`;
+                    for (let i = 1; i < state.hull.length; i++) {
+                        pathData += ` L ${state.hull[i].x} ${state.hull[i].y}`;
+                    }
+                    if (state.finished) {
+                        pathData += ' Z';
+                        svg.innerHTML += `<path d="${pathData}" fill="rgba(16, 185, 129, 0.1)" stroke="var(--success)" stroke-width="3" />`;
+                    } else {
+                        svg.innerHTML += `<path d="${pathData}" fill="none" stroke="var(--success)" stroke-width="3" />`;
+                    }
+                }
+
+                if (state.pointOnHull && state.endpoint) {
+                    svg.innerHTML += `<line x1="${state.pointOnHull.x}" y1="${state.pointOnHull.y}" x2="${state.endpoint.x}" y2="${state.endpoint.y}" stroke="var(--warning)" stroke-width="2.5" />`;
+                }
+
+                if (state.pointOnHull && state.candidate) {
+                    svg.innerHTML += `<line x1="${state.pointOnHull.x}" y1="${state.pointOnHull.y}" x2="${state.candidate.x}" y2="${state.candidate.y}" stroke="rgba(244, 63, 94, 0.4)" stroke-width="1.5" />`;
+                }
+
+                state.pts.forEach(p => {
+                    let color = 'var(--text-muted)';
+                    let size = 6;
+                    if (p === state.pointOnHull) {
+                        color = 'var(--accent)';
+                        size = 8;
+                    } else if (state.hull.includes(p)) {
+                        color = 'var(--success)';
+                    } else if (p === state.candidate) {
+                        color = 'var(--warning)';
+                        size = 7;
+                    }
+                    svg.innerHTML += `<circle cx="${p.x}" cy="${p.y}" r="${size}" fill="${color}" />`;
+                });
+            }
+        }
+
+        function renderState() {
+            if (states.length === 0) return;
+            const state = states[stepIndex];
+            document.getElementById('step-explanation').innerText = state.desc;
+            drawCanvas();
+            renderCode();
+        }
+
+        function stepForward() {
+            if (stepIndex < states.length - 1) {
+                stepIndex++;
+                renderState();
+            } else {
+                stopPlay();
+            }
+        }
+
+        function stepBackward() {
+            if (stepIndex > 0) {
+                stepIndex--;
+                renderState();
+            }
+        }
+
+        function togglePlay() {
+            if (isPlaying) {
+                stopPlay();
+            } else {
+                startPlay();
+            }
+        }
+
+        function startPlay() {
+            isPlaying = true;
+            document.getElementById('play-btn').innerText = 'Pauză';
+            document.getElementById('play-btn').classList.add('btn-danger');
+            playInterval = setInterval(() => {
+                stepForward();
+            }, 800);
+        }
+
+        function stopPlay() {
+            isPlaying = false;
+            document.getElementById('play-btn').innerText = 'Auto Run';
+            document.getElementById('play-btn').classList.remove('btn-danger');
+            if (playInterval) {
+                clearInterval(playInterval);
+                playInterval = null;
+            }
+        }
+
+        function resetState() {
+            stepIndex = 0;
+            stopPlay();
+            renderState();
+        }
+
+        selectAlgorithm('graham');
+    </script>
+</body>
+</html>

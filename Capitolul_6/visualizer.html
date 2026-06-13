@@ -1,0 +1,1528 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vizualizator Algoritmi - Capitolul 6</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-base: #0f172a;
+            --bg-surface: #1e293b;
+            --bg-code: #0b0f19;
+            --primary: #6366f1;
+            --primary-hover: #4f46e5;
+            --secondary: #0ea5e9;
+            --accent: #f43f5e;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border: #334155;
+            --font-sans: 'Inter', sans-serif;
+            --font-mono: 'Fira Code', monospace;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-base);
+            color: var(--text-main);
+            font-family: var(--font-sans);
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .sidebar {
+            width: 280px;
+            background-color: var(--bg-surface);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+        }
+
+        .sidebar-header {
+            padding: 24px;
+            border-bottom: 1px solid var(--border);
+            background: linear-gradient(135deg, var(--bg-surface), #131b2e);
+        }
+
+        .sidebar-header h1 {
+            font-size: 18px;
+            font-weight: 700;
+            letter-spacing: -0.025em;
+            color: var(--text-main);
+        }
+
+        .sidebar-header p {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        .menu-list {
+            list-style: none;
+            padding: 16px;
+            overflow-y: auto;
+            flex-grow: 1;
+        }
+
+        .menu-item {
+            padding: 12px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            color: var(--text-muted);
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+        }
+
+        .menu-item:hover {
+            background-color: rgba(99, 102, 241, 0.1);
+            color: var(--text-main);
+        }
+
+        .menu-item.active {
+            background-color: var(--primary);
+            color: var(--text-main);
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.25);
+        }
+
+        .main-content {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .top-bar {
+            height: 70px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 32px;
+            background-color: var(--bg-surface);
+        }
+
+        .top-bar h2 {
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .workspace {
+            flex-grow: 1;
+            display: flex;
+            overflow: hidden;
+            padding: 24px;
+            gap: 24px;
+        }
+
+        .visualizer-section {
+            flex: 3;
+            background-color: var(--bg-surface);
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .visualizer-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background-color: rgba(30, 41, 59, 0.5);
+        }
+
+        .controls-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .btn {
+            background-color: var(--border);
+            color: var(--text-main);
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn:hover {
+            background-color: #475569;
+        }
+
+        .btn-primary {
+            background-color: var(--primary);
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-hover);
+        }
+
+        .btn-danger {
+            background-color: var(--accent);
+        }
+
+        .btn-danger:hover {
+            background-color: #e11d48;
+        }
+
+        .visualizer-body {
+            flex-grow: 1;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            position: relative;
+            overflow-y: auto;
+            gap: 16px;
+        }
+
+        .visualizer-footer {
+            padding: 20px;
+            border-top: 1px solid var(--border);
+            background-color: rgba(15, 23, 42, 0.4);
+        }
+
+        .explanation-box {
+            background-color: rgba(99, 102, 241, 0.05);
+            border-left: 4px solid var(--primary);
+            padding: 16px;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .explanation-box p {
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .code-section {
+            flex: 2;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .code-container {
+            background-color: var(--bg-surface);
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .code-tabs {
+            display: flex;
+            border-bottom: 1px solid var(--border);
+            background-color: rgba(30, 41, 59, 0.5);
+        }
+
+        .code-tab {
+            padding: 12px 20px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            border-right: 1px solid var(--border);
+            color: var(--text-muted);
+            transition: all 0.2s ease;
+        }
+
+        .code-tab:hover {
+            color: var(--text-main);
+        }
+
+        .code-tab.active {
+            background-color: var(--bg-code);
+            color: var(--primary);
+            border-bottom: 2px solid var(--primary);
+        }
+
+        .code-viewport {
+            flex-grow: 1;
+            background-color: var(--bg-code);
+            padding: 20px;
+            overflow: auto;
+        }
+
+        pre {
+            font-family: var(--font-mono);
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        .highlighted-line {
+            background-color: rgba(99, 102, 241, 0.2);
+            display: block;
+            margin: 0 -20px;
+            padding: 0 20px;
+            border-left: 3px solid var(--primary);
+        }
+
+        .input-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .input-field {
+            background-color: var(--bg-base);
+            border: 1px solid var(--border);
+            color: var(--text-main);
+            padding: 6px 12px;
+            border-radius: 6px;
+            width: 80px;
+            font-size: 14px;
+            font-weight: 500;
+            outline: none;
+        }
+
+        .input-field:focus {
+            border-color: var(--primary);
+        }
+
+        .array-cards-container {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            width: 100%;
+            padding: 8px;
+            background-color: rgba(15, 23, 42, 0.3);
+            border-radius: 8px;
+            border: 1px solid var(--border);
+        }
+
+        .array-card {
+            width: 42px;
+            height: 42px;
+            background-color: var(--bg-base);
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            transition: all 0.2s ease;
+        }
+
+        .array-card.active {
+            border-color: var(--accent);
+            background-color: rgba(244, 63, 94, 0.1);
+        }
+
+        .array-card.comparing {
+            border-color: var(--warning);
+            background-color: rgba(245, 158, 11, 0.1);
+        }
+
+        .array-card.sorted {
+            border-color: var(--success);
+            background-color: rgba(16, 185, 129, 0.1);
+        }
+
+        .array-card-val {
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        .array-card-idx {
+            font-size: 9px;
+            color: var(--text-muted);
+            position: absolute;
+            top: 2px;
+            right: 4px;
+        }
+
+        svg {
+            background-color: var(--bg-base);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            width: 100%;
+            height: 280px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h1>Capitolul 6</h1>
+            <p>Tehnica Greedy 2</p>
+        </div>
+        <ul class="menu-list">
+            <li class="menu-item active" onclick="selectAlgorithm('makeheap')">1. Creare Heap (Floyd vs Slow)</li>
+            <li class="menu-item" onclick="selectAlgorithm('alterheap')">2. Modificare Heap (Alter / Insert)</li>
+            <li class="menu-item" onclick="selectAlgorithm('interopt')">3. Interclasare Optimă</li>
+            <li class="menu-item" onclick="selectAlgorithm('heapsort')">4. Sortare Heap (Heapsort)</li>
+            <li class="menu-item" onclick="selectAlgorithm('huffman')">5. Algoritmul Huffman</li>
+        </ul>
+    </div>
+
+    <div class="main-content">
+        <div class="top-bar">
+            <h2 id="algo-title">Creare Heap</h2>
+        </div>
+
+        <div class="workspace">
+            <div class="visualizer-section">
+                <div class="visualizer-header">
+                    <div class="controls-row" id="inputs-container">
+                    </div>
+                    <div class="controls-row">
+                        <button class="btn" onclick="stepBackward()">Înapoi</button>
+                        <button class="btn btn-primary" id="play-btn" onclick="togglePlay()">Auto Run</button>
+                        <button class="btn" onclick="stepForward()">Pas Următor</button>
+                        <button class="btn btn-danger" onclick="resetState()">Reset</button>
+                    </div>
+                </div>
+                <div class="visualizer-body" id="canvas">
+                    <div class="array-cards-container" id="array-display"></div>
+                    <svg id="canvas-tree"></svg>
+                </div>
+                <div class="visualizer-footer">
+                    <div class="explanation-box">
+                        <p id="step-explanation">Inițializează stările pentru a începe.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="code-section">
+                <div class="code-container">
+                    <div class="code-tabs">
+                        <div class="code-tab active" id="tab-pseudo" onclick="selectCodeTab('pseudo')">Pseudocod</div>
+                        <div class="code-tab" id="tab-java" onclick="selectCodeTab('java')">Cod Java</div>
+                        <div class="code-tab" id="tab-teorie" onclick="selectCodeTab('teorie')">Teorie</div>
+                    </div>
+                    <div class="code-viewport">
+                        <pre id="code-display"></pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentAlgorithm = 'makeheap';
+        let currentCodeTab = 'pseudo';
+        let stepIndex = 0;
+        let states = [];
+        let isPlaying = false;
+        let playInterval = null;
+
+        const pseudocodes = {
+            makeheap: `procedure MAKE-HEAP(T[1..n])
+  for i = n/2 downto 1 do
+    SiftDown(T, n, i)
+  end for
+end procedure
+
+procedure SLOW-MAKE-HEAP(T[1..n])
+  for i = 2 to n do
+    Percolate(T, i)
+  end for
+end procedure`,
+            alterheap: `procedure ALTER-HEAP(T[1..n], i, v)
+  oldVal = T[i]
+  T[i] = v
+  if v < oldVal then
+    SiftDown(T, n, i)
+  else
+    Percolate(T, i)
+  end if
+end procedure
+
+procedure INSERT(T[1..n], v)
+  T[n+1] = v
+  Percolate(T, n+1)
+end procedure`,
+            interopt: `procedure INTEROPT(Q[1..n])
+  H = min-heap vid
+  for i = 1 to n do
+    H.insert(Q[i], i)
+  end for
+  for i = n+1 to 2n-1 do
+    (s, j) = H.extractMin()
+    (r, k) = H.extractMin()
+    H.insert(s + r, i)
+  end for
+  return H.extractMin()
+end procedure`,
+            heapsort: `procedure HEAPSORT(A)
+  BUILD-MAX-HEAP(A)
+  for i = length(A) downto 2 do
+    swap(A[1], A[i])
+    heap_size = heap_size - 1
+    MAX-HEAPIFY(A, 1)
+  end for
+end procedure`,
+            huffman: `procedure HUFFMAN(C)
+  n = |C|
+  Q = C (prioritat după frecvență)
+  for i = 1 to n-1 do
+    z = ALLOCATE-NODE()
+    x = left[z] = EXTRACT-MIN(Q)
+    y = right[z] = EXTRACT-MIN(Q)
+    f[z] = f[x] + f[y]
+    INSERT(Q, z)
+  end for
+  return EXTRACT-MIN(Q)
+end procedure`
+        };
+
+        const javacodes = {
+            makeheap: `public static void makeHeap(int[] T, int n) {
+    for (int i = n / 2; i >= 1; i--) {
+        siftDown(T, n, i);
+    }
+}
+
+public static void slowMakeHeap(int[] T, int n) {
+    for (int i = 2; i <= n; i++) {
+        percolate(T, i);
+    }
+}`,
+            alterheap: `public static void alterHeap(int[] T, int n, int i, int v) {
+    int oldVal = T[i];
+    T[i] = v;
+    if (v < oldVal) {
+        siftDown(T, n, i);
+    } else {
+        percolate(T, i);
+    }
+}
+
+public static int insert(int[] T, int n, int v) {
+    T[n + 1] = v;
+    percolate(T, n + 1);
+    return n + 1;
+}`,
+            interopt: `public static MinHeapNode interopt(int[] Q, int n) {
+    PriorityQueue<MinHeapNode> pq = new PriorityQueue<>();
+    for (int i = 1; i <= n; i++) {
+        pq.add(new MinHeapNode(Q[i], i));
+    }
+    int nextNodeIndex = n + 1;
+    for (int i = n + 1; i <= 2 * n - 1; i++) {
+        MinHeapNode left = pq.poll();
+        MinHeapNode right = pq.poll();
+        MinHeapNode parent = new MinHeapNode(left.weight + right.weight, nextNodeIndex++);
+        parent.left = left;
+        parent.right = right;
+        pq.add(parent);
+    }
+    return pq.poll();
+}`,
+            heapsort: `public static void heapsort(int[] A) {
+    int n = A.length - 1;
+    makeHeap(A, n);
+    for (int i = n; i >= 2; i--) {
+        int temp = A[1];
+        A[1] = A[i];
+        A[i] = temp;
+        siftDown(A, i - 1, 1);
+    }
+}`,
+            huffman: `public static MinHeapNode huffman(char[] C, int[] f) {
+    int n = C.length;
+    PriorityQueue<MinHeapNode> Q = new PriorityQueue<>();
+    for (int i = 0; i < n; i++) {
+        Q.add(new MinHeapNode(f[i], C[i]));
+    }
+    for (int i = 1; i <= n - 1; i++) {
+        MinHeapNode x = Q.poll();
+        MinHeapNode y = Q.poll();
+        MinHeapNode z = new MinHeapNode(x.weight + y.weight, '\\0');
+        z.left = x;
+        z.right = y;
+        Q.add(z);
+    }
+    return Q.poll();
+}`
+        };
+
+        const teorii = {
+            makeheap: `<div style="padding: 10px; font-family: var(--font-sans);">
+                <h3 style="color: var(--primary); margin-bottom: 6px; font-size: 15px;">Scop</h3>
+                <p style="margin-bottom: 12px; color: var(--text-main); font-size: 13px; line-height: 1.5;">Construirea unei structuri de tip heap (grămadă) dintr-un tablou neordonat de date.</p>
+                <h3 style="color: var(--primary); margin-bottom: 6px; font-size: 15px;">Funcționare</h3>
+                <p style="margin-bottom: 12px; color: var(--text-main); font-size: 13px; line-height: 1.5;"><b>MAKE-HEAP (Floyd)</b>: Parcurge nodurile interne de la jumătate înapoi spre rădăcină (n/2 down to 1) și apelează cernerea (siftDown) pentru a coborî elementele pe poziția corectă.<br><b>SLOW-MAKE-HEAP</b>: Inserează elementele pe rând de la stânga la dreapta apelând percolarea (percolate) pentru a le ridica în heap.</p>
+                <h3 style="color: var(--primary); margin-bottom: 6px; font-size: 15px;">Aplicații</h3>
+                <p style="margin-bottom: 12px; color: var(--text-main); font-size: 13px; line-height: 1.5;">Inițializarea cozilor de priorități, sortarea HeapSort.</p>
+                <h3 style="color: var(--primary); margin-bottom: 6px; font-size: 15px;">Complexitate</h3>
+                <p style="color: var(--text-main); font-size: 13px; line-height: 1.5;">MAKE-HEAP: O(n) timp liniar. SLOW-MAKE-HEAP: O(n log n) timp.</p>
+            </div>`,
+            alterheap: `<div style="padding: 10px; font-family: var(--font-sans);">
+                <h3 style="color: var(--primary); margin-bottom: 6px; font-size: 15px;">Scop</h3>
+                <p style="margin-bottom: 12px; color: var(--text-main); font-size: 13px; line-height: 1.5;">Actualizarea valorii unui element existent în heap sau inserarea unui element nou cu restabilirea proprietății structurale.</p>
+                <h3 style="color: var(--primary); margin-bottom: 6px; font-size: 15px;">Funcționare</h3>
+                <p style="margin-bottom: 12px; color: var(--text-main); font-size: 13px; line-height: 1.5;"><b>AlterHeap</b>: Modifică valoarea pe poziția i. Dacă valoarea scade (într-un max-heap), se aplică <i>SiftDown</i>. Dacă valoarea crește, se aplică <i>Percolate</i>.<br><b>Insert</b>: Pune elementul nou pe poziția n+1 (ultima frunză) și îl ridică prin <i>Percolate</i>.</p>
+                <h3 style="color: var(--primary); margin-bottom: 6px; font-size: 15px;">Aplicații</h3>
+                <p style="margin-bottom: 12px; color: var(--text-main); font-size: 13px; line-height: 1.5;">Operația <i>decrease-key</i> / <i>increase-key</i> în algoritmi ca Dijkstra sau Prim, adăugarea de sarcini în planificatorul SO.</p>
+                <h3 style="color: var(--primary); margin-bottom: 6px; font-size: 15px;">Complexitate</h3>
+                <p style="color: var(--text-main); font-size: 13px; line-height: 1.5;">Timp: O(log n) pentru ambele operații. Spațiu: O(1) auxiliar.</p>
+            </div>`,
+            interopt: `<div style="padding: 10px; font-family: var(--font-sans);">
+                <h3 style="color: var(--primary); margin-bottom: 6px; font-size: 15px;">Scop</h3>
+                <p style="margin-bottom: 12px; color: var(--text-main); font-size: 13px; line-height: 1.5;">Determinarea ordinii optime de fuziune (interclasare) a n șiruri ordonate de lungimi diferite pentru a minimiza numărul total de deplasări de elemente.</p>
+                <h3 style="color: var(--primary); margin-bottom: 6px; font-size: 15px;">Funcționare</h3>
+                <p style="margin-bottom: 12px; color: var(--text-main); font-size: 13px; line-height: 1.5;">Utilizează o strategie Greedy. Adaugă lungimile șirurilor într-un min-heap. La fiecare pas, extrage cele mai mici două lungimi, creează un nod părinte cu ponderea egală cu suma lor, reintroduce părintele în min-heap și repetă până când rămâne un singur nod rădăcină.</p>
+                <h3 style="color: var(--primary); margin-bottom: 6px; font-size: 15px;">Aplicații</h3>
+                <p style="margin-bottom: 12px; color: var(--text-main); font-size: 13px; line-height: 1.5;">Codificarea Huffman (compresia datelor), fuzionarea optimă a fișierelor mari pe disc, sortări externe.</p>
+                <h3 style="color: var(--primary); margin-bottom: 6px; font-size: 15px;">Complexitate</h3>
+                <p style="color: var(--text-main); font-size: 13px; line-height: 1.5;">Timp: O(n log n). Spațiu: O(n) pentru stocarea arborelui binar construit.</p>
+            </div>`,
+            heapsort: `<div style="padding: 10px; font-family: var(--font-sans);">
+                <h3 style="color: var(--primary); margin-bottom: 6px; font-size: 15px;">Scop</h3>
+                <p style="margin-bottom: 12px; color: var(--text-main); font-size: 13px; line-height: 1.5;">Sortarea unui tablou în timp O(n log n) folosind structura de heap.</p>
+                <h3 style="color: var(--primary); margin-bottom: 6px; font-size: 15px;">Funcționare</h3>
+                <p style="margin-bottom: 12px; color: var(--text-main); font-size: 13px; line-height: 1.5;">Se creează mai întâi un max-heap, apoi se extrage succesiv rădăcina (valoarea maximă), se plasează la sfârșitul tabloului și se reface heap-ul pe elementele rămase.</p>
+                <h3 style="color: var(--primary); margin-bottom: 6px; font-size: 15px;">Complexitate</h3>
+                <p style="color: var(--text-main); font-size: 13px; line-height: 1.5;">Timp: O(n log n) în toate cazurile. Spațiu: O(1) auxiliar.</p>
+            </div>`,
+            huffman: `<div style="padding: 10px; font-family: var(--font-sans);">
+                <h3 style="color: var(--primary); margin-bottom: 6px; font-size: 15px;">Scop</h3>
+                <p style="margin-bottom: 12px; color: var(--text-main); font-size: 13px; line-height: 1.5;">Generarea codurilor binare prefixate optime pentru compresia eficientă a caracterelor în funcție de frecvențele lor.</p>
+                <h3 style="color: var(--primary); margin-bottom: 6px; font-size: 15px;">Funcționare</h3>
+                <p style="margin-bottom: 12px; color: var(--text-main); font-size: 13px; line-height: 1.5;">Construiește un arbore binar de jos în sus, combinând repetat cele mai mici două frecvențe extrase dintr-un min-heap.</p>
+                <h3 style="color: var(--primary); margin-bottom: 6px; font-size: 15px;">Complexitate</h3>
+                <p style="color: var(--text-main); font-size: 13px; line-height: 1.5;">Timp: O(n log n). Spațiu: O(n).</p>
+            </div>`
+        };
+
+        const titles = {
+            makeheap: "1. Creare Heap (Floyd vs Slow)",
+            alterheap: "2. Modificare Heap (Alter / Insert)",
+            interopt: "3. Interclasare Optimă",
+            heapsort: "4. Sortare Heap (Heapsort)",
+            huffman: "5. Algoritmul Huffman"
+        };
+
+        function selectAlgorithm(algo) {
+            currentAlgorithm = algo;
+            document.querySelectorAll('.menu-item').forEach(el => el.classList.remove('active'));
+            const items = document.querySelectorAll('.menu-item');
+            if (algo === 'makeheap') items[0].classList.add('active');
+            else if (algo === 'alterheap') items[1].classList.add('active');
+            else if (algo === 'interopt') items[2].classList.add('active');
+            else if (algo === 'heapsort') items[3].classList.add('active');
+            else if (algo === 'huffman') items[4].classList.add('active');
+
+            document.getElementById('algo-title').innerText = titles[algo];
+            stopPlay();
+            renderCode();
+            setupInputs();
+            resetState();
+        }
+
+        function selectCodeTab(tab) {
+            currentCodeTab = tab;
+            document.getElementById('tab-pseudo').classList.toggle('active', tab === 'pseudo');
+            document.getElementById('tab-java').classList.toggle('active', tab === 'java');
+            document.getElementById('tab-teorie').classList.toggle('active', tab === 'teorie');
+            renderCode();
+        }
+
+        function renderCode() {
+            const display = document.getElementById('code-display');
+            if (currentCodeTab === 'teorie') {
+                display.innerHTML = teorii[currentAlgorithm] || '';
+                display.style.fontFamily = 'var(--font-sans)';
+                display.style.whiteSpace = 'normal';
+                return;
+            }
+            display.style.fontFamily = '';
+            display.style.whiteSpace = '';
+            const codeText = currentCodeTab === 'pseudo' ? pseudocodes[currentAlgorithm] : javacodes[currentAlgorithm];
+            
+            if (states.length > 0 && stepIndex < states.length && states[stepIndex].line !== undefined) {
+                const lines = codeText.split('\n');
+                const targetLine = states[stepIndex].line;
+                const formattedLines = lines.map((line, idx) => {
+                    if (idx === targetLine) {
+                        return `<span class="highlighted-line">${line}</span>`;
+                    }
+                    return line;
+                });
+                display.innerHTML = formattedLines.join('\n');
+            } else {
+                display.innerText = codeText;
+            }
+        }
+
+        function setupInputs() {
+            const container = document.getElementById('inputs-container');
+            container.innerHTML = '';
+
+            if (currentAlgorithm === 'makeheap') {
+                container.innerHTML = `
+                    <div class="input-group">
+                        <span style="font-size: 13px; font-weight:600;">Metodă:</span>
+                        <select class="input-field" id="make-method" style="width: 110px;">
+                            <option value="floyd">Floyd (O(n))</option>
+                            <option value="slow">Slow (O(nlogn))</option>
+                        </select>
+                        <span style="font-size: 13px; font-weight:600;">Elemente:</span>
+                        <input type="text" class="input-field" id="array-input" value="4,1,3,2,16,9,10,14,8,7" style="width: 150px;">
+                        <button class="btn btn-primary" onclick="generateStates()">Setează</button>
+                    </div>
+                `;
+            } else if (currentAlgorithm === 'alterheap') {
+                container.innerHTML = `
+                    <div class="input-group">
+                        <span style="font-size: 13px; font-weight:600;">Acțiune:</span>
+                        <select class="input-field" id="alter-action" onchange="toggleAlterFields()" style="width: 100px;">
+                            <option value="alter">AlterHeap</option>
+                            <option value="insert">Insert</option>
+                        </select>
+                        <span id="alter-fields">
+                            <span style="font-size: 13px; font-weight:600;">Index:</span>
+                            <input type="number" class="input-field" id="alter-idx" value="3" min="1" max="10" style="width: 50px;">
+                        </span>
+                        <span style="font-size: 13px; font-weight:600;">Valoare:</span>
+                        <input type="number" class="input-field" id="alter-val" value="15" style="width: 60px;">
+                        <button class="btn btn-primary" onclick="generateStates()">Execută</button>
+                    </div>
+                `;
+            } else if (currentAlgorithm === 'interopt') {
+                container.innerHTML = `
+                    <div class="input-group">
+                        <span style="font-size: 13px; font-weight:600;">Lungimi:</span>
+                        <input type="text" class="input-field" id="inter-input" value="30,10,20,30,50,10" style="width: 150px;">
+                        <button class="btn btn-primary" onclick="generateStates()">Setează</button>
+                    </div>
+                `;
+            } else if (currentAlgorithm === 'heapsort') {
+                container.innerHTML = `
+                    <div class="input-group">
+                        <span style="font-size: 13px; font-weight:600;">Elemente:</span>
+                        <input type="text" class="input-field" id="sort-input" value="4,1,3,2,16,9,10,14,8,7" style="width: 150px;">
+                        <button class="btn btn-primary" onclick="generateStates()">Setează</button>
+                    </div>
+                `;
+            } else if (currentAlgorithm === 'huffman') {
+                container.innerHTML = `
+                    <div class="input-group">
+                        <span style="font-size: 13px; font-weight:600;">Caractere:</span>
+                        <input type="text" class="input-field" id="huffman-chars" value="a,b,c,d,e,f" style="width: 100px;">
+                        <span style="font-size: 13px; font-weight:600;">Frecvențe:</span>
+                        <input type="text" class="input-field" id="huffman-freqs" value="45,13,12,16,9,5" style="width: 120px;">
+                        <button class="btn btn-primary" onclick="generateStates()">Setează</button>
+                    </div>
+                `;
+            }
+        }
+
+        function toggleAlterFields() {
+            const action = document.getElementById('alter-action').value;
+            const fields = document.getElementById('alter-fields');
+            if (action === 'insert') {
+                fields.style.display = 'none';
+                document.getElementById('alter-val').value = 20;
+            } else {
+                fields.style.display = 'inline';
+                document.getElementById('alter-val').value = 15;
+            }
+        }
+
+        function drawHeapTree(T, n, activeIdx, comparingIdxs) {
+            const canvas = document.getElementById('canvas-tree');
+            canvas.innerHTML = '';
+            if (n === 0) return;
+            const coords = {};
+            const getCoords = (idx, x, y, dx) => {
+                coords[idx] = { x, y };
+                const left = 2 * idx;
+                const right = 2 * idx + 1;
+                if (left <= n) getCoords(left, x - dx, y + 45, dx / 1.7);
+                if (right <= n) getCoords(right, x + dx, y + 45, dx / 1.7);
+            };
+            getCoords(1, 300, 30, 125);
+            let html = '';
+            for (let i = 2; i <= n; i++) {
+                const parent = Math.floor(i / 2);
+                if (coords[parent] && coords[i]) {
+                    html += `<line x1="${coords[parent].x}" y1="${coords[parent].y}" x2="${coords[i].x}" y2="${coords[i].y}" stroke="var(--border)" stroke-width="2" />`;
+                }
+            }
+            for (let i = 1; i <= n; i++) {
+                if (!coords[i]) continue;
+                const val = T[i];
+                let colorClass = 'var(--primary)';
+                if (i === activeIdx) {
+                    colorClass = 'var(--accent)';
+                } else if (comparingIdxs && comparingIdxs.includes(i)) {
+                    colorClass = 'var(--warning)';
+                }
+                html += `
+                    <circle cx="${coords[i].x}" cy="${coords[i].y}" r="15" fill="var(--bg-surface)" stroke="${colorClass}" stroke-width="2.5" />
+                    <text x="${coords[i].x}" y="${coords[i].y + 4}" font-family="var(--font-sans)" font-size="11" font-weight="700" fill="var(--text-main)" text-anchor="middle">${val}</text>
+                    <text x="${coords[i].x + 16}" y="${coords[i].y - 6}" font-family="var(--font-mono)" font-size="9" fill="var(--text-muted)">${i}</text>
+                `;
+            }
+            canvas.innerHTML = html;
+        }
+
+        function drawMergeForest(forest, activeNodes) {
+            const canvas = document.getElementById('canvas-tree');
+            canvas.innerHTML = '';
+            if (!forest || forest.length === 0) return;
+            const treeWidth = 600 / forest.length;
+            let html = '';
+
+            const countLeaves = (node) => {
+                if (!node) return 0;
+                if (!node.left && !node.right) return 1;
+                return countLeaves(node.left) + countLeaves(node.right);
+            };
+
+            forest.forEach((root, treeIdx) => {
+                let leafCount = 0;
+                const totalLeaves = countLeaves(root);
+                
+                const assignCoords = (node, d) => {
+                    if (!node) return;
+                    if (!node.left && !node.right) {
+                        node.x = treeIdx * treeWidth + treeWidth / 2 + (leafCount - (totalLeaves - 1) / 2) * 50;
+                        node.y = 40 + d * 45;
+                        leafCount++;
+                        return;
+                    }
+                    assignCoords(node.left, d + 1);
+                    assignCoords(node.right, d + 1);
+                    node.x = (node.left.x + node.right.x) / 2;
+                    node.y = 40 + d * 45;
+                };
+                assignCoords(root, 0);
+
+                const drawLinks = (node) => {
+                    if (!node) return;
+                    if (node.left) {
+                        html += `<line x1="${node.x}" y1="${node.y}" x2="${node.left.x}" y2="${node.left.y}" stroke="var(--border)" stroke-width="2" />`;
+                        drawLinks(node.left);
+                    }
+                    if (node.right) {
+                        html += `<line x1="${node.x}" y1="${node.y}" x2="${node.right.x}" y2="${node.right.y}" stroke="var(--border)" stroke-width="2" />`;
+                        drawLinks(node.right);
+                    }
+                };
+                drawLinks(root);
+
+                const drawNodes = (node) => {
+                    if (!node) return;
+                    let colorClass = 'var(--primary)';
+                    if (activeNodes && activeNodes.includes(node.index)) {
+                        colorClass = 'var(--accent)';
+                    } else if (node.isNew) {
+                        colorClass = 'var(--success)';
+                    }
+                    const label = node.char ? `'${node.char}'` : (node.left ? `Node ${node.index}` : `S${node.index}`);
+                    html += `
+                        <circle cx="${node.x}" cy="${node.y}" r="15" fill="var(--bg-surface)" stroke="${colorClass}" stroke-width="2.5" />
+                        <text x="${node.x}" y="${node.y + 4}" font-family="var(--font-sans)" font-size="10" font-weight="700" fill="var(--text-main)" text-anchor="middle">${node.weight}</text>
+                        <text x="${node.x}" y="${node.y - 18}" font-family="var(--font-sans)" font-size="9" font-weight="600" fill="var(--text-muted)" text-anchor="middle">${label}</text>
+                    `;
+                    drawNodes(node.left);
+                    drawNodes(node.right);
+                };
+                drawNodes(root);
+            });
+            canvas.innerHTML = html;
+        }
+
+        function generateStates() {
+            states = [];
+            stepIndex = 0;
+            stopPlay();
+
+            if (currentAlgorithm === 'makeheap') {
+                const method = document.getElementById('make-method').value;
+                const val = document.getElementById('array-input').value;
+                const arr = val.split(',').map(x => parseInt(x.trim())).filter(x => !isNaN(x));
+                const T = [0, ...arr];
+                const n = T.length - 1;
+
+                if (method === 'floyd') {
+                    states.push({
+                        T: [...T],
+                        activeIdx: -1,
+                        line: 0,
+                        desc: "Inițializăm tabloul pentru construirea heap-ului: [" + T.slice(1).join(', ') + "]."
+                    });
+                    for (let i = Math.floor(n / 2); i >= 1; i--) {
+                        states.push({
+                            T: [...T],
+                            activeIdx: i,
+                            line: 1,
+                            desc: "Apelăm cernerea (SiftDown) pentru nodul cu indexul " + i + " (valoare: " + T[i] + ")."
+                        });
+                        let k = i;
+                        while (true) {
+                            let j = k;
+                            let left = 2 * j;
+                            let right = 2 * j + 1;
+                            let largest = j;
+                            if (left <= n && T[left] > T[largest]) largest = left;
+                            if (right <= n && T[right] > T[largest]) largest = right;
+                            if (largest !== j) {
+                                states.push({
+                                    T: [...T],
+                                    activeIdx: j,
+                                    comparingIdxs: [left, right].filter(x => x <= n),
+                                    line: 2,
+                                    desc: "Nodul " + j + " (" + T[j] + ") este mai mic decât fiul său " + largest + " (" + T[largest] + "). Le interschimbăm."
+                                });
+                                let temp = T[j];
+                                T[j] = T[largest];
+                                T[largest] = temp;
+                                k = largest;
+                            } else {
+                                states.push({
+                                    T: [...T],
+                                    activeIdx: j,
+                                    comparingIdxs: [left, right].filter(x => x <= n),
+                                    line: 2,
+                                    desc: "Nodul " + j + " (" + T[j] + ") respectă proprietatea de heap raportat la fii. Cernerea se oprește."
+                                });
+                                break;
+                            }
+                        }
+                    }
+                    states.push({
+                        T: [...T],
+                        activeIdx: -1,
+                        line: 3,
+                        desc: "Construirea heap-ului prin metoda MAKE-HEAP s-a finalizat: [" + T.slice(1).join(', ') + "]."
+                    });
+                } else {
+                    states.push({
+                        T: [...T],
+                        activeIdx: -1,
+                        line: 6,
+                        desc: "Inițializăm tabloul pentru construirea prin SLOW-MAKE-HEAP: [" + T.slice(1).join(', ') + "]."
+                    });
+                    for (let i = 2; i <= n; i++) {
+                        states.push({
+                            T: [...T],
+                            activeIdx: i,
+                            line: 7,
+                            desc: "Inserăm al " + i + "-lea element (" + T[i] + ") și apelăm Percolate pentru a-l ridica."
+                        });
+                        let k = i;
+                        while (k > 1) {
+                            let parent = Math.floor(k / 2);
+                            if (T[parent] < T[k]) {
+                                states.push({
+                                    T: [...T],
+                                    activeIdx: k,
+                                    comparingIdxs: [parent],
+                                    line: 8,
+                                    desc: "Nodul " + k + " (" + T[k] + ") este mai mare decât părintele său " + parent + " (" + T[parent] + "). Le interschimbăm."
+                                });
+                                let temp = T[parent];
+                                T[parent] = T[k];
+                                T[k] = temp;
+                                k = parent;
+                            } else {
+                                states.push({
+                                    T: [...T],
+                                    activeIdx: k,
+                                    comparingIdxs: [parent],
+                                    line: 8,
+                                    desc: "Nodul " + k + " (" + T[k] + ") nu este mai mare decât părintele " + parent + " (" + T[parent] + "). Proprietatea este restabilită."
+                                });
+                                break;
+                            }
+                        }
+                    }
+                    states.push({
+                        T: [...T],
+                        activeIdx: -1,
+                        line: 9,
+                        desc: "Construirea prin SLOW-MAKE-HEAP s-a finalizat: [" + T.slice(1).join(', ') + "]."
+                    });
+                }
+            } else if (currentAlgorithm === 'alterheap') {
+                const action = document.getElementById('alter-action').value;
+                let T = [0, 16, 14, 10, 8, 7, 9, 3, 2, 4, 1];
+                let n = T.length - 1;
+
+                if (action === 'alter') {
+                    let i = parseInt(document.getElementById('alter-idx').value);
+                    let v = parseInt(document.getElementById('alter-val').value);
+                    if (isNaN(i) || i < 1 || i > n) i = 3;
+                    if (isNaN(v)) v = 15;
+                    states.push({
+                        T: [...T],
+                        activeIdx: i,
+                        line: 0,
+                        desc: "Inițializăm modificarea elementului de pe poziția " + i + " cu valoarea " + v + "."
+                    });
+                    let oldVal = T[i];
+                    T[i] = v;
+                    states.push({
+                        T: [...T],
+                        activeIdx: i,
+                        line: 1,
+                        desc: "Am schimbat valoarea elementului pe poziția " + i + " de la " + oldVal + " la " + v + "."
+                    });
+                    if (v < oldVal) {
+                        states.push({
+                            T: [...T],
+                            activeIdx: i,
+                            line: 3,
+                            desc: "Noua valoare " + v + " este mai mică decât cea veche " + oldVal + ". Apelăm SiftDown."
+                        });
+                        let k = i;
+                        while (true) {
+                            let j = k;
+                            let left = 2 * j;
+                            let right = 2 * j + 1;
+                            let largest = j;
+                            if (left <= n && T[left] > T[largest]) largest = left;
+                            if (right <= n && T[right] > T[largest]) largest = right;
+                            if (largest !== j) {
+                                states.push({
+                                    T: [...T],
+                                    activeIdx: j,
+                                    comparingIdxs: [left, right].filter(x => x <= n),
+                                    line: 4,
+                                    desc: "Elementul " + T[j] + " este mai mic decât fiul " + largest + " (" + T[largest] + "). Interschimbăm."
+                                });
+                                let temp = T[j];
+                                T[j] = T[largest];
+                                T[largest] = temp;
+                                k = largest;
+                            } else {
+                                states.push({
+                                    T: [...T],
+                                    activeIdx: j,
+                                    comparingIdxs: [left, right].filter(x => x <= n),
+                                    line: 4,
+                                    desc: "Nodul " + j + " (" + T[j] + ") este mai mare decât fiii săi. Operația s-a încheiat."
+                                });
+                                break;
+                            }
+                        }
+                    } else {
+                        states.push({
+                            T: [...T],
+                            activeIdx: i,
+                            line: 5,
+                            desc: "Noua valoare " + v + " este mai mare sau egală cu cea veche " + oldVal + ". Apelăm Percolate."
+                        });
+                        let k = i;
+                        while (k > 1) {
+                            let parent = Math.floor(k / 2);
+                            if (T[parent] < T[k]) {
+                                states.push({
+                                    T: [...T],
+                                    activeIdx: k,
+                                    comparingIdxs: [parent],
+                                    line: 6,
+                                    desc: "Nodul " + k + " (" + T[k] + ") este mai mare decât părintele " + parent + " (" + T[parent] + "). Interschimbăm."
+                                });
+                                let temp = T[parent];
+                                T[parent] = T[k];
+                                T[k] = temp;
+                                k = parent;
+                            } else {
+                                states.push({
+                                    T: [...T],
+                                    activeIdx: k,
+                                    comparingIdxs: [parent],
+                                    line: 6,
+                                    desc: "Nodul " + k + " (" + T[k] + ") nu depășește părintele " + parent + " (" + T[parent] + "). Operația s-a încheiat."
+                                });
+                                break;
+                            }
+                        }
+                    }
+                } else {
+                    let v = parseInt(document.getElementById('alter-val').value);
+                    if (isNaN(v)) v = 20;
+                    states.push({
+                        T: [...T],
+                        activeIdx: -1,
+                        line: 9,
+                        desc: "Inițializăm inserarea elementului cu valoarea " + v + "."
+                    });
+                    T[n + 1] = v;
+                    n = n + 1;
+                    states.push({
+                        T: [...T],
+                        activeIdx: n,
+                        line: 10,
+                        desc: "Am plasat noua valoare " + v + " pe ultima poziție în heap (indexul " + n + ")."
+                    });
+                    let k = n;
+                    while (k > 1) {
+                        let parent = Math.floor(k / 2);
+                        if (T[parent] < T[k]) {
+                            states.push({
+                                T: [...T],
+                                activeIdx: k,
+                                comparingIdxs: [parent],
+                                line: 11,
+                                desc: "Nodul " + k + " (" + T[k] + ") este mai mare decât părintele " + parent + " (" + T[parent] + "). Interschimbăm."
+                            });
+                            let temp = T[parent];
+                            T[parent] = T[k];
+                            T[k] = temp;
+                            k = parent;
+                        } else {
+                            states.push({
+                                T: [...T],
+                                activeIdx: k,
+                                comparingIdxs: [parent],
+                                line: 11,
+                                desc: "Nodul " + k + " (" + T[k] + ") nu este mai mare decât părintele " + parent + " (" + T[parent] + "). Operația s-a încheiat."
+                            });
+                            break;
+                        }
+                    }
+                }
+            } else if (currentAlgorithm === 'interopt') {
+                const val = document.getElementById('inter-input').value;
+                const q = val.split(',').map(x => parseInt(x.trim())).filter(x => !isNaN(x));
+                let forest = q.map((w, idx) => ({ weight: w, index: idx + 1, left: null, right: null }));
+                let nextIndex = q.length + 1;
+
+                const cloneTree = (node) => {
+                    if (!node) return null;
+                    return {
+                        weight: node.weight,
+                        index: node.index,
+                        isNew: node.isNew || false,
+                        left: cloneTree(node.left),
+                        right: cloneTree(node.right)
+                    };
+                };
+
+                states.push({
+                    forest: forest.map(x => cloneTree(x)),
+                    activeNodeIdxs: [],
+                    line: 1,
+                    desc: "Inițializăm algoritmul. Introducem cele " + q.length + " șiruri în min-heap sub formă de noduri frunză."
+                });
+
+                while (forest.length > 1) {
+                    forest.sort((a, b) => a.weight - b.weight);
+                    let leftNode = forest.shift();
+                    let rightNode = forest.shift();
+
+                    states.push({
+                        forest: [leftNode, rightNode, ...forest].map(x => cloneTree(x)),
+                        activeNodeIdxs: [leftNode.index, rightNode.index],
+                        line: 10,
+                        desc: "Selectăm cele mai mici două elemente din heap: " + leftNode.weight + " (Node " + leftNode.index + ") și " + rightNode.weight + " (Node " + rightNode.index + ")."
+                    });
+
+                    let parentNode = {
+                        weight: leftNode.weight + rightNode.weight,
+                        index: nextIndex++,
+                        left: leftNode,
+                        right: rightNode,
+                        isNew: true
+                    };
+                    forest.push(parentNode);
+
+                    states.push({
+                        forest: forest.map(x => cloneTree(x)),
+                        activeNodeIdxs: [],
+                        line: 15,
+                        desc: "Am fuzionat cele două subarbori creând părintele (Node " + parentNode.index + ") cu ponderea " + parentNode.weight + " și l-am reintrodus în heap."
+                    });
+                    leftNode.isNew = false;
+                    rightNode.isNew = false;
+                    parentNode.isNew = false;
+                }
+                states.push({
+                    forest: forest.map(x => cloneTree(x)),
+                    activeNodeIdxs: [],
+                    line: 17,
+                    desc: "Algoritmul s-a încheiat. Am obținut arborele de interclasare optimă cu ponderea totală: " + forest[0].weight + "."
+                });
+            } else if (currentAlgorithm === 'heapsort') {
+                const val = document.getElementById('sort-input').value;
+                const arr = val.split(',').map(x => parseInt(x.trim())).filter(x => !isNaN(x));
+                const T = [0, ...arr];
+                const n = T.length - 1;
+
+                states.push({
+                    T: [...T],
+                    heapSize: n,
+                    activeIdx: -1,
+                    line: 0,
+                    desc: "Inițializăm tabloul pentru sortare: [" + T.slice(1).join(', ') + "]."
+                });
+
+                states.push({
+                    T: [...T],
+                    heapSize: n,
+                    activeIdx: -1,
+                    line: 1,
+                    desc: "Apelăm BUILD-MAX-HEAP(A) pentru a transforma tabloul într-un max-heap."
+                });
+
+                const siftDownLocal = (arrRef, size, startIdx) => {
+                    let k = startIdx;
+                    while (true) {
+                        let j = k;
+                        let left = 2 * j;
+                        let right = 2 * j + 1;
+                        let largest = j;
+                        if (left <= size && arrRef[left] > arrRef[largest]) largest = left;
+                        if (right <= size && arrRef[right] > arrRef[largest]) largest = right;
+                        if (largest !== j) {
+                            states.push({
+                                T: [...arrRef],
+                                heapSize: size,
+                                activeIdx: j,
+                                comparingIdxs: [left, right].filter(x => x <= size),
+                                line: 1,
+                                desc: "Nodul " + j + " (" + arrRef[j] + ") este mai mic decât fiul " + largest + " (" + arrRef[largest] + "). Le interschimbăm."
+                            });
+                            let temp = arrRef[j];
+                            arrRef[j] = arrRef[largest];
+                            arrRef[largest] = temp;
+                            k = largest;
+                        } else {
+                            break;
+                        }
+                    }
+                };
+
+                for (let i = Math.floor(n / 2); i >= 1; i--) {
+                    states.push({
+                        T: [...T],
+                        heapSize: n,
+                        activeIdx: i,
+                        line: 1,
+                        desc: "BUILD-MAX-HEAP: Apelăm cernere pe nodul " + i + " (valoare: " + T[i] + ")."
+                    });
+                    siftDownLocal(T, n, i);
+                }
+
+                states.push({
+                    T: [...T],
+                    heapSize: n,
+                    activeIdx: -1,
+                    line: 1,
+                    desc: "Max-Heap-ul a fost construit cu succes: [" + T.slice(1).join(', ') + "]."
+                });
+
+                let heapSize = n;
+                for (let i = n; i >= 2; i--) {
+                    states.push({
+                        T: [...T],
+                        heapSize: heapSize,
+                        activeIdx: 1,
+                        comparingIdxs: [i],
+                        line: 3,
+                        desc: "Interschimbăm rădăcina " + T[1] + " cu ultimul element din heap " + T[i] + " (pe poziția " + i + ")."
+                    });
+
+                    let temp = T[1];
+                    T[1] = T[i];
+                    T[i] = temp;
+
+                    states.push({
+                        T: [...T],
+                        heapSize: heapSize,
+                        activeIdx: i,
+                        line: 3,
+                        desc: "Schimbul a fost efectuat. Elementul " + temp + " este acum pe poziția sa finală sortată."
+                    });
+
+                    heapSize--;
+                    states.push({
+                        T: [...T],
+                        heapSize: heapSize,
+                        activeIdx: -1,
+                        line: 4,
+                        desc: "Micșorăm dimensiunea heap-ului la " + heapSize + ". Elementele sortate sunt evidențiate în verde."
+                    });
+
+                    if (heapSize >= 1) {
+                        states.push({
+                            T: [...T],
+                            heapSize: heapSize,
+                            activeIdx: 1,
+                            line: 5,
+                            desc: "Apelăm cernerea (MAX-HEAPIFY) pe rădăcina heap-ului rămas."
+                        });
+
+                        let k = 1;
+                        while (true) {
+                            let j = k;
+                            let left = 2 * j;
+                            let right = 2 * j + 1;
+                            let largest = j;
+                            if (left <= heapSize && T[left] > T[largest]) largest = left;
+                            if (right <= heapSize && T[right] > T[largest]) largest = right;
+                            if (largest !== j) {
+                                states.push({
+                                    T: [...T],
+                                    heapSize: heapSize,
+                                    activeIdx: j,
+                                    comparingIdxs: [left, right].filter(x => x <= heapSize),
+                                    line: 5,
+                                    desc: "Rădăcina/nodul temporar " + T[j] + " este mai mic decât fiul " + largest + " (" + T[largest] + "). Le interschimbăm."
+                                });
+                                let t2 = T[j];
+                                T[j] = T[largest];
+                                T[largest] = t2;
+                                k = largest;
+                            } else {
+                                states.push({
+                                    T: [...T],
+                                    heapSize: heapSize,
+                                    activeIdx: j,
+                                    comparingIdxs: [left, right].filter(x => x <= heapSize),
+                                    line: 5,
+                                    desc: "Nodul " + j + " (" + T[j] + ") respectă proprietatea de heap. Cernerea se oprește."
+                                });
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                states.push({
+                    T: [...T],
+                    heapSize: 0,
+                    activeIdx: -1,
+                    line: 5,
+                    desc: "Sortarea Heapsort s-a finalizat! Tabloul final sortat este: [" + T.slice(1).join(', ') + "]."
+                });
+            } else if (currentAlgorithm === 'huffman') {
+                const charsVal = document.getElementById('huffman-chars').value.split(',').map(x => x.trim()).filter(x => x.length > 0);
+                const freqsVal = document.getElementById('huffman-freqs').value.split(',').map(x => parseInt(x.trim())).filter(x => !isNaN(x));
+                const n = Math.min(charsVal.length, freqsVal.length);
+                let forest = [];
+                for (let i = 0; i < n; i++) {
+                    forest.push({
+                        weight: freqsVal[i],
+                        char: charsVal[i],
+                        index: i + 1,
+                        left: null,
+                        right: null
+                    });
+                }
+                let nextIndex = n + 1;
+
+                const cloneTree = (node) => {
+                    if (!node) return null;
+                    return {
+                        weight: node.weight,
+                        char: node.char,
+                        index: node.index,
+                        isNew: node.isNew || false,
+                        left: cloneTree(node.left),
+                        right: cloneTree(node.right)
+                    };
+                };
+
+                states.push({
+                    forest: forest.map(x => cloneTree(x)),
+                    activeNodeIdxs: [],
+                    line: 2,
+                    desc: "Inițializăm coada de priorități Q cu cele " + n + " caractere bazate pe frecvențe."
+                });
+
+                for (let step = 1; step <= n - 1; step++) {
+                    forest.sort((a, b) => a.weight - b.weight);
+                    let leftNode = forest.shift();
+                    let rightNode = forest.shift();
+
+                    states.push({
+                        forest: [leftNode, rightNode, ...forest].map(x => cloneTree(x)),
+                        activeNodeIdxs: [leftNode.index, rightNode.index],
+                        line: 4,
+                        desc: "Extragem cele mai mici două elemente din Q: '" + (leftNode.char || '') + "' (" + leftNode.weight + ") și '" + (rightNode.char || '') + "' (" + rightNode.weight + ")."
+                    });
+
+                    let parentNode = {
+                        weight: leftNode.weight + rightNode.weight,
+                        char: null,
+                        index: nextIndex++,
+                        left: leftNode,
+                        right: rightNode,
+                        isNew: true
+                    };
+                    forest.push(parentNode);
+
+                    states.push({
+                        forest: forest.map(x => cloneTree(x)),
+                        activeNodeIdxs: [],
+                        line: 8,
+                        desc: "Creăm un nou nod părinte cu ponderea " + parentNode.weight + " și îl inserăm în Q."
+                    });
+                    leftNode.isNew = false;
+                    rightNode.isNew = false;
+                    parentNode.isNew = false;
+                }
+
+                states.push({
+                    forest: forest.map(x => cloneTree(x)),
+                    activeNodeIdxs: [],
+                    line: 10,
+                    desc: "Algoritmul Huffman s-a încheiat. Am obținut arborele de codificare optimă."
+                });
+            }
+
+            renderState();
+        }
+
+        function renderState() {
+            if (states.length === 0) return;
+            const state = states[stepIndex];
+            document.getElementById('step-explanation').innerText = state.desc;
+
+            if (currentAlgorithm === 'makeheap' || currentAlgorithm === 'alterheap') {
+                const arrayDisplay = document.getElementById('array-display');
+                arrayDisplay.innerHTML = '';
+                const T = state.T;
+                const n = T.length - 1;
+                for (let i = 1; i <= n; i++) {
+                    let cardClass = 'array-card';
+                    if (i === state.activeIdx) {
+                        cardClass += ' active';
+                    } else if (state.comparingIdxs && state.comparingIdxs.includes(i)) {
+                        cardClass += ' comparing';
+                    }
+                    arrayDisplay.innerHTML += `
+                        <div class="${cardClass}">
+                            <span class="array-card-idx">${i}</span>
+                            <span class="array-card-val">${T[i]}</span>
+                        </div>
+                    `;
+                }
+                drawHeapTree(T, n, state.activeIdx, state.comparingIdxs);
+            } else if (currentAlgorithm === 'heapsort') {
+                const arrayDisplay = document.getElementById('array-display');
+                arrayDisplay.innerHTML = '';
+                const T = state.T;
+                const n = T.length - 1;
+                const heapSize = state.heapSize;
+                for (let i = 1; i <= n; i++) {
+                    let cardClass = 'array-card';
+                    if (i > heapSize) {
+                        cardClass += ' sorted';
+                    } else if (i === state.activeIdx) {
+                        cardClass += ' active';
+                    } else if (state.comparingIdxs && state.comparingIdxs.includes(i)) {
+                        cardClass += ' comparing';
+                    }
+                    arrayDisplay.innerHTML += `
+                        <div class="${cardClass}">
+                            <span class="array-card-idx">${i}</span>
+                            <span class="array-card-val">${T[i]}</span>
+                        </div>
+                    `;
+                }
+                drawHeapTree(T, heapSize, state.activeIdx, state.comparingIdxs);
+            } else if (currentAlgorithm === 'interopt') {
+                const arrayDisplay = document.getElementById('array-display');
+                arrayDisplay.innerHTML = '';
+                state.forest.forEach((node) => {
+                    arrayDisplay.innerHTML += `
+                        <div class="array-card" style="width: auto; padding: 0 12px;">
+                            <span class="array-card-val">${node.weight}</span>
+                        </div>
+                    `;
+                });
+                drawMergeForest(state.forest, state.activeNodeIdxs);
+            } else if (currentAlgorithm === 'huffman') {
+                const arrayDisplay = document.getElementById('array-display');
+                arrayDisplay.innerHTML = '';
+                state.forest.forEach((node) => {
+                    const displayLabel = node.char ? `'${node.char}':${node.weight}` : node.weight;
+                    arrayDisplay.innerHTML += `
+                        <div class="array-card" style="width: auto; padding: 0 12px;">
+                            <span class="array-card-val">${displayLabel}</span>
+                        </div>
+                    `;
+                });
+                drawMergeForest(state.forest, state.activeNodeIdxs);
+            }
+
+            renderCode();
+        }
+
+        function stepForward() {
+            if (stepIndex < states.length - 1) {
+                stepIndex++;
+                renderState();
+            } else {
+                stopPlay();
+            }
+        }
+
+        function stepBackward() {
+            if (stepIndex > 0) {
+                stepIndex--;
+                renderState();
+            }
+        }
+
+        function togglePlay() {
+            if (isPlaying) {
+                stopPlay();
+            } else {
+                startPlay();
+            }
+        }
+
+        function startPlay() {
+            isPlaying = true;
+            document.getElementById('play-btn').innerText = 'Pauză';
+            document.getElementById('play-btn').classList.add('btn-danger');
+            playInterval = setInterval(() => {
+                stepForward();
+            }, 1200);
+        }
+
+        function stopPlay() {
+            isPlaying = false;
+            document.getElementById('play-btn').innerText = 'Auto Run';
+            document.getElementById('play-btn').classList.remove('btn-danger');
+            if (playInterval) {
+                clearInterval(playInterval);
+                playInterval = null;
+            }
+        }
+
+        function resetState() {
+            stepIndex = 0;
+            stopPlay();
+            renderState();
+        }
+
+        selectAlgorithm('makeheap');
+    </script>
+</body>
+</html>

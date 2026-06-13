@@ -1,0 +1,1346 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vizualizator Algoritmi - Capitolul 10</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-base: #0f172a;
+            --bg-surface: #1e293b;
+            --bg-code: #0b0f19;
+            --primary: #6366f1;
+            --primary-hover: #4f46e5;
+            --secondary: #0ea5e9;
+            --accent: #f43f5e;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border: #334155;
+            --font-sans: 'Inter', sans-serif;
+            --font-mono: 'Fira Code', monospace;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-base);
+            color: var(--text-main);
+            font-family: var(--font-sans);
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .sidebar {
+            width: 280px;
+            background-color: var(--bg-surface);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+        }
+
+        .sidebar-header {
+            padding: 24px;
+            border-bottom: 1px solid var(--border);
+            background: linear-gradient(135deg, var(--bg-surface), #131b2e);
+        }
+
+        .sidebar-header h1 {
+            font-size: 18px;
+            font-weight: 700;
+            letter-spacing: -0.025em;
+            color: var(--text-main);
+        }
+
+        .sidebar-header p {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        .menu-list {
+            list-style: none;
+            padding: 16px;
+            overflow-y: auto;
+            flex-grow: 1;
+        }
+
+        .menu-item {
+            padding: 12px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            color: var(--text-muted);
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+        }
+
+        .menu-item:hover {
+            background-color: rgba(99, 102, 241, 0.1);
+            color: var(--text-main);
+        }
+
+        .menu-item.active {
+            background-color: var(--primary);
+            color: var(--text-main);
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.25);
+        }
+
+        .main-content {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .top-bar {
+            height: 70px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 32px;
+            background-color: var(--bg-surface);
+        }
+
+        .top-bar h2 {
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .workspace {
+            flex-grow: 1;
+            display: flex;
+            overflow: hidden;
+            padding: 24px;
+            gap: 24px;
+        }
+
+        .visualizer-section {
+            flex: 3;
+            background-color: var(--bg-surface);
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .visualizer-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background-color: rgba(30, 41, 59, 0.5);
+        }
+
+        .controls-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            background-color: var(--border);
+            color: var(--text-main);
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn:hover {
+            background-color: #475569;
+        }
+
+        .btn-primary {
+            background-color: var(--primary);
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-hover);
+        }
+
+        .btn-danger {
+            background-color: var(--accent);
+        }
+
+        .btn-danger:hover {
+            background-color: #e11d48;
+        }
+
+        .visualizer-body {
+            flex-grow: 1;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow-y: auto;
+            gap: 24px;
+        }
+
+        .visualizer-footer {
+            padding: 20px;
+            border-top: 1px solid var(--border);
+            background-color: rgba(15, 23, 42, 0.4);
+        }
+
+        .explanation-box {
+            background-color: rgba(99, 102, 241, 0.05);
+            border-left: 4px solid var(--primary);
+            padding: 16px;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .explanation-box p {
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .code-section {
+            flex: 2;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .code-container {
+            background-color: var(--bg-surface);
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .code-tabs {
+            display: flex;
+            border-bottom: 1px solid var(--border);
+            background-color: rgba(30, 41, 59, 0.5);
+        }
+
+        .code-tab {
+            padding: 12px 20px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            border-right: 1px solid var(--border);
+            color: var(--text-muted);
+            transition: all 0.2s ease;
+        }
+
+        .code-tab:hover {
+            color: var(--text-main);
+        }
+
+        .code-tab.active {
+            background-color: var(--bg-code);
+            color: var(--primary);
+            border-bottom: 2px solid var(--primary);
+        }
+
+        .code-viewport {
+            flex-grow: 1;
+            background-color: var(--bg-code);
+            padding: 20px;
+            overflow: auto;
+        }
+
+        pre {
+            font-family: var(--font-mono);
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        .highlighted-line {
+            background-color: rgba(99, 102, 241, 0.2);
+            display: block;
+            margin: 0 -20px;
+            padding: 0 20px;
+            border-left: 3px solid var(--primary);
+        }
+
+        .input-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .input-field {
+            background-color: var(--bg-base);
+            border: 1px solid var(--border);
+            color: var(--text-main);
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            outline: none;
+        }
+
+        .input-field:focus {
+            border-color: var(--primary);
+        }
+
+        .matching-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            width: 100%;
+            align-items: center;
+        }
+
+        .char-row {
+            display: flex;
+            gap: 4px;
+            position: relative;
+        }
+
+        .char-box {
+            width: 36px;
+            height: 36px;
+            background-color: var(--bg-surface);
+            border: 2px solid var(--border);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: 700;
+            transition: all 0.2s ease;
+        }
+
+        .char-box.matched {
+            border-color: var(--success);
+            background-color: rgba(16, 185, 129, 0.2);
+            color: var(--text-main);
+        }
+
+        .char-box.comparing {
+            border-color: var(--warning);
+            background-color: rgba(245, 158, 11, 0.2);
+        }
+
+        .char-box.mismatch {
+            border-color: var(--accent);
+            background-color: rgba(244, 63, 94, 0.2);
+        }
+
+        .char-box.inactive {
+            opacity: 0.4;
+        }
+
+        .rk-hash-info {
+            background-color: rgba(15, 23, 42, 0.6);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px;
+            width: 100%;
+            max-width: 500px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .rk-hash-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 13px;
+        }
+
+        .rk-hash-val {
+            font-family: var(--font-mono);
+            font-weight: 600;
+            padding: 4px 8px;
+            border-radius: 4px;
+            background-color: var(--bg-code);
+            border: 1px solid var(--border);
+        }
+
+        .rk-hash-val.match {
+            color: var(--success);
+            border-color: var(--success);
+        }
+
+        .rk-hash-val.mismatch {
+            color: var(--accent);
+            border-color: var(--accent);
+        }
+
+        .label-text {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+            margin-bottom: 2px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h1>Capitolul 10</h1>
+            <p>Potrivirea șirurilor de caractere</p>
+        </div>
+        <ul class="menu-list">
+            <li class="menu-item active" onclick="selectAlgorithm('naive')">1. Algoritmul Naiv</li>
+            <li class="menu-item" onclick="selectAlgorithm('rabinkarp')">2. Algoritmul Rabin-Karp</li>
+            <li class="menu-item" onclick="selectAlgorithm('finiteautomata')">3. Potrivire cu Automate Finite</li>
+        </ul>
+    </div>
+
+    <div class="main-content">
+        <div class="top-bar">
+            <h2 id="algo-title">1. Algoritmul Naiv</h2>
+        </div>
+
+        <div class="workspace">
+            <div class="visualizer-section">
+                <div class="visualizer-header">
+                    <div class="controls-row" id="inputs-container">
+                    </div>
+                    <div class="controls-row">
+                        <button class="btn" onclick="stepBackward()">Înapoi</button>
+                        <button class="btn btn-primary" id="play-btn" onclick="togglePlay()">Auto Run</button>
+                        <button class="btn" onclick="stepForward()">Pas Următor</button>
+                        <button class="btn btn-danger" onclick="resetState()">Reset</button>
+                    </div>
+                </div>
+                <div class="visualizer-body" id="canvas">
+                </div>
+                <div class="visualizer-footer">
+                    <div class="explanation-box">
+                        <p id="step-explanation">Inițializează stările pentru a începe.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="code-section">
+                <div class="code-container">
+                    <div class="code-tabs">
+                        <div class="code-tab active" id="tab-pseudo" onclick="selectCodeTab('pseudo')">Pseudocod</div>
+                        <div class="code-tab" id="tab-java" onclick="selectCodeTab('java')">Cod Java</div>
+                        <div class="code-tab" id="tab-teorie" onclick="selectCodeTab('teorie')">Teorie</div>
+                    </div>
+                    <div class="code-viewport">
+                        <pre id="code-display"></pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentAlgorithm = 'naive';
+        let currentCodeTab = 'pseudo';
+        let stepIndex = 0;
+        let states = [];
+        let isPlaying = false;
+        let playInterval = null;
+
+        const pseudocodes = {
+            naive: `procedure NAIVE-STRING-MATCHER(T, P)
+  n = T.length
+  m = P.length
+  for s = 0 to n - m do
+    if P[1..m] == T[s+1..s+m] then
+      print "Pattern occurs with shift" s
+    end if
+  end for
+end procedure`,
+            rabinkarp: `procedure RABIN-KARP-MATCHER(T, P, d, q)
+  n = T.length
+  m = P.length
+  h = d^(m-1) mod q
+  p = 0; t_0 = 0
+  for i = 1 to m do
+    p = (d * p + P[i]) mod q
+    t_0 = (d * t_0 + T[i]) mod q
+  end for
+  for s = 0 to n - m do
+    if p == t_s then
+      if P[1..m] == T[s+1..s+m] then
+        print "Pattern occurs with shift" s
+      end if
+    end if
+    if s < n - m then
+      t_{s+1} = (d * (t_s - T[s+1] * h) + T[s+m+1]) mod q
+    end if
+  end for
+end procedure`,
+            finiteautomata: `procedure CALCUL-DELTA(P, Σ)
+  m = P.length
+  for q = 0 to m do
+    for each char a in Σ do
+      k = min(m, q + 1)
+      while P[0..k-1] is not suffix of P[0..q-1] + a do
+        k = k - 1
+      end while
+      delta(q, a) = k
+    end for
+  end for
+  return delta
+end procedure
+
+procedure FINITE-AUTOMATA-MATCHER(T, delta, m)
+  n = T.length
+  q = 0
+  for i = 0 to n - 1 do
+    q = delta(q, T[i])
+    if q == m then
+      print "Pattern occurs with shift" i - m + 1
+    end if
+  end for
+end procedure`
+        };
+
+        const javacodes = {
+            naive: `public static List<Integer> naiveSearch(String T, String P) {
+    List<Integer> shifts = new ArrayList<>();
+    int n = T.length();
+    int m = P.length();
+    for (int s = 0; s <= n - m; s++) {
+        boolean match = true;
+        for (int i = 0; i < m; i++) {
+            if (T.charAt(s + i) != P.charAt(i)) {
+                match = false;
+                break;
+            }
+        }
+        if (match) {
+            shifts.add(s);
+        }
+    }
+    return shifts;
+}`,
+            rabinkarp: `public static List<Integer> rabinKarpSearch(String T, String P, int d, int q) {
+    List<Integer> shifts = new ArrayList<>();
+    int n = T.length();
+    int m = P.length();
+    int h = 1;
+    for (int i = 0; i < m - 1; i++) {
+        h = (h * d) % q;
+    }
+    int p = 0, t = 0;
+    for (int i = 0; i < m; i++) {
+        p = (d * p + P.charAt(i)) % q;
+        t = (d * t + T.charAt(i)) % q;
+    }
+    for (int s = 0; s <= n - m; s++) {
+        if (p == t) {
+            boolean match = true;
+            for (int i = 0; i < m; i++) {
+                if (T.charAt(s + i) != P.charAt(i)) {
+                    match = false;
+                    break;
+                }
+            }
+            if (match) shifts.add(s);
+        }
+        if (s < n - m) {
+            t = (d * (t - T.charAt(s) * h) + T.charAt(s + m)) % q;
+            if (t < 0) t += q;
+        }
+    }
+    return shifts;
+}`,
+            finiteautomata: `public static List<Map<Character, Integer>> computeTransitionFunction(String P) {
+    int m = P.length();
+    List<Character> alphabet = new ArrayList<>();
+    for (char c : P.toCharArray()) {
+        if (!alphabet.contains(c)) alphabet.add(c);
+    }
+    List<Map<Character, Integer>> delta = new ArrayList<>();
+    for (int q = 0; q <= m; q++) {
+        Map<Character, Integer> transitions = new HashMap<>();
+        for (char a : alphabet) {
+            int k = Math.min(m, q + 1);
+            String target = P.substring(0, q) + a;
+            while (k > 0) {
+                String prefix = P.substring(0, k);
+                if (target.endsWith(prefix)) break;
+                k--;
+            }
+            transitions.put(a, k);
+        }
+        delta.add(transitions);
+    }
+    return delta;
+}
+
+public static List<Integer> finiteAutomataSearch(String T, String P) {
+    List<Integer> shifts = new ArrayList<>();
+    int n = T.length();
+    int m = P.length();
+    if (m == 0 || n < m) return shifts;
+    List<Map<Character, Integer>> delta = computeTransitionFunction(P);
+    int q = 0;
+    for (int i = 0; i < n; i++) {
+        q = delta.get(q).getOrDefault(T.charAt(i), 0);
+        if (q == m) {
+            shifts.add(i - m + 1);
+        }
+    }
+    return shifts;
+}`
+        };
+
+        const teorii = {
+            naive: `<div style="padding: 10px; font-family: var(--font-sans);">
+                <h3 style="color: var(--primary); margin-bottom: 6px; font-size: 15px;">Scop</h3>
+                <p style="margin-bottom: 12px; color: var(--text-main); font-size: 13px; line-height: 1.5;">Găsirea tuturor pozițiilor (decalajelor) unde un șablon (pattern) $P$ se potrivește complet în interiorul unui text $T$.</p>
+                <h3 style="color: var(--primary); margin-bottom: 6px; font-size: 15px;">Funcționare</h3>
+                <p style="margin-bottom: 12px; color: var(--text-main); font-size: 13px; line-height: 1.5;">Glisează șablonul pe rând, pe fiecare poziție posibilă de la $0$ la $n-m$. La fiecare decalaj $s$, compară caracter cu caracter elementele din șablon cu cele corespunzătoare din text. La prima nepotrivire, glisează șablonul cu o poziție la dreapta.</p>
+                <h3 style="color: var(--primary); margin-bottom: 6px; font-size: 15px;">Aplicații</h3>
+                <p style="margin-bottom: 12px; color: var(--text-main); font-size: 13px; line-height: 1.5;">Căutări simple de text în editoare unde dimensiunea textului și a șablonului sunt reduse.</p>
+                <h3 style="color: var(--primary); margin-bottom: 6px; font-size: 15px;">Complexitate</h3>
+                <p style="color: var(--text-main); font-size: 13px; line-height: 1.5;">Timp: Worst-case $O((n - m + 1) \cdot m)$, Best-case $O(n)$. Spațiu: $O(1)$ auxiliar.</p>
+            </div>`,
+            rabinkarp: `<div style="padding: 10px; font-family: var(--font-sans);">
+                <h3 style="color: var(--primary); margin-bottom: 6px; font-size: 15px;">Scop</h3>
+                <p style="margin-bottom: 12px; color: var(--text-main); font-size: 13px; line-height: 1.5;">Potrivirea rapidă a șablonului $P$ în textul $T$ prin filtrarea pozițiilor pe baza valorilor de hash.</p>
+                <h3 style="color: var(--primary); margin-bottom: 6px; font-size: 15px;">Funcționare</h3>
+                <p style="margin-bottom: 12px; color: var(--text-main); font-size: 13px; line-height: 1.5;">Calculează valoarea hash a șablonului $P$ și a primei ferestre din $T$. La fiecare decalaj $s$, dacă hash-urile corespund, efectuează o verificare caracter cu caracter pentru a evita coliziunile (spurious hits). Pentru trecerea la decalajul următor, hash-ul ferestrei este actualizat în timp constant $O(1)$ folosind tehnica <i>rolling hash</i> (eliminarea primului caracter și adăugarea noului caracter la capăt).</p>
+                <h3 style="color: var(--primary); margin-bottom: 6px; font-size: 15px;">Aplicații</h3>
+                <p style="margin-bottom: 12px; color: var(--text-main); font-size: 13px; line-height: 1.5;">Detecția plagiatului (compararea mai multor șabloane în paralel), potrivirea șabloanelor în dimensiuni mari.</p>
+                <h3 style="color: var(--primary); margin-bottom: 6px; font-size: 15px;">Complexitate</h3>
+                <p style="color: var(--text-main); font-size: 13px; line-height: 1.5;">Timp: Mediu $O(n + m)$, Worst-case $O((n - m + 1) \cdot m)$ (în cazul coliziunilor masive). Spațiu: $O(1)$ auxiliar.</p>
+            </div>`,
+            finiteautomata: `<div style="padding: 10px; font-family: var(--font-sans);">
+                <h3 style="color: var(--primary); margin-bottom: 6px; font-size: 15px;">Scop</h3>
+                <p style="margin-bottom: 12px; color: var(--text-main); font-size: 13px; line-height: 1.5;">Găsirea aparițiilor unui șablon prin construirea unui automat finit determinist (AFD) care recunoaște șirurile ce se termină cu șablonul dat.</p>
+                <h3 style="color: var(--primary); margin-bottom: 6px; font-size: 15px;">Funcționare</h3>
+                <p style="margin-bottom: 12px; color: var(--text-main); font-size: 13px; line-height: 1.5;">În faza de preprocesare, se calculează funcția de tranziție &delta;. Pentru fiecare stare $q$ și fiecare caracter $a$ din alfabet, starea următoare &delta;(q, a) este lungimea celui mai lung prefix al șablonului care este totodată sufix al șirului potrivit până acum plus caracterul $a$. În timpul căutării, textul este parcurs caracter cu caracter, iar starea automatului se schimbă în timp constant $O(1)$. Dacă starea devine egală cu lungimea șablonului, s-a găsit o potrivire completă.</p>
+                <h3 style="color: var(--primary); margin-bottom: 6px; font-size: 15px;">Aplicații</h3>
+                <p style="margin-bottom: 12px; color: var(--text-main); font-size: 13px; line-height: 1.5;">Sisteme cu procesare în timp real, scanere lexicale, căutare rapidă de șabloane statice.</p>
+                <h3 style="color: var(--primary); margin-bottom: 6px; font-size: 15px;">Complexitate</h3>
+                <p style="color: var(--text-main); font-size: 13px; line-height: 1.5;">Timp: Preprocesare $O(m^3 \cdot |\Sigma|)$ (poate fi optimizată la $O(m \cdot |\Sigma|)$), Căutare $O(n)$. Spațiu: $O(m \cdot |\Sigma|)$.</p>
+            </div>`
+        };
+
+        const titles = {
+            naive: "1. Algoritmul Naiv de Potrivire",
+            rabinkarp: "2. Algoritmul Rabin-Karp",
+            finiteautomata: "3. Potrivire cu Automate Finite"
+        };
+
+        function selectAlgorithm(algo) {
+            currentAlgorithm = algo;
+            document.querySelectorAll('.menu-item').forEach(el => el.classList.remove('active'));
+            const items = document.querySelectorAll('.menu-item');
+            if (algo === 'naive') items[0].classList.add('active');
+            else if (algo === 'rabinkarp') items[1].classList.add('active');
+            else if (algo === 'finiteautomata') items[2].classList.add('active');
+
+            document.getElementById('algo-title').innerText = titles[algo];
+            stopPlay();
+            renderCode();
+            setupInputs();
+            resetState();
+        }
+
+        function selectCodeTab(tab) {
+            currentCodeTab = tab;
+            document.getElementById('tab-pseudo').classList.toggle('active', tab === 'pseudo');
+            document.getElementById('tab-java').classList.toggle('active', tab === 'java');
+            document.getElementById('tab-teorie').classList.toggle('active', tab === 'teorie');
+            renderCode();
+        }
+
+        function renderCode() {
+            const display = document.getElementById('code-display');
+            if (currentCodeTab === 'teorie') {
+                display.innerHTML = teorii[currentAlgorithm] || '';
+                display.style.fontFamily = 'var(--font-sans)';
+                display.style.whiteSpace = 'normal';
+                return;
+            }
+            display.style.fontFamily = '';
+            display.style.whiteSpace = '';
+            const codeText = currentCodeTab === 'pseudo' ? pseudocodes[currentAlgorithm] : javacodes[currentAlgorithm];
+            
+            if (states.length > 0 && stepIndex < states.length && states[stepIndex].line !== undefined) {
+                const lines = codeText.split('\n');
+                const targetLine = states[stepIndex].line;
+                const formattedLines = lines.map((line, idx) => {
+                    if (idx === targetLine) {
+                        return `<span class="highlighted-line">${line}</span>`;
+                    }
+                    return line;
+                });
+                display.innerHTML = formattedLines.join('\n');
+            } else {
+                display.innerText = codeText;
+            }
+        }
+
+        function setupInputs() {
+            const container = document.getElementById('inputs-container');
+            if (currentAlgorithm === 'naive') {
+                container.innerHTML = `
+                    <div class="input-group">
+                        <span style="font-size: 13px; font-weight:600;">Text:</span>
+                        <input type="text" class="input-field" id="txt-T" value="AABAACAADAABAA" style="width: 140px;">
+                        <span style="font-size: 13px; font-weight:600;">Pattern:</span>
+                        <input type="text" class="input-field" id="txt-P" value="AABA" style="width: 80px;">
+                        <button class="btn btn-primary" onclick="generateStates()">Setează</button>
+                    </div>
+                `;
+            } else if (currentAlgorithm === 'rabinkarp') {
+                container.innerHTML = `
+                    <div class="input-group">
+                        <span style="font-size: 13px; font-weight:600;">Text:</span>
+                        <input type="text" class="input-field" id="rk-T" value="2359023523" style="width: 130px;">
+                        <span style="font-size: 13px; font-weight:600;">Pattern:</span>
+                        <input type="text" class="input-field" id="rk-P" value="235" style="width: 60px;">
+                        <span style="font-size: 13px; font-weight:600;">Mod (q):</span>
+                        <input type="number" class="input-field" id="rk-q" value="13" style="width: 50px;">
+                        <button class="btn btn-primary" onclick="generateStates()">Setează</button>
+                    </div>
+                `;
+            } else if (currentAlgorithm === 'finiteautomata') {
+                container.innerHTML = `
+                    <div class="input-group">
+                        <span style="font-size: 13px; font-weight:600;">Text:</span>
+                        <input type="text" class="input-field" id="fa-T" value="AABAACAADAABAA" style="width: 140px;">
+                        <span style="font-size: 13px; font-weight:600;">Pattern:</span>
+                        <input type="text" class="input-field" id="fa-P" value="AABA" style="width: 80px;">
+                        <button class="btn btn-primary" onclick="generateStates()">Setează</button>
+                    </div>
+                `;
+            }
+        }
+
+        function generateStates() {
+            states = [];
+            stepIndex = 0;
+            stopPlay();
+
+            if (currentAlgorithm === 'naive') {
+                const T = document.getElementById('txt-T').value;
+                const P = document.getElementById('txt-P').value;
+                const n = T.length;
+                const m = P.length;
+
+                states.push({
+                    T: T,
+                    P: P,
+                    s: 0,
+                    i: -1,
+                    matched: [],
+                    compResult: 'none',
+                    line: 3,
+                    desc: "Inițializăm algoritmul naiv. Glisăm șablonul peste text."
+                });
+
+                let matchedShifts = [];
+
+                for (let s = 0; s <= n - m; s++) {
+                    states.push({
+                        T: T,
+                        P: P,
+                        s: s,
+                        i: -1,
+                        matched: [...matchedShifts],
+                        compResult: 'none',
+                        line: 3,
+                        desc: "Glisăm șablonul la decalajul s = " + s + ". Începem verificarea caracterelor."
+                    });
+
+                    let match = true;
+                    for (let i = 0; i < m; i++) {
+                        states.push({
+                            T: T,
+                            P: P,
+                            s: s,
+                            i: i,
+                            matched: [...matchedShifts],
+                            compResult: 'comparing',
+                            line: 4,
+                            desc: "Comparăm caracterul T[" + (s + i) + "] ('" + T[s+i] + "') cu P[" + i + "] ('" + P[i] + "')."
+                        });
+
+                        if (T[s + i] !== P[i]) {
+                            match = false;
+                            states.push({
+                                T: T,
+                                P: P,
+                                s: s,
+                                i: i,
+                                matched: [...matchedShifts],
+                                compResult: 'mismatch',
+                                line: 4,
+                                desc: "Nepotrivire detectată la poziția " + i + ". T[" + (s + i) + "] != P[" + i + "]."
+                            });
+                            break;
+                        }
+                    }
+
+                    if (match) {
+                        matchedShifts.push(s);
+                        states.push({
+                            T: T,
+                            P: P,
+                            s: s,
+                            i: m - 1,
+                            matched: [...matchedShifts],
+                            compResult: 'matched',
+                            line: 5,
+                            desc: "Șablonul s-a potrivit complet la decalajul s = " + s + "!"
+                        });
+                    }
+                }
+
+                states.push({
+                    T: T,
+                    P: P,
+                    s: n - m,
+                    i: -1,
+                    matched: [...matchedShifts],
+                    compResult: 'none',
+                    finished: true,
+                    line: 8,
+                    desc: "Căutarea s-a finalizat. Decalaje valide găsite: [" + matchedShifts.join(', ') + "]."
+                });
+
+            } else if (currentAlgorithm === 'rabinkarp') {
+                const T = document.getElementById('rk-T').value;
+                const P = document.getElementById('rk-P').value;
+                const q = parseInt(document.getElementById('rk-q').value) || 13;
+                const d = 10;
+                const n = T.length;
+                const m = P.length;
+
+                let h = 1;
+                for (let i = 0; i < m - 1; i++) {
+                    h = (h * d) % q;
+                }
+
+                let p = 0;
+                let t = 0;
+
+                states.push({
+                    T: T,
+                    P: P,
+                    s: 0,
+                    i: -1,
+                    p: 0,
+                    t: 0,
+                    d: d,
+                    q: q,
+                    matched: [],
+                    compResult: 'none',
+                    line: 3,
+                    desc: "Inițializăm valorile de hash. Calculăm factorul h = d^(m-1) mod q = " + h + "."
+                });
+
+                for (let i = 0; i < m; i++) {
+                    p = (d * p + parseInt(P[i])) % q;
+                    t = (d * t + parseInt(T[i])) % q;
+                }
+
+                states.push({
+                    T: T,
+                    P: P,
+                    s: 0,
+                    i: -1,
+                    p: p,
+                    t: t,
+                    d: d,
+                    q: q,
+                    matched: [],
+                    compResult: 'none',
+                    line: 5,
+                    desc: "Calculăm hash-ul șablonului: p = " + p + ", și al primei ferestre din text: t_0 = " + t + "."
+                });
+
+                let matchedShifts = [];
+
+                for (let s = 0; s <= n - m; s++) {
+                    let desc = "Comparăm hash-ul șablonului p = " + p + " cu cel al ferestrei curente t_s = " + t + ".";
+                    let compResult = 'none';
+
+                    if (p === t) {
+                        states.push({
+                            T: T,
+                            P: P,
+                            s: s,
+                            i: -1,
+                            p: p,
+                            t: t,
+                            d: d,
+                            q: q,
+                            matched: [...matchedShifts],
+                            compResult: 'hash_match',
+                            line: 9,
+                            desc: desc + " Hash-urile se potrivesc! Începem verificarea caracter cu caracter."
+                        });
+
+                        let match = true;
+                        for (let i = 0; i < m; i++) {
+                            states.push({
+                                T: T,
+                                P: P,
+                                s: s,
+                                i: i,
+                                p: p,
+                                t: t,
+                                d: d,
+                                q: q,
+                                matched: [...matchedShifts],
+                                compResult: 'comparing',
+                                line: 10,
+                                desc: "Comparăm cifrele: T[" + (s + i) + "] ('" + T[s+i] + "') cu P[" + i + "] ('" + P[i] + "')."
+                            });
+
+                            if (T[s + i] !== P[i]) {
+                                match = false;
+                                states.push({
+                                    T: T,
+                                    P: P,
+                                    s: s,
+                                    i: i,
+                                    p: p,
+                                    t: t,
+                                    d: d,
+                                    q: q,
+                                    matched: [...matchedShifts],
+                                    compResult: 'mismatch',
+                                    line: 10,
+                                    desc: "Coliziune de hash (spurious hit)! Cifrele nu coincid la poziția " + i + "."
+                                });
+                                break;
+                            }
+                        }
+
+                        if (match) {
+                            matchedShifts.push(s);
+                            states.push({
+                                T: T,
+                                P: P,
+                                s: s,
+                                i: m - 1,
+                                p: p,
+                                t: t,
+                                d: d,
+                                q: q,
+                                matched: [...matchedShifts],
+                                compResult: 'matched',
+                                line: 11,
+                                desc: "Șablonul s-a potrivit complet la decalajul s = " + s + "!"
+                            });
+                        }
+                    } else {
+                        states.push({
+                            T: T,
+                            P: P,
+                            s: s,
+                            i: -1,
+                            p: p,
+                            t: t,
+                            d: d,
+                            q: q,
+                            matched: [...matchedShifts],
+                            compResult: 'hash_mismatch',
+                            line: 9,
+                            desc: desc + " Hash-urile NU coincid. Trecem la următorul pas."
+                        });
+                    }
+
+                    if (s < n - m) {
+                        let prevT = t;
+                        t = (d * (t - parseInt(T[s]) * h) + parseInt(T[s + m])) % q;
+                        if (t < 0) {
+                            t = t + q;
+                        }
+
+                        states.push({
+                            T: T,
+                            P: P,
+                            s: s,
+                            i: -1,
+                            p: p,
+                            t: t,
+                            d: d,
+                            q: q,
+                            matched: [...matchedShifts],
+                            compResult: 'none',
+                            line: 15,
+                            desc: "Calculăm hash-ul pentru următoarea fereastră prin rolling hash: t_next = (10 * (" + prevT + " - " + T[s] + " * " + h + ") + " + T[s + m] + ") mod " + q + " = " + t + "."
+                        });
+                    }
+                }
+
+                states.push({
+                    T: T,
+                    P: P,
+                    s: n - m,
+                    i: -1,
+                    p: p,
+                    t: t,
+                    d: d,
+                    q: q,
+                    matched: [...matchedShifts],
+                    compResult: 'none',
+                    finished: true,
+                    line: 18,
+                    desc: "Căutarea Rabin-Karp s-a finalizat. Decalaje valide: [" + matchedShifts.join(', ') + "]."
+                });
+            } else if (currentAlgorithm === 'finiteautomata') {
+                const T = document.getElementById('fa-T').value;
+                const P = document.getElementById('fa-P').value;
+                const n = T.length;
+                const m = P.length;
+
+                let alphabet = [];
+                for (let c of P) {
+                    if (!alphabet.includes(c)) alphabet.push(c);
+                }
+                alphabet.sort();
+
+                let delta = [];
+                for (let q = 0; q <= m; q++) {
+                    let trans = {};
+                    for (let a of alphabet) {
+                        let k = Math.min(m, q + 1);
+                        let target = P.substring(0, q) + a;
+                        while (k > 0) {
+                            let prefix = P.substring(0, k);
+                            if (target.endsWith(prefix)) break;
+                            k--;
+                        }
+                        trans[a] = k;
+                    }
+                    delta.push(trans);
+                }
+
+                states.push({
+                    T: T,
+                    P: P,
+                    s: 0,
+                    i: -1,
+                    q: 0,
+                    delta: delta,
+                    alphabet: alphabet,
+                    matched: [],
+                    compResult: 'none',
+                    line: 14,
+                    desc: "Inițializăm automatul finit. Starea inițială q = 0."
+                });
+
+                let q = 0;
+                let matchedShifts = [];
+                for (let i = 0; i < n; i++) {
+                    let charVal = T[i];
+                    let nextQ = delta[q][charVal] !== undefined ? delta[q][charVal] : 0;
+
+                    states.push({
+                        T: T,
+                        P: P,
+                        s: Math.max(0, i - q),
+                        i: i,
+                        q: q,
+                        nextQ: nextQ,
+                        delta: delta,
+                        alphabet: alphabet,
+                        matched: [...matchedShifts],
+                        compResult: 'comparing',
+                        line: 16,
+                        desc: "La indexul i = " + i + ", citim caracterul '" + charVal + "'. Starea se schimbă din q = " + q + " în q' = " + nextQ + "."
+                    });
+
+                    q = nextQ;
+
+                    if (q === m) {
+                        matchedShifts.push(i - m + 1);
+                        states.push({
+                            T: T,
+                            P: P,
+                            s: i - m + 1,
+                            i: i,
+                            q: q,
+                            delta: delta,
+                            alphabet: alphabet,
+                            matched: [...matchedShifts],
+                            compResult: 'matched',
+                            line: 18,
+                            desc: "Starea automatului a devenit q = " + m + " (terminală)! S-a găsit o potrivire completă la decalajul s = " + (i - m + 1) + "."
+                        });
+                    }
+                }
+
+                states.push({
+                    T: T,
+                    P: P,
+                    s: 0,
+                    i: n,
+                    q: q,
+                    delta: delta,
+                    alphabet: alphabet,
+                    matched: [...matchedShifts],
+                    compResult: 'none',
+                    finished: true,
+                    line: 21,
+                    desc: "Căutarea cu automat finit s-a finalizat. Decalaje valide găsite: [" + matchedShifts.join(', ') + "]."
+                });
+            }
+
+            renderState();
+        }
+
+        function renderState() {
+            if (states.length === 0) return;
+            const state = states[stepIndex];
+            document.getElementById('step-explanation').innerText = state.desc;
+
+            const canvas = document.getElementById('canvas');
+
+            let html = '<div class="matching-grid">';
+            
+            let tHtml = '<div class="char-row">';
+            tHtml += '<div style="position: absolute; left: -60px; top: 8px; font-size:12px; font-weight:600; color:var(--text-muted);">Text (T)</div>';
+            for (let idx = 0; idx < state.T.length; idx++) {
+                let boxClass = 'char-box';
+                if (currentAlgorithm === 'finiteautomata') {
+                    if (state.finished) {
+                        if (state.matched.some(shift => idx >= shift && idx < shift + state.P.length)) {
+                            boxClass += ' matched';
+                        }
+                    } else {
+                        if (idx === state.i) {
+                            if (state.compResult === 'matched') {
+                                boxClass += ' matched';
+                            } else {
+                                boxClass += ' comparing';
+                            }
+                        } else if (idx >= state.i - state.q && idx < state.i) {
+                            boxClass += ' matched';
+                        } else {
+                            boxClass += ' inactive';
+                        }
+                    }
+                } else {
+                    let isInsideWindow = (idx >= state.s && idx < state.s + state.P.length);
+                    if (state.finished) {
+                        if (state.matched.some(shift => idx >= shift && idx < shift + state.P.length)) {
+                            boxClass += ' matched';
+                        }
+                    } else if (isInsideWindow) {
+                        let patternIdx = idx - state.s;
+                        if (state.compResult === 'comparing') {
+                            if (patternIdx === state.i) {
+                                boxClass += ' comparing';
+                            } else if (patternIdx < state.i) {
+                                boxClass += ' matched';
+                            }
+                        } else if (state.compResult === 'mismatch' && patternIdx === state.i) {
+                            boxClass += ' mismatch';
+                        } else if (state.compResult === 'matched' || state.compResult === 'hash_match') {
+                            boxClass += ' matched';
+                        } else {
+                            boxClass += ' comparing';
+                        }
+                    } else {
+                        boxClass += ' inactive';
+                    }
+                }
+
+                tHtml += `<div class="${boxClass}">${state.T[idx]}</div>`;
+            }
+            tHtml += '</div>';
+            html += tHtml;
+
+            let pHtml = '<div class="char-row" style="margin-left: ' + (state.s * 40) + 'px; transition: margin-left 0.3s ease;">';
+            pHtml += '<div style="position: absolute; left: -60px; top: 8px; font-size:12px; font-weight:600; color:var(--text-muted);">Pattern (P)</div>';
+            for (let idx = 0; idx < state.P.length; idx++) {
+                let boxClass = 'char-box';
+                if (currentAlgorithm === 'finiteautomata') {
+                    if (state.finished) {
+                        boxClass += ' matched';
+                    } else {
+                        if (idx < state.q) {
+                            boxClass += ' matched';
+                        } else if (idx === state.q && state.i >= 0 && state.i < state.T.length && state.T[state.i] === state.P[idx]) {
+                            boxClass += ' comparing';
+                        } else {
+                            boxClass += ' inactive';
+                        }
+                    }
+                } else {
+                    if (state.finished) {
+                        boxClass += ' matched';
+                    } else if (state.compResult === 'comparing') {
+                        if (idx === state.i) {
+                            boxClass += ' comparing';
+                        } else if (idx < state.i) {
+                            boxClass += ' matched';
+                        }
+                    } else if (state.compResult === 'mismatch' && idx === state.i) {
+                        boxClass += ' mismatch';
+                    } else if (state.compResult === 'matched') {
+                        boxClass += ' matched';
+                    } else {
+                        boxClass += ' comparing';
+                    }
+                }
+                pHtml += `<div class="${boxClass}">${state.P[idx]}</div>`;
+            }
+            pHtml += '</div>';
+            html += pHtml;
+
+            if (currentAlgorithm === 'rabinkarp') {
+                let pHashClass = 'rk-hash-val';
+                let tHashClass = 'rk-hash-val';
+                if (state.compResult === 'hash_match' || state.compResult === 'comparing' || state.compResult === 'matched') {
+                    pHashClass += ' match';
+                    tHashClass += ' match';
+                } else if (state.compResult === 'hash_mismatch') {
+                    pHashClass += ' mismatch';
+                    tHashClass += ' mismatch';
+                }
+
+                html += `
+                    <div class="rk-hash-info">
+                        <div class="rk-hash-row">
+                            <div>
+                                <div class="label-text">Hash Șablon (p)</div>
+                                <span style="font-size:11px; color:var(--text-muted);">Valoare mod ${state.q}</span>
+                            </div>
+                            <div class="${pHashClass}">${state.p}</div>
+                        </div>
+                        <div class="rk-hash-row">
+                            <div>
+                                <div class="label-text">Hash Fereastră Curentă (t_s)</div>
+                                <span style="font-size:11px; color:var(--text-muted);">Decalaj s = ${state.s}</span>
+                            </div>
+                            <div class="${tHashClass}">${state.t}</div>
+                        </div>
+                    </div>
+                `;
+            } else if (currentAlgorithm === 'finiteautomata') {
+                html += `
+                    <div class="rk-hash-info" style="max-width: 600px;">
+                        <div style="font-size:14px; font-weight:700; color:var(--primary); margin-bottom:8px; text-align:center;">Tabelul de Tranziții &delta;</div>
+                        <table style="width:100%; border-collapse:collapse; text-align:center; font-size:12px;">
+                            <thead>
+                                <tr style="border-bottom:1px solid var(--border);">
+                                    <th style="padding:6px; color:var(--text-muted);">Starea (q)</th>
+                `;
+                for (let a of state.alphabet) {
+                    html += `<th style="padding:6px; color:var(--text-muted);">${a}</th>`;
+                }
+                html += `
+                                </tr>
+                            </thead>
+                            <tbody>
+                `;
+                for (let st = 0; st <= state.P.length; st++) {
+                    let rowStyle = '';
+                    if (!state.finished && state.q === st) {
+                        rowStyle = 'background-color: rgba(99, 102, 241, 0.15); font-weight: bold; border-left: 3px solid var(--primary);';
+                    }
+                    html += `<tr style="${rowStyle} border-bottom: 1px solid rgba(51, 65, 85, 0.5);">`;
+                    html += `<td style="padding:6px; font-weight:bold; color:var(--text-main);">${st}</td>`;
+                    for (let a of state.alphabet) {
+                        let cellStyle = 'padding:6px; color:var(--text-muted);';
+                        if (!state.finished && state.q === st && state.i >= 0 && state.i < state.T.length && state.T[state.i] === a) {
+                            cellStyle = 'padding:6px; color:var(--success); font-weight:bold; background-color:rgba(16, 185, 129, 0.15); border:1px solid var(--success);';
+                        }
+                        let val = state.delta[st][a] !== undefined ? state.delta[st][a] : 0;
+                        html += `<td style="${cellStyle}">${val}</td>`;
+                    }
+                    html += `</tr>`;
+                }
+                html += `
+                            </tbody>
+                        </table>
+                        <div style="display:flex; justify-content:space-between; margin-top:8px; font-size:11px; color:var(--text-muted);">
+                            <div>Starea curentă: <span style="color:var(--primary); font-weight:bold;">q = ${state.q}</span></div>
+                            ${state.nextQ !== undefined ? `<div>Tranziție: <span style="color:var(--success); font-weight:bold;">&delta;(${state.q}, '${state.T[state.i]}') &rarr; q' = ${state.nextQ}</span></div>` : ''}
+                        </div>
+                    </div>
+                `;
+            }
+
+            html += '</div>';
+            canvas.innerHTML = html;
+
+            renderCode();
+        }
+
+        function stepForward() {
+            if (stepIndex < states.length - 1) {
+                stepIndex++;
+                renderState();
+            } else {
+                stopPlay();
+            }
+        }
+
+        function stepBackward() {
+            if (stepIndex > 0) {
+                stepIndex--;
+                renderState();
+            }
+        }
+
+        function togglePlay() {
+            if (isPlaying) {
+                stopPlay();
+            } else {
+                startPlay();
+            }
+        }
+
+        function startPlay() {
+            isPlaying = true;
+            document.getElementById('play-btn').innerText = 'Pauză';
+            document.getElementById('play-btn').classList.add('btn-danger');
+            playInterval = setInterval(() => {
+                stepForward();
+            }, 1000);
+        }
+
+        function stopPlay() {
+            isPlaying = false;
+            document.getElementById('play-btn').innerText = 'Auto Run';
+            document.getElementById('play-btn').classList.remove('btn-danger');
+            if (playInterval) {
+                clearInterval(playInterval);
+                playInterval = null;
+            }
+        }
+
+        function resetState() {
+            stepIndex = 0;
+            stopPlay();
+            renderState();
+        }
+
+        selectAlgorithm('naive');
+    </script>
+</body>
+</html>

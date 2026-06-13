@@ -1,0 +1,1694 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vizualizator Algoritmi - Capitolul 2</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-base: #0f172a;
+            --bg-surface: #1e293b;
+            --bg-code: #0b0f19;
+            --primary: #6366f1;
+            --primary-hover: #4f46e5;
+            --secondary: #0ea5e9;
+            --accent: #f43f5e;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border: #334155;
+            --font-sans: 'Inter', sans-serif;
+            --font-mono: 'Fira Code', monospace;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-base);
+            color: var(--text-main);
+            font-family: var(--font-sans);
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .sidebar {
+            width: 280px;
+            background-color: var(--bg-surface);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+        }
+
+        .sidebar-header {
+            padding: 24px;
+            border-bottom: 1px solid var(--border);
+            background: linear-gradient(135deg, var(--bg-surface), #131b2e);
+        }
+
+        .sidebar-header h1 {
+            font-size: 18px;
+            font-weight: 700;
+            letter-spacing: -0.025em;
+            color: var(--text-main);
+        }
+
+        .sidebar-header p {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        .menu-list {
+            list-style: none;
+            padding: 16px;
+            overflow-y: auto;
+            flex-grow: 1;
+        }
+
+        .menu-item {
+            padding: 12px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            color: var(--text-muted);
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+        }
+
+        .menu-item:hover {
+            background-color: rgba(99, 102, 241, 0.1);
+            color: var(--text-main);
+        }
+
+        .menu-item.active {
+            background-color: var(--primary);
+            color: var(--text-main);
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.25);
+        }
+
+        .main-content {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .top-bar {
+            height: 70px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 32px;
+            background-color: var(--bg-surface);
+        }
+
+        .top-bar h2 {
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .workspace {
+            flex-grow: 1;
+            display: flex;
+            overflow: hidden;
+            padding: 24px;
+            gap: 24px;
+        }
+
+        .visualizer-section {
+            flex: 3;
+            background-color: var(--bg-surface);
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .visualizer-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background-color: rgba(30, 41, 59, 0.5);
+        }
+
+        .controls-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .btn {
+            background-color: var(--border);
+            color: var(--text-main);
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn:hover {
+            background-color: #475569;
+        }
+
+        .btn-primary {
+            background-color: var(--primary);
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-hover);
+        }
+
+        .btn-danger {
+            background-color: var(--accent);
+        }
+
+        .btn-danger:hover {
+            background-color: #e11d48;
+        }
+
+        .visualizer-body {
+            flex-grow: 1;
+            padding: 32px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow-y: auto;
+        }
+
+        .visualizer-footer {
+            padding: 20px;
+            border-top: 1px solid var(--border);
+            background-color: rgba(15, 23, 42, 0.4);
+        }
+
+        .explanation-box {
+            background-color: rgba(99, 102, 241, 0.05);
+            border-left: 4px solid var(--primary);
+            padding: 16px;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .explanation-box p {
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .code-section {
+            flex: 2;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .code-container {
+            background-color: var(--bg-surface);
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .code-tabs {
+            display: flex;
+            border-bottom: 1px solid var(--border);
+            background-color: rgba(30, 41, 59, 0.5);
+        }
+
+        .code-tab {
+            padding: 12px 20px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            border-right: 1px solid var(--border);
+            color: var(--text-muted);
+            transition: all 0.2s ease;
+        }
+
+        .code-tab:hover {
+            color: var(--text-main);
+        }
+
+        .code-tab.active {
+            background-color: var(--bg-code);
+            color: var(--primary);
+            border-bottom: 2px solid var(--primary);
+        }
+
+        .code-viewport {
+            flex-grow: 1;
+            background-color: var(--bg-code);
+            padding: 20px;
+            overflow: auto;
+        }
+
+        pre {
+            font-family: var(--font-mono);
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        .highlighted-line {
+            background-color: rgba(99, 102, 241, 0.2);
+            display: block;
+            margin: 0 -20px;
+            padding: 0 20px;
+            border-left: 3px solid var(--primary);
+        }
+
+        .stack-container {
+            display: flex;
+            flex-direction: column-reverse;
+            width: 120px;
+            border: 4px solid var(--border);
+            border-top: none;
+            border-radius: 0 0 12px 12px;
+            min-height: 240px;
+            background-color: rgba(15, 23, 42, 0.3);
+            padding: 8px;
+            gap: 8px;
+        }
+
+        .stack-item {
+            height: 40px;
+            background: linear-gradient(135deg, var(--primary), #818cf8);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 16px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            animation: slideIn 0.2s ease;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateY(-20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .tokens-row {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 24px;
+        }
+
+        .token-cell {
+            padding: 8px 16px;
+            background-color: var(--bg-base);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .token-cell.active {
+            background-color: var(--primary);
+            border-color: var(--primary);
+        }
+
+        .queue-ring {
+            display: flex;
+            gap: 12px;
+            padding: 24px;
+        }
+
+        .queue-slot {
+            width: 60px;
+            height: 60px;
+            border: 2px dashed var(--border);
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            position: relative;
+        }
+
+        .queue-slot.filled {
+            border-style: solid;
+            border-color: var(--secondary);
+            background-color: rgba(14, 165, 233, 0.1);
+        }
+
+        .pointer-tag {
+            position: absolute;
+            font-size: 10px;
+            font-weight: 700;
+            padding: 2px 6px;
+            border-radius: 4px;
+            text-transform: uppercase;
+        }
+
+        .pointer-head {
+            background-color: var(--accent);
+            top: -24px;
+        }
+
+        .pointer-tail {
+            background-color: var(--success);
+            bottom: -24px;
+        }
+
+        .maze-grid {
+            display: grid;
+            gap: 4px;
+            background-color: var(--border);
+            padding: 4px;
+            border-radius: 8px;
+        }
+
+        .maze-cell {
+            width: 44px;
+            height: 44px;
+            background-color: var(--bg-base);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 600;
+            border-radius: 4px;
+            transition: background-color 0.2s;
+        }
+
+        .maze-cell.wall {
+            background-color: #334155;
+        }
+
+        .maze-cell.visited {
+            background-color: rgba(99, 102, 241, 0.3);
+        }
+
+        .maze-cell.path {
+            background-color: var(--success);
+            color: #000;
+        }
+
+        .maze-cell.start {
+            background-color: var(--secondary);
+            color: #fff;
+        }
+
+        .maze-cell.end {
+            background-color: var(--accent);
+            color: #fff;
+        }
+
+        .list-nodes-container {
+            display: flex;
+            align-items: center;
+            gap: 32px;
+            padding: 40px;
+            overflow-x: auto;
+            width: 100%;
+        }
+
+        .list-node {
+            display: flex;
+            align-items: center;
+            background-color: var(--bg-base);
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            overflow: hidden;
+            flex-shrink: 0;
+            position: relative;
+        }
+
+        .list-node.highlighted {
+            border-color: var(--primary);
+            box-shadow: 0 0 12px rgba(99, 102, 241, 0.3);
+        }
+
+        .node-val {
+            padding: 12px 16px;
+            font-weight: 600;
+            font-size: 16px;
+            border-right: 1px solid var(--border);
+            min-width: 50px;
+            text-align: center;
+        }
+
+        .node-ptr {
+            padding: 8px;
+            font-size: 11px;
+            color: var(--text-muted);
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .node-arrow {
+            font-size: 24px;
+            color: var(--text-muted);
+            user-select: none;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h1>Capitolul 2</h1>
+            <p>Structuri de date</p>
+        </div>
+        <ul class="menu-list">
+            <li class="menu-item active" onclick="selectAlgorithm('stack')">1. Stivă & Evaluator</li>
+            <li class="menu-item" onclick="selectAlgorithm('queue')">2. Coadă Circulară</li>
+            <li class="menu-item" onclick="selectAlgorithm('maze')">3. Rezolvare Labirint</li>
+            <li class="menu-item" onclick="selectAlgorithm('list')">4. Liste Încrengate</li>
+            <li class="menu-item" onclick="selectAlgorithm('hash')">5. Tabelă de Dispersie</li>
+        </ul>
+    </div>
+
+    <div class="main-content">
+        <div class="top-bar">
+            <h2 id="algo-title">Stivă & Evaluator Postfixat</h2>
+        </div>
+
+        <div class="workspace">
+            <div class="visualizer-section">
+                <div class="visualizer-header">
+                    <div class="controls-row" id="inputs-container">
+                    </div>
+                    <div class="controls-row">
+                        <button class="btn" onclick="stepBackward()">Înapoi</button>
+                        <button class="btn btn-primary" id="play-btn" onclick="togglePlay()">Auto Run</button>
+                        <button class="btn" onclick="stepForward()">Pas Următor</button>
+                        <button class="btn btn-danger" onclick="resetState()">Reset</button>
+                    </div>
+                </div>
+                <div class="visualizer-body" id="canvas">
+                </div>
+                <div class="visualizer-footer">
+                    <div class="explanation-box">
+                        <p id="step-explanation">Inițializează stările pentru a începe.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="code-section">
+                <div class="code-container">
+                    <div class="code-tabs">
+                        <div class="code-tab active" id="tab-pseudo" onclick="selectCodeTab('pseudo')">Pseudocod</div>
+                        <div class="code-tab" id="tab-java" onclick="selectCodeTab('java')">Cod Java</div>
+                        <div class="code-tab" id="tab-teorie" onclick="selectCodeTab('teorie')">Teorie</div>
+                    </div>
+                    <div class="code-viewport">
+                        <pre id="code-display"></pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentAlgorithm = 'stack';
+        let currentCodeTab = 'pseudo';
+        let stepIndex = 0;
+        let states = [];
+        let isPlaying = false;
+        let playInterval = null;
+
+        let demoQueue = [10, 20, 30, null, null];
+        let demoHead = 0;
+        let demoTail = 3;
+        let demoHash = [8, 15, null, 22, null, null, null];
+
+        function hashResetDemo() {
+            demoHash = Array(7).fill(null);
+            generateStates();
+        }
+
+        const pseudocodes = {
+            stack: `procedure EVALUATE-POSTFIX(Expr)
+  while mai există cuvinte în expresie do
+    citesc cuvânt următor
+    if cuvânt este valoare then
+      PUSH(S, cuvânt)
+    else
+      val2 = POP(S)
+      val1 = POP(S)
+      rez = aplică operator pe val1 și val2
+      PUSH(S, rez)
+    end if
+  end while
+  return POP(S)
+end procedure`,
+            queue: `procedure ENQUEUE(Q, x)
+  Q[tail] = x
+  if tail == length[Q] then
+    tail = 1
+  else
+    tail = tail + 1
+  end if
+end procedure
+
+procedure DEQUEUE(Q)
+  x = Q[head]
+  if head == length[Q] then
+    head = 1
+  else
+    head = head + 1
+  end if
+  return x
+end procedure`,
+            maze: `procedure SOLVE-MAZE(maze, start, end)
+  PUSH(S, start)
+  mark start as visited
+  while S is not empty do
+    curr = peek(S)
+    if curr == end then return path
+    find unvisited neighbor next
+    if found next then
+      PUSH(S, next)
+      mark next as visited
+    else
+      POP(S)
+    end if
+  end while
+end procedure`,
+            list: `procedure LIST-OPERATIONS(L)
+  CREATE-LIST-OF-5(L)
+  DELETE-SECOND(L)
+  INSERT-AT-MIDDLE(L, 99)
+  DELETE-FIRST(L)
+  DELETE-LAST(L)
+end procedure`,
+            hash: `procedure HASH-INSERT(T, k)
+  i = 0
+  while i != m do
+    j = h(k, i)
+    if T[j] == NULL then
+      T[j] = k
+      return j
+    else
+      i = i + 1
+    end if
+  end while
+  return "Overflow"
+end procedure
+
+procedure HASH-SEARCH(T, k)
+  i = 0
+  j = h(k, 0)
+  while i != m and T[j] != NULL do
+    if T[j] == k then
+      return j
+    end if
+    i = i + 1
+    j = h(k, i)
+  end while
+  return NULL
+end procedure`
+        };
+
+        const javacodes = {
+            stack: `public static int evaluatePostfix(String expr) {
+    String[] tokens = expr.split("\\\\s+");
+    Stiva stack = new Stiva(tokens.length);
+    for (String token : tokens) {
+        if (token.equals("+") || token.equals("-") || token.equals("*") || token.equals("/")) {
+            int val2 = stack.pop();
+            int val1 = stack.pop();
+            int res = 0;
+            if (token.equals("+")) res = val1 + val2;
+            else if (token.equals("-")) res = val1 - val2;
+            else if (token.equals("*")) res = val1 * val2;
+            stack.push(res);
+        } else {
+            stack.push(Integer.parseInt(token));
+        }
+    }
+    return stack.pop();
+}`,
+            queue: `public static class CircularQueue {
+    int[] Q = new int[5];
+    int head = 0, tail = 0;
+
+    public void enqueue(int x) {
+        Q[tail] = x;
+        if (tail == Q.length - 1) tail = 0;
+        else tail++;
+    }
+
+    public int dequeue() {
+        int x = Q[head];
+        if (head == Q.length - 1) head = 0;
+        else head++;
+        return x;
+    }
+}`,
+            maze: `public static boolean solveMaze(int[][] maze, Cell start, Cell end, List<Cell> path) {
+    Stack<Cell> stack = new Stack<>();
+    stack.push(start);
+    visited[start.r][start.c] = true;
+    while (!stack.isEmpty()) {
+        Cell curr = stack.peek();
+        if (curr.r == end.r && curr.c == end.c) {
+            path.addAll(stack);
+            return true;
+        }
+        Cell next = getUnvisitedNeighbor(curr, maze, visited);
+        if (next != null) {
+            stack.push(next);
+            visited[next.r][next.c] = true;
+        } else {
+            stack.pop();
+        }
+    }
+    return false;
+}`,
+            list: `public void listDemo() {
+    SinglyList l = new SinglyList();
+    l.insertAtEnd(10); l.insertAtEnd(20); l.insertAtEnd(30); l.insertAtEnd(40); l.insertAtEnd(50);
+    l.deleteSecond();
+    l.insertAtMiddle(99);
+    l.deleteFirst();
+    l.deleteLast();
+}`,
+            hash: `public static class HashTable {
+    public Integer[] T = new Integer[7];
+    public int m = 7;
+
+    public int insert(int k) {
+        int i = 0;
+        while (i != m) {
+            int j = ((k % m + i) % m + m) % m;
+            if (T[j] == null) {
+                T[j] = k;
+                return j;
+            }
+            i++;
+        }
+        return -1;
+    }
+
+    public int search(int k) {
+        int i = 0;
+        int j = ((k % m) % m + m) % m;
+        while (i != m && T[j] != null) {
+            if (T[j] == k) return j;
+            i++;
+            j = ((k % m + i) % m + m) % m;
+        }
+        return -1;
+    }
+}`
+        };
+
+        const titles = {
+            stack: "1. Stivă & Evaluator Postfixat",
+            queue: "2. Coadă Circulară",
+            maze: "3. Rezolvare Labirint",
+            list: "4. Liste Încrengate",
+            hash: "5. Tabelă de Dispersie (Hash Table)"
+        };
+
+        function selectAlgorithm(algo) {
+            currentAlgorithm = algo;
+            document.querySelectorAll('.menu-item').forEach(el => el.classList.remove('active'));
+            const items = document.querySelectorAll('.menu-item');
+            if (algo === 'stack') items[0].classList.add('active');
+            else if (algo === 'queue') items[1].classList.add('active');
+            else if (algo === 'maze') items[2].classList.add('active');
+            else if (algo === 'list') items[3].classList.add('active');
+            else if (algo === 'hash') items[4].classList.add('active');
+
+            document.getElementById('algo-title').innerText = titles[algo];
+            stopPlay();
+            renderCode();
+            setupInputs();
+            resetState();
+        }
+
+        const teorii = {
+            stack: `<div style="padding: 10px; font-family: var(--font-sans);">
+                <h3 style="color: var(--primary); margin-bottom: 6px; font-size: 15px;">Scop</h3>
+                <p style="margin-bottom: 12px; color: var(--text-main); font-size: 13px; line-height: 1.5;">Evaluarea expresiilor matematice utilizând o stivă (structură de date LIFO - Last In First Out).</p>
+                <h3 style="color: var(--primary); margin-bottom: 6px; font-size: 15px;">Funcționare</h3>
+                <p style="margin-bottom: 12px; color: var(--text-main); font-size: 13px; line-height: 1.5;">Parcurge caracterele expresiei. Operanzii sunt plasați direct pe stiva de valori, iar operatorii sunt aplicați pe operanzii din vârful stivei conform priorității lor.</p>
+                <h3 style="color: var(--primary); margin-bottom: 6px; font-size: 15px;">Aplicații</h3>
+                <p style="margin-bottom: 12px; color: var(--text-main); font-size: 13px; line-height: 1.5;">Compilatoare (analiză sintactică), funcții de tip undo/redo în editoare de text, evaluarea expresiilor aritmetice (forma poloneză).</p>
+                <h3 style="color: var(--primary); margin-bottom: 6px; font-size: 15px;">Complexitate</h3>
+                <p style="color: var(--text-main); font-size: 13px; line-height: 1.5;">Timp: O(n) pentru parsare și evaluare. Spațiu: O(n) pentru stocarea elementelor pe stivă.</p>
+            </div>`,
+            queue: `<div style="padding: 10px; font-family: var(--font-sans);">
+                <h3 style="color: var(--primary); margin-bottom: 6px; font-size: 15px;">Scop</h3>
+                <p style="margin-bottom: 12px; color: var(--text-main); font-size: 13px; line-height: 1.5;">Gestionarea resurselor în ordinea sosirii acestora (structură FIFO - First In First Out), folosind un vector circular.</p>
+                <h3 style="color: var(--primary); margin-bottom: 6px; font-size: 15px;">Funcționare</h3>
+                <p style="margin-bottom: 12px; color: var(--text-main); font-size: 13px; line-height: 1.5;">Introducerea (enqueue) și ștergerea (dequeue) se fac la capetele corespunzătoare. Indicii de început și de sfârșit se deplasează circular folosind operatorul modulo (%).</p>
+                <h3 style="color: var(--primary); margin-bottom: 6px; font-size: 15px;">Aplicații</h3>
+                <p style="margin-bottom: 12px; color: var(--text-main); font-size: 13px; line-height: 1.5;">Cozi de așteptare pentru procese în sisteme de operare, buffere de date pentru fluxuri audio/video.</p>
+                <h3 style="color: var(--primary); margin-bottom: 6px; font-size: 15px;">Complexitate</h3>
+                <p style="color: var(--text-main); font-size: 13px; line-height: 1.5;">Timp: O(1) pentru ambele operații (inserare și ștergere). Spațiu: O(N) unde N este capacitatea maximă.</p>
+            </div>`,
+            maze: `<div style="padding: 10px; font-family: var(--font-sans);">
+                <h3 style="color: var(--primary); margin-bottom: 6px; font-size: 15px;">Scop</h3>
+                <p style="margin-bottom: 12px; color: var(--text-main); font-size: 13px; line-height: 1.5;">Găsirea unui drum valid de la un punct de pornire la un punct de destinație într-un grid bidimensional.</p>
+                <h3 style="color: var(--primary); margin-bottom: 6px; font-size: 15px;">Funcționare</h3>
+                <p style="margin-bottom: 12px; color: var(--text-main); font-size: 13px; line-height: 1.5;">Folosește tehnica backtracking (sau BFS/DFS). Se explorează recursiv direcțiile vecine (sus, jos, stânga, dreapta); celulele vizitate sunt marcate pentru a evita ciclurile, iar la fundătură se face pas înapoi (backtrack).</p>
+                <h3 style="color: var(--primary); margin-bottom: 6px; font-size: 15px;">Aplicații</h3>
+                <p style="margin-bottom: 12px; color: var(--text-main); font-size: 13px; line-height: 1.5;">Navigație în jocuri video, algoritmi de tip pathfinding pentru roboți, planificarea traseelor.</p>
+                <h3 style="color: var(--primary); margin-bottom: 6px; font-size: 15px;">Complexitate</h3>
+                <p style="color: var(--text-main); font-size: 13px; line-height: 1.5;">Timp: O(4^(N*M)) în cel mai rău caz pentru backtracking pur. Spațiu: O(N*M) pentru matricea vizită și stivă.</p>
+            </div>`,
+            list: `<div style="padding: 10px; font-family: var(--font-sans);">
+                <h3 style="color: var(--primary); margin-bottom: 6px; font-size: 15px;">Scop</h3>
+                <p style="margin-bottom: 12px; color: var(--text-main); font-size: 13px; line-height: 1.5;">Reprezentarea unei secvențe liniare de date unde elementele pot fi dispersate în memorie.</p>
+                <h3 style="color: var(--primary); margin-bottom: 6px; font-size: 15px;">Funcționare</h3>
+                <p style="margin-bottom: 12px; color: var(--text-main); font-size: 13px; line-height: 1.5;">Fiecare nod conține datele proprii și o referință (pointer) către următorul nod (listă simplu înlănțuită) sau legături bidirecționale (listă dublu înlănțuită).</p>
+                <h3 style="color: var(--primary); margin-bottom: 6px; font-size: 15px;">Aplicații</h3>
+                <p style="margin-bottom: 12px; color: var(--text-main); font-size: 13px; line-height: 1.5;">Gestiunea dinamică a memoriei, implementarea altor structuri flexibile (stive, cozi, tabele de dispersie).</p>
+                <h3 style="color: var(--primary); margin-bottom: 6px; font-size: 15px;">Complexitate</h3>
+                <p style="color: var(--text-main); font-size: 13px; line-height: 1.5;">Timp: Inserare/Ștergere: O(1) dacă avem referința, Căutare: O(n). Spațiu: O(n) pentru stocarea nodurilor.</p>
+            </div>`
+        };
+
+        function selectCodeTab(tab) {
+            currentCodeTab = tab;
+            document.getElementById('tab-pseudo').classList.toggle('active', tab === 'pseudo');
+            document.getElementById('tab-java').classList.toggle('active', tab === 'java');
+            document.getElementById('tab-teorie').classList.toggle('active', tab === 'teorie');
+            renderCode();
+        }
+
+        function renderCode() {
+            const display = document.getElementById('code-display');
+            if (currentCodeTab === 'teorie') {
+                display.innerHTML = teorii[currentAlgorithm] || '';
+                display.style.fontFamily = 'var(--font-sans)';
+                display.style.whiteSpace = 'normal';
+                return;
+            }
+            display.style.fontFamily = '';
+            display.style.whiteSpace = '';
+            const codeText = currentCodeTab === 'pseudo' ? pseudocodes[currentAlgorithm] : javacodes[currentAlgorithm];
+            
+            if (states.length > 0 && stepIndex < states.length) {
+                const lines = codeText.split('\n');
+                const targetLine = states[stepIndex].line;
+                const formattedLines = lines.map((line, idx) => {
+                    if (idx === targetLine) {
+                        return `<span class="highlighted-line">${line}</span>`;
+                    }
+                    return line;
+                });
+                display.innerHTML = formattedLines.join('\n');
+            } else {
+                display.innerText = codeText;
+            }
+        }
+
+        function setupInputs() {
+            const container = document.getElementById('inputs-container');
+            container.innerHTML = '';
+
+            if (currentAlgorithm === 'stack') {
+                container.innerHTML = `
+                    <div class="input-group">
+                        <span style="font-size: 13px; font-weight:600;">Expresie:</span>
+                        <input type="text" class="input-field" id="expr-input" value="5 1 2 + 4 * + 3 -" style="width: 180px;">
+                        <button class="btn btn-primary" onclick="generateStates()">Setează</button>
+                    </div>
+                `;
+            } else if (currentAlgorithm === 'queue') {
+                container.innerHTML = `
+                    <div class="input-group">
+                        <button class="btn btn-primary" onclick="enqueueDemo()">Enqueue Random</button>
+                        <button class="btn" onclick="dequeueDemo()">Dequeue</button>
+                    </div>
+                `;
+            } else if (currentAlgorithm === 'maze') {
+                container.innerHTML = `
+                    <div class="input-group">
+                        <button class="btn btn-primary" onclick="generateStates()">Pornește Căutarea</button>
+                    </div>
+                `;
+            } else if (currentAlgorithm === 'list') {
+                container.innerHTML = `
+                    <div class="input-group">
+                        <span style="font-size: 13px; font-weight:600;">Tip listă:</span>
+                        <select class="input-field" id="list-type" onchange="generateStates()" style="width: 120px;">
+                            <option value="singly">Simplă</option>
+                            <option value="doubly">Dublă</option>
+                            <option value="circular">Circulară</option>
+                        </select>
+                    </div>
+                `;
+            } else if (currentAlgorithm === 'hash') {
+                container.innerHTML = `
+                    <div class="input-group">
+                        <span style="font-size: 13px; font-weight:600;">Cheie:</span>
+                        <input type="number" class="input-field" id="hash-key" value="23" style="width: 70px;">
+                        <span style="font-size: 13px; font-weight:600; margin-left: 10px;">Operație:</span>
+                        <select class="input-field" id="hash-op" style="width: 100px;">
+                            <option value="insert">Inserare</option>
+                            <option value="search">Căutare</option>
+                        </select>
+                        <button class="btn btn-primary" onclick="generateStates()">Pornește</button>
+                        <button class="btn btn-danger" onclick="hashResetDemo()">Reset Tabela</button>
+                    </div>
+                `;
+            }
+        }
+
+        let demoQueue = [10, 20, 30, null, null];
+        let demoHead = 0;
+        let demoTail = 3;
+
+        function enqueueStates(val) {
+            states = [];
+            stepIndex = 0;
+            stopPlay();
+
+            let Q_temp = [...demoQueue];
+            let t_temp = demoTail;
+            let h_temp = demoHead;
+
+            if ((t_temp + 1) % 5 === h_temp) {
+                alert("Coada este plină (Overflow)!");
+                return;
+            }
+
+            states.push({
+                Q: [...Q_temp],
+                head: h_temp,
+                tail: t_temp,
+                line: 1,
+                desc: "1. Executăm ENQUEUE pentru valoarea " + val + ". Adăugăm valoarea la indexul tail = " + t_temp + "."
+            });
+
+            Q_temp[t_temp] = val;
+
+            states.push({
+                Q: [...Q_temp],
+                head: h_temp,
+                tail: t_temp,
+                line: 2,
+                desc: "2. Verificăm dacă tail a atins limita array-ului (tail == length[Q] - 1)."
+            });
+
+            if (t_temp === Q_temp.length - 1) {
+                t_temp = 0;
+                states.push({
+                    Q: [...Q_temp],
+                    head: h_temp,
+                    tail: t_temp,
+                    line: 3,
+                    desc: "3. Deoarece tail era la capăt, tail devine 0 (circular)."
+                });
+            } else {
+                t_temp++;
+                states.push({
+                    Q: [...Q_temp],
+                    head: h_temp,
+                    tail: t_temp,
+                    line: 5,
+                    desc: "3. Incrementăm tail: tail = " + t_temp + "."
+                });
+            }
+
+            states.push({
+                Q: [...Q_temp],
+                head: h_temp,
+                tail: t_temp,
+                line: 7,
+                desc: "4. Operația de adăugare s-a încheiat cu succes."
+            });
+
+            demoQueue = Q_temp;
+            demoTail = t_temp;
+            renderState();
+        }
+
+        function dequeueStates() {
+            states = [];
+            stepIndex = 0;
+            stopPlay();
+
+            let Q_temp = [...demoQueue];
+            let t_temp = demoTail;
+            let h_temp = demoHead;
+
+            if (h_temp === t_temp) {
+                alert("Coada este goală (Underflow)!");
+                return;
+            }
+
+            let val = Q_temp[h_temp];
+
+            states.push({
+                Q: [...Q_temp],
+                head: h_temp,
+                tail: t_temp,
+                line: 10,
+                desc: "1. Executăm DEQUEUE. Extragem valoarea " + val + " de la indexul head = " + h_temp + "."
+            });
+
+            Q_temp[h_temp] = null;
+
+            states.push({
+                Q: [...Q_temp],
+                head: h_temp,
+                tail: t_temp,
+                line: 11,
+                desc: "2. Verificăm dacă head a atins limita array-ului (head == length[Q] - 1)."
+            });
+
+            if (h_temp === Q_temp.length - 1) {
+                h_temp = 0;
+                states.push({
+                    Q: [...Q_temp],
+                    head: h_temp,
+                    tail: t_temp,
+                    line: 12,
+                    desc: "3. Deoarece head era la capăt, head devine 0 (circular)."
+                });
+            } else {
+                h_temp++;
+                states.push({
+                    Q: [...Q_temp],
+                    head: h_temp,
+                    tail: t_temp,
+                    line: 14,
+                    desc: "3. Incrementăm head: head = " + h_temp + "."
+                });
+            }
+
+            states.push({
+                Q: [...Q_temp],
+                head: h_temp,
+                tail: t_temp,
+                line: 17,
+                desc: "4. Returnăm valoarea extrasă: " + val + "."
+            });
+
+            demoQueue = Q_temp;
+            demoHead = h_temp;
+            renderState();
+        }
+
+        function enqueueDemo() {
+            const val = Math.floor(Math.random() * 90) + 10;
+            enqueueStates(val);
+        }
+
+        function dequeueDemo() {
+            dequeueStates();
+        }
+
+        function generateStates() {
+            states = [];
+            stepIndex = 0;
+            stopPlay();
+
+            if (currentAlgorithm === 'stack') {
+                const expr = document.getElementById('expr-input').value;
+                const tokens = expr.split(/\s+/).filter(t => t.length > 0);
+                
+                let currentStack = [];
+                states.push({
+                    tokens: tokens,
+                    activeTokenIdx: -1,
+                    stack: [],
+                    line: 1,
+                    desc: "Inițializăm expresia postfixată și stiva goală."
+                });
+
+                for (let k = 0; k < tokens.length; k++) {
+                    const token = tokens[k];
+                    states.push({
+                        tokens: tokens,
+                        activeTokenIdx: k,
+                        stack: [...currentStack],
+                        line: 2,
+                        desc: "Citim următorul token: '" + token + "'."
+                    });
+
+                    if (token === "+" || token === "-" || token === "*" || token === "/") {
+                        states.push({
+                            tokens: tokens,
+                            activeTokenIdx: k,
+                            stack: [...currentStack],
+                            line: 6,
+                            desc: "Token-ul '" + token + "' este un operator. Extragem primele două valori din stivă."
+                        });
+
+                        let val2 = currentStack.pop();
+                        states.push({
+                            tokens: tokens,
+                            activeTokenIdx: k,
+                            stack: [...currentStack],
+                            line: 6,
+                            desc: "Am extras val2 = " + val2 + "."
+                        });
+
+                        let val1 = currentStack.pop();
+                        states.push({
+                            tokens: tokens,
+                            activeTokenIdx: k,
+                            stack: [...currentStack],
+                            line: 7,
+                            desc: "Am extras val1 = " + val1 + "."
+                        });
+
+                        let res = 0;
+                        if (token === "+") res = val1 + val2;
+                        else if (token === "-") res = val1 - val2;
+                        else if (token === "*") res = val1 * val2;
+                        else if (token === "/") res = Math.floor(val1 / val2);
+
+                        states.push({
+                            tokens: tokens,
+                            activeTokenIdx: k,
+                            stack: [...currentStack],
+                            line: 8,
+                            desc: "Calculăm rezultatul: " + val1 + " " + token + " " + val2 + " = " + res + "."
+                        });
+
+                        currentStack.push(res);
+                        states.push({
+                            tokens: tokens,
+                            activeTokenIdx: k,
+                            stack: [...currentStack],
+                            line: 9,
+                            desc: "Introducem rezultatul " + res + " în stivă."
+                        });
+
+                    } else {
+                        let val = parseInt(token);
+                        states.push({
+                            tokens: tokens,
+                            activeTokenIdx: k,
+                            stack: [...currentStack],
+                            line: 4,
+                            desc: "Token-ul '" + token + "' este o valoare numerică. O introducem în stivă."
+                        });
+                        currentStack.push(val);
+                        states.push({
+                            tokens: tokens,
+                            activeTokenIdx: k,
+                            stack: [...currentStack],
+                            line: 4,
+                            desc: "Valoarea " + val + " a fost adăugată în stivă."
+                        });
+                    }
+                }
+
+                let finalRes = currentStack.pop();
+                states.push({
+                    tokens: tokens,
+                    activeTokenIdx: tokens.length,
+                    stack: [],
+                    line: 12,
+                    desc: "Parcurgerea s-a încheiat. Rezultatul final din vârful stivei este: " + finalRes + "."
+                });
+
+            } else if (currentAlgorithm === 'queue') {
+                states.push({
+                    Q: [...demoQueue],
+                    head: demoHead,
+                    tail: demoTail,
+                    line: -1,
+                    desc: "Inițializăm coada circulară. head = " + demoHead + ", tail = " + demoTail + ". Apasă 'Enqueue' sau 'Dequeue' pentru a rula operații."
+                });
+
+            } else if (currentAlgorithm === 'maze') {
+                let maze = [
+                    [0, 1, 0, 0, 0],
+                    [0, 1, 0, 1, 0],
+                    [0, 0, 0, 1, 0],
+                    [1, 1, 1, 1, 0],
+                    [0, 0, 0, 0, 0]
+                ];
+                let start = {r: 0, c: 0};
+                let end = {r: 4, c: 4};
+
+                let rows = maze.length;
+                let cols = maze[0].length;
+                let visited = Array.from({length: rows}, () => Array(cols).fill(false));
+                let stack = [];
+
+                stack.push(start);
+                visited[start.r][start.c] = true;
+
+                states.push({
+                    maze: maze,
+                    stack: JSON.parse(JSON.stringify(stack)),
+                    visited: JSON.parse(JSON.stringify(visited)),
+                    line: 1,
+                    desc: "Inițializăm căutarea labirintului. Adăugăm startul (0,0) pe stivă."
+                });
+
+                let solved = false;
+                while (stack.length > 0) {
+                    let curr = stack[stack.length - 1];
+                    states.push({
+                        maze: maze,
+                        stack: JSON.parse(JSON.stringify(stack)),
+                        visited: JSON.parse(JSON.stringify(visited)),
+                        line: 4,
+                        desc: "Analizăm celula curentă din vârful stivei: (" + curr.r + "," + curr.c + ")."
+                    });
+
+                    if (curr.r === end.r && curr.c === end.c) {
+                        solved = true;
+                        states.push({
+                            maze: maze,
+                            stack: JSON.parse(JSON.stringify(stack)),
+                            visited: JSON.parse(JSON.stringify(visited)),
+                            line: 5,
+                            desc: "Am ajuns la destinație (" + end.r + "," + end.c + ")! Drumul a fost găsit."
+                        });
+                        break;
+                    }
+
+                    let moved = false;
+                    let dirs = [[-1, 0], [1, 0], [0, -1], [0, 1]];
+                    for (let d of dirs) {
+                        let nr = curr.r + d[0];
+                        let nc = curr.c + d[1];
+                        if (nr >= 0 && nr < rows && nc >= 0 && nc < cols && maze[nr][nc] === 0 && !visited[nr][nc]) {
+                            stack.push({r: nr, c: nc});
+                            visited[nr][nc] = true;
+                            moved = true;
+                            states.push({
+                                maze: maze,
+                                stack: JSON.parse(JSON.stringify(stack)),
+                                visited: JSON.parse(JSON.stringify(visited)),
+                                line: 8,
+                                desc: "Avansăm în celula vecină nevizitată: (" + nr + "," + nc + ") și o adăugăm pe stivă."
+                            });
+                            break;
+                        }
+                    }
+
+                    if (!moved) {
+                        stack.pop();
+                        states.push({
+                            maze: maze,
+                            stack: JSON.parse(JSON.stringify(stack)),
+                            visited: JSON.parse(JSON.stringify(visited)),
+                            line: 11,
+                            desc: "Nu există vecini nevizitați. Facem backtrack: extragem celula curentă de pe stivă."
+                        });
+                    }
+                }
+
+                if (!solved) {
+                    states.push({
+                        maze: maze,
+                        stack: [],
+                        visited: JSON.parse(JSON.stringify(visited)),
+                        line: 12,
+                        desc: "Stiva s-a golit. Nu există drum valid prin labirint."
+                    });
+                }
+
+            } else if (currentAlgorithm === 'list') {
+                const listType = document.getElementById('list-type').value;
+
+                if (listType === 'singly') {
+                    states.push({
+                        list: [10, 20, 30, 40, 50],
+                        highlightIdx: -1,
+                        line: 1,
+                        desc: "1. Am creat lista simplu înlănțuită cu 5 elemente: 10 -> 20 -> 30 -> 40 -> 50."
+                    });
+                    states.push({
+                        list: [10, 30, 40, 50],
+                        highlightIdx: 1,
+                        line: 2,
+                        desc: "2. Ștergem al doilea element din listă (valoarea 20)."
+                    });
+                    states.push({
+                        list: [10, 30, 99, 40, 50],
+                        highlightIdx: 2,
+                        line: 3,
+                        desc: "3. Calculăm mijlocul listei și inserăm valoarea 99 pe acea poziție."
+                    });
+                    states.push({
+                        list: [30, 99, 40, 50],
+                        highlightIdx: 0,
+                        line: 4,
+                        desc: "4. Ștergem primul element din listă (valoarea 10)."
+                    });
+                    states.push({
+                        list: [30, 99, 40],
+                        highlightIdx: 2,
+                        line: 5,
+                        desc: "5. Ștergem ultimul element din listă (valoarea 50). Operațiile pe lista simplă sunt gata."
+                    });
+
+                } else if (listType === 'doubly') {
+                    states.push({
+                        list: [10, 20, 30, 40, 50],
+                        highlightIdx: -1,
+                        line: 1,
+                        desc: "1. Am creat lista dublu înlănțuită cu 5 elemente."
+                    });
+                    states.push({
+                        list: [10, 30, 40, 50],
+                        highlightIdx: 1,
+                        line: 2,
+                        desc: "2. Ștergem al doilea element (20) modificând pointerii prev și next."
+                    });
+                    states.push({
+                        list: [10, 30, 99, 40, 50],
+                        highlightIdx: 2,
+                        line: 3,
+                        desc: "3. Inserăm 99 în mijlocul listei, refăcând legăturile stânga-dreapta."
+                    });
+                    states.push({
+                        list: [30, 99, 40, 50],
+                        highlightIdx: 0,
+                        line: 4,
+                        desc: "4. Eliminăm primul element (10). Noul head devine 30."
+                    });
+                    states.push({
+                        list: [30, 99, 40],
+                        highlightIdx: 2,
+                        line: 5,
+                        desc: "5. Eliminăm ultimul element (50). Tail-ul se mută la 4. Gata."
+                    });
+
+                } else if (listType === 'circular') {
+                    states.push({
+                        list: [10, 20, 30, 40, 50],
+                        highlightIdx: -1,
+                        line: 1,
+                        desc: "1. Am creat lista circulară. Ultimul nod (50) indică înapoi spre primul (10)."
+                    });
+                    states.push({
+                        list: [10, 30, 40, 50],
+                        highlightIdx: 1,
+                        line: 2,
+                        desc: "2. Ștergem al doilea element (20) din structura circulară."
+                    });
+                    states.push({
+                        list: [10, 30, 99, 40, 50],
+                        highlightIdx: 2,
+                        line: 3,
+                        desc: "3. Inserăm 99 la mijlocul listei circulare."
+                    });
+                    states.push({
+                        list: [30, 99, 40, 50],
+                        highlightIdx: 0,
+                        line: 4,
+                        desc: "4. Ștergem primul element (10). Legătura circulară de la capăt se actualizează."
+                    });
+                    states.push({
+                        list: [30, 99, 40],
+                        highlightIdx: 2,
+                        line: 5,
+                        desc: "5. Ștergem ultimul element (50). Noul nod de la capăt se leagă circular de primul."
+                    });
+                }
+            } else if (currentAlgorithm === 'hash') {
+                const op = document.getElementById('hash-op').value;
+                const key = parseInt(document.getElementById('hash-key').value) || 0;
+                const m = 7;
+                let T_temp = [...demoHash];
+
+                if (op === 'insert') {
+                    states.push({
+                        hashTable: [...T_temp],
+                        checkedIdx: -1,
+                        line: 1,
+                        desc: "Inițializăm HASH-INSERT pentru k = " + key + ". i = 0."
+                    });
+
+                    let i = 0;
+                    let inserted = false;
+                    while (i < m) {
+                        let j = (key % m + i) % m;
+                        states.push({
+                            hashTable: [...T_temp],
+                            checkedIdx: j,
+                            line: 3,
+                            desc: "Calculăm j = h(" + key + ", " + i + ") = ((" + key + " % 7) + " + i + ") % 7 = " + j + "."
+                        });
+
+                        states.push({
+                            hashTable: [...T_temp],
+                            checkedIdx: j,
+                            line: 4,
+                            desc: "Verificăm dacă slotul T[" + j + "] este gol (NULL)."
+                        });
+
+                        if (T_temp[j] === null) {
+                            T_temp[j] = key;
+                            states.push({
+                                hashTable: [...T_temp],
+                                checkedIdx: j,
+                                line: 5,
+                                desc: "Slotul T[" + j + "] este liber. Inserăm cheia " + key + "."
+                            });
+                            states.push({
+                                hashTable: [...T_temp],
+                                checkedIdx: j,
+                                line: 6,
+                                desc: "Returnăm indexul slotului inserat: " + j + "."
+                            });
+                            inserted = true;
+                            demoHash = T_temp;
+                            break;
+                        } else {
+                            states.push({
+                                hashTable: [...T_temp],
+                                checkedIdx: j,
+                                line: 8,
+                                desc: "Coliziune! Slotul T[" + j + "] este ocupat de valoarea " + T_temp[j] + ". Incrementăm i."
+                            });
+                            i++;
+                        }
+                    }
+
+                    if (!inserted) {
+                        states.push({
+                            hashTable: [...T_temp],
+                            checkedIdx: -1,
+                            line: 11,
+                            desc: "Tabela este plină! Overflow în tabela de dispersie."
+                        });
+                    }
+                } else {
+                    states.push({
+                        hashTable: [...T_temp],
+                        checkedIdx: -1,
+                        line: 14,
+                        desc: "Inițializăm HASH-SEARCH pentru k = " + key + ". i = 0."
+                    });
+
+                    let i = 0;
+                    let found = false;
+                    while (i < m) {
+                        let j = (key % m + i) % m;
+                        states.push({
+                            hashTable: [...T_temp],
+                            checkedIdx: j,
+                            line: 16,
+                            desc: "Calculăm j = h(" + key + ", " + i + ") = " + j + "."
+                        });
+
+                        states.push({
+                            hashTable: [...T_temp],
+                            checkedIdx: j,
+                            line: 17,
+                            desc: "Verificăm dacă T[" + j + "] este NULL sau egal cu cheia " + key + "."
+                        });
+
+                        if (T_temp[j] === null) {
+                            states.push({
+                                hashTable: [...T_temp],
+                                checkedIdx: j,
+                                line: 23,
+                                desc: "T[" + j + "] este NULL. Cheia " + key + " nu se află în tabelă. Oprim căutarea și returnăm NULL."
+                            });
+                            break;
+                        } else if (T_temp[j] === key) {
+                            states.push({
+                                hashTable: [...T_temp],
+                                checkedIdx: j,
+                                line: 19,
+                                desc: "Am găsit cheia " + key + " la indexul " + j + "! Returnăm " + j + "."
+                            });
+                            found = true;
+                            break;
+                        } else {
+                            states.push({
+                                hashTable: [...T_temp],
+                                checkedIdx: j,
+                                line: 21,
+                                desc: "T[" + j + "] = " + T_temp[j] + " (nu este cheia căutată). Incrementăm i."
+                            });
+                            i++;
+                        }
+                    }
+
+                    if (!found && i === m) {
+                        states.push({
+                            hashTable: [...T_temp],
+                            checkedIdx: -1,
+                            line: 23,
+                            desc: "Am verificat toate cele " + m + " sloturi și cheia n-a fost găsită. Returnăm NULL."
+                        });
+                    }
+                }
+            }
+
+            renderState();
+        }
+
+        function renderState() {
+            if (states.length === 0) return;
+            const state = states[stepIndex];
+            const canvas = document.getElementById('canvas');
+            canvas.innerHTML = '';
+
+            document.getElementById('step-explanation').innerText = state.desc;
+            renderCode();
+
+            if (currentAlgorithm === 'stack') {
+                const wrapper = document.createElement('div');
+                wrapper.style.display = 'flex';
+                wrapper.style.flexDirection = 'column';
+                wrapper.style.alignItems = 'center';
+                wrapper.style.gap = '20px';
+
+                const tokensDiv = document.createElement('div');
+                tokensDiv.className = 'tokens-row';
+                state.tokens.forEach((t, idx) => {
+                    const c = document.createElement('div');
+                    c.className = 'token-cell' + (idx === state.activeTokenIdx ? ' active' : '');
+                    c.innerText = t;
+                    tokensDiv.appendChild(c);
+                });
+                wrapper.appendChild(tokensDiv);
+
+                const container = document.createElement('div');
+                container.className = 'stack-container';
+                state.stack.forEach(val => {
+                    const item = document.createElement('div');
+                    item.className = 'stack-item';
+                    item.innerText = val;
+                    container.appendChild(item);
+                });
+                wrapper.appendChild(container);
+                canvas.appendChild(wrapper);
+
+            } else if (currentAlgorithm === 'queue') {
+                const ring = document.createElement('div');
+                ring.className = 'queue-ring';
+
+                state.Q.forEach((val, idx) => {
+                    const slot = document.createElement('div');
+                    slot.className = 'queue-slot' + (val !== null ? ' filled' : '');
+                    slot.innerText = val !== null ? val : '';
+
+                    const sub = document.createElement('span');
+                    sub.style.fontSize = '9px';
+                    sub.style.color = 'var(--text-muted)';
+                    sub.style.marginTop = '4px';
+                    sub.innerText = '[' + idx + ']';
+                    slot.appendChild(sub);
+
+                    if (idx === state.head) {
+                        const h = document.createElement('div');
+                        h.className = 'pointer-tag pointer-head';
+                        h.innerText = 'head';
+                        slot.appendChild(h);
+                    }
+                    if (idx === state.tail) {
+                        const t = document.createElement('div');
+                        t.className = 'pointer-tag pointer-tail';
+                        t.innerText = 'tail';
+                        slot.appendChild(t);
+                    }
+                    ring.appendChild(slot);
+                });
+                canvas.appendChild(ring);
+
+            } else if (currentAlgorithm === 'maze') {
+                const grid = document.createElement('div');
+                grid.className = 'maze-grid';
+                grid.style.gridTemplateColumns = `repeat(${state.maze[0].length}, 44px)`;
+
+                const isPath = (r, c) => state.stack.some(cell => cell.r === r && cell.c === c);
+
+                for (let r = 0; r < state.maze.length; r++) {
+                    for (let c = 0; c < state.maze[r].length; c++) {
+                        const cell = document.createElement('div');
+                        cell.className = 'maze-cell';
+
+                        if (state.maze[r][c] === 1) cell.classList.add('wall');
+                        else {
+                            if (state.visited[r][c]) cell.classList.add('visited');
+                            if (isPath(r, c)) cell.classList.add('path');
+                            if (r === 0 && c === 0) cell.classList.add('start');
+                            if (r === 4 && c === 4) cell.classList.add('end');
+                        }
+                        grid.appendChild(cell);
+                    }
+                }
+                canvas.appendChild(grid);
+
+            } else if (currentAlgorithm === 'list') {
+                const listType = document.getElementById('list-type').value;
+                const container = document.createElement('div');
+                container.className = 'list-nodes-container';
+
+                state.list.forEach((val, idx) => {
+                    const node = document.createElement('div');
+                    node.className = 'list-node' + (idx === state.highlightIdx ? ' highlighted' : '');
+
+                    const nodeVal = document.createElement('div');
+                    nodeVal.className = 'node-val';
+                    nodeVal.innerText = val;
+                    node.appendChild(nodeVal);
+
+                    const nodePtr = document.createElement('div');
+                    nodePtr.className = 'node-ptr';
+
+                    if (listType === 'singly') {
+                        nodePtr.innerHTML = `<div>next: ${idx < state.list.length - 1 ? 'ptr' : 'null'}</div>`;
+                    } else if (listType === 'doubly') {
+                        nodePtr.innerHTML = `
+                            <div>prev: ${idx > 0 ? 'ptr' : 'null'}</div>
+                            <div>next: ${idx < state.list.length - 1 ? 'ptr' : 'null'}</div>
+                        `;
+                    } else if (listType === 'circular') {
+                        nodePtr.innerHTML = `
+                            <div>prev: ptr</div>
+                            <div>next: ptr</div>
+                        `;
+                    }
+                    node.appendChild(nodePtr);
+                    container.appendChild(node);
+
+                    if (idx < state.list.length - 1) {
+                        const arrow = document.createElement('div');
+                        arrow.className = 'node-arrow';
+                        arrow.innerText = listType === 'singly' ? '→' : '⇄';
+                        container.appendChild(arrow);
+                    } else if (listType === 'circular') {
+                        const arrow = document.createElement('div');
+                        arrow.className = 'node-arrow';
+                        arrow.innerText = '↺';
+                        container.appendChild(arrow);
+                    }
+                });
+
+                canvas.appendChild(container);
+            } else if (currentAlgorithm === 'hash') {
+                const wrapper = document.createElement('div');
+                wrapper.style.display = 'flex';
+                wrapper.style.flexDirection = 'column';
+                wrapper.style.alignItems = 'center';
+                wrapper.style.gap = '20px';
+                wrapper.style.width = '100%';
+
+                const hashRow = document.createElement('div');
+                hashRow.className = 'queue-ring';
+                hashRow.style.flexWrap = 'wrap';
+
+                state.hashTable.forEach((val, idx) => {
+                    const slot = document.createElement('div');
+                    slot.className = 'queue-slot' + (val !== null ? ' filled' : '');
+                    if (idx === state.checkedIdx) {
+                        slot.style.borderColor = 'var(--accent)';
+                        slot.style.backgroundColor = 'rgba(244, 63, 94, 0.15)';
+                        slot.style.boxShadow = '0 0 12px rgba(244, 63, 94, 0.4)';
+                    }
+                    slot.innerText = val !== null ? val : 'ø';
+
+                    const sub = document.createElement('span');
+                    sub.style.fontSize = '9px';
+                    sub.style.color = 'var(--text-muted)';
+                    sub.style.marginTop = '4px';
+                    sub.innerText = '[' + idx + ']';
+                    slot.appendChild(sub);
+
+                    hashRow.appendChild(slot);
+                });
+
+                wrapper.appendChild(hashRow);
+                canvas.appendChild(wrapper);
+            }
+        }
+
+        function stepForward() {
+            if (stepIndex < states.length - 1) {
+                stepIndex++;
+                renderState();
+            }
+        }
+
+        function stepBackward() {
+            if (stepIndex > 0) {
+                stepIndex--;
+                renderState();
+            }
+        }
+
+        function resetState() {
+            stepIndex = 0;
+            generateStates();
+        }
+
+        function togglePlay() {
+            if (isPlaying) {
+                stopPlay();
+            } else {
+                isPlaying = true;
+                document.getElementById('play-btn').innerText = 'Stop';
+                playInterval = setInterval(() => {
+                    if (stepIndex < states.length - 1) {
+                        stepForward();
+                    } else {
+                        stopPlay();
+                    }
+                }, 1200);
+            }
+        }
+
+        function stopPlay() {
+            isPlaying = false;
+            document.getElementById('play-btn').innerText = 'Auto Run';
+            if (playInterval) {
+                clearInterval(playInterval);
+                playInterval = null;
+            }
+        }
+
+        window.onload = () => {
+            selectAlgorithm('stack');
+        };
+    </script>
+</body>
+</html>

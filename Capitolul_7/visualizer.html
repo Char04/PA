@@ -1,0 +1,1400 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vizualizator Algoritmi - Capitolul 7</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-base: #0f172a;
+            --bg-surface: #1e293b;
+            --bg-code: #0b0f19;
+            --primary: #6366f1;
+            --primary-hover: #4f46e5;
+            --secondary: #0ea5e9;
+            --accent: #f43f5e;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border: #334155;
+            --font-sans: 'Inter', sans-serif;
+            --font-mono: 'Fira Code', monospace;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-base);
+            color: var(--text-main);
+            font-family: var(--font-sans);
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .sidebar {
+            width: 280px;
+            background-color: var(--bg-surface);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+        }
+
+        .sidebar-header {
+            padding: 24px;
+            border-bottom: 1px solid var(--border);
+            background: linear-gradient(135deg, var(--bg-surface), #131b2e);
+        }
+
+        .sidebar-header h1 {
+            font-size: 18px;
+            font-weight: 700;
+            letter-spacing: -0.025em;
+            color: var(--text-main);
+        }
+
+        .sidebar-header p {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        .menu-list {
+            list-style: none;
+            padding: 16px;
+            overflow-y: auto;
+            flex-grow: 1;
+        }
+
+        .menu-item {
+            padding: 12px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            color: var(--text-muted);
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+        }
+
+        .menu-item:hover {
+            background-color: rgba(99, 102, 241, 0.1);
+            color: var(--text-main);
+        }
+
+        .menu-item.active {
+            background-color: var(--primary);
+            color: var(--text-main);
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.25);
+        }
+
+        .main-content {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .top-bar {
+            height: 70px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 32px;
+            background-color: var(--bg-surface);
+        }
+
+        .top-bar h2 {
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .workspace {
+            flex-grow: 1;
+            display: flex;
+            overflow: hidden;
+            padding: 24px;
+            gap: 24px;
+        }
+
+        .visualizer-section {
+            flex: 3;
+            background-color: var(--bg-surface);
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .visualizer-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background-color: rgba(30, 41, 59, 0.5);
+        }
+
+        .controls-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .btn {
+            background-color: var(--border);
+            color: var(--text-main);
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn:hover {
+            background-color: #475569;
+        }
+
+        .btn-primary {
+            background-color: var(--primary);
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-hover);
+        }
+
+        .btn-danger {
+            background-color: var(--accent);
+        }
+
+        .btn-danger:hover {
+            background-color: #e11d48;
+        }
+
+        .visualizer-body {
+            flex-grow: 1;
+            padding: 32px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow-y: auto;
+        }
+
+        .visualizer-footer {
+            padding: 20px;
+            border-top: 1px solid var(--border);
+            background-color: rgba(15, 23, 42, 0.4);
+        }
+
+        .explanation-box {
+            background-color: rgba(99, 102, 241, 0.05);
+            border-left: 4px solid var(--primary);
+            padding: 16px;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .explanation-box p {
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .code-section {
+            flex: 2;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .code-container {
+            background-color: var(--bg-surface);
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .code-tabs {
+            display: flex;
+            border-bottom: 1px solid var(--border);
+            background-color: rgba(30, 41, 59, 0.5);
+        }
+
+        .code-tab {
+            padding: 12px 20px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            border-right: 1px solid var(--border);
+            color: var(--text-muted);
+            transition: all 0.2s ease;
+        }
+
+        .code-tab:hover {
+            color: var(--text-main);
+        }
+
+        .code-tab.active {
+            background-color: var(--bg-code);
+            color: var(--primary);
+            border-bottom: 2px solid var(--primary);
+        }
+
+        .code-viewport {
+            flex-grow: 1;
+            background-color: var(--bg-code);
+            padding: 20px;
+            overflow: auto;
+        }
+
+        pre {
+            font-family: var(--font-mono);
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        .highlighted-line {
+            background-color: rgba(99, 102, 241, 0.2);
+            display: block;
+            margin: 0 -20px;
+            padding: 0 20px;
+            border-left: 3px solid var(--primary);
+        }
+
+        .input-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .input-field {
+            background-color: var(--bg-base);
+            border: 1px solid var(--border);
+            color: var(--text-main);
+            padding: 6px 12px;
+            border-radius: 6px;
+            width: 80px;
+            font-size: 14px;
+            font-weight: 500;
+            outline: none;
+        }
+
+        .input-field:focus {
+            border-color: var(--primary);
+        }
+
+        .array-cards-row {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+
+        .array-card {
+            width: 50px;
+            height: 50px;
+            background-color: var(--bg-surface);
+            border: 2.5px solid var(--border);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            font-weight: 700;
+            position: relative;
+            transition: all 0.25s ease;
+        }
+
+        .array-card.active-range {
+            border-color: var(--primary);
+        }
+
+        .array-card.out-of-range {
+            opacity: 0.25;
+        }
+
+        .array-card.mid-highlight {
+            border-color: var(--warning);
+            background-color: rgba(245, 158, 11, 0.15);
+            box-shadow: 0 0 12px rgba(245, 158, 11, 0.3);
+        }
+
+        .array-card.found {
+            border-color: var(--success);
+            background-color: rgba(16, 185, 129, 0.15);
+            box-shadow: 0 0 12px rgba(16, 185, 129, 0.3);
+        }
+
+        .card-label {
+            font-size: 10px;
+            color: var(--text-muted);
+            position: absolute;
+            top: -18px;
+            font-weight: 600;
+        }
+
+        .bars-container {
+            display: flex;
+            align-items: flex-end;
+            gap: 18px;
+            height: 250px;
+            padding-bottom: 20px;
+        }
+
+        .bar-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            position: relative;
+        }
+
+        .bar {
+            width: 44px;
+            background: linear-gradient(180deg, var(--primary), #818cf8);
+            border-radius: 8px 8px 0 0;
+            transition: height 0.3s ease, background 0.3s ease;
+            position: relative;
+        }
+
+        .bar.pivot {
+            background: linear-gradient(180deg, var(--accent), #fb7185);
+            box-shadow: 0 0 12px rgba(244, 63, 94, 0.3);
+        }
+
+        .bar.active-pointer {
+            background: linear-gradient(180deg, var(--warning), #fbbf24);
+        }
+
+        .bar-value {
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        .pointer-marker {
+            font-size: 11px;
+            color: var(--text-muted);
+            font-weight: 700;
+            position: absolute;
+            bottom: -22px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h1>Capitolul 7</h1>
+            <p>Divide et Impera</p>
+        </div>
+        <ul class="menu-list">
+            <li class="menu-item active" onclick="selectAlgorithm('binsearch')">1. Căutare Binară</li>
+            <li class="menu-item" onclick="selectAlgorithm('quicksort')">2. Algoritmul Quick Sort</li>
+            <li class="menu-item" onclick="selectAlgorithm('mergesort')">3. Merge Sort</li>
+            <li class="menu-item" onclick="selectAlgorithm('karatsuba')">4. Înmulțirea Karatsuba</li>
+        </ul>
+    </div>
+
+    <div class="main-content">
+        <div class="top-bar">
+            <h2 id="algo-title">Căutare Binară</h2>
+        </div>
+
+        <div class="workspace">
+            <div class="visualizer-section">
+                <div class="visualizer-header">
+                    <div class="controls-row" id="inputs-container">
+                    </div>
+                    <div class="controls-row">
+                        <button class="btn" onclick="stepBackward()">Înapoi</button>
+                        <button class="btn btn-primary" id="play-btn" onclick="togglePlay()">Auto Run</button>
+                        <button class="btn" onclick="stepForward()">Pas Următor</button>
+                        <button class="btn btn-danger" onclick="resetState()">Reset</button>
+                    </div>
+                </div>
+                <div class="visualizer-body" id="canvas">
+                </div>
+                <div class="visualizer-footer">
+                    <div class="explanation-box">
+                        <p id="step-explanation">Inițializează stările pentru a începe.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="code-section">
+                <div class="code-container">
+                    <div class="code-tabs">
+                        <div class="code-tab active" id="tab-pseudo" onclick="selectCodeTab('pseudo')">Pseudocod</div>
+                        <div class="code-tab" id="tab-java" onclick="selectCodeTab('java')">Cod Java</div>
+                        <div class="code-tab" id="tab-teorie" onclick="selectCodeTab('teorie')">Teorie</div>
+                    </div>
+                    <div class="code-viewport">
+                        <pre id="code-display"></pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentAlgorithm = 'binsearch';
+        let currentCodeTab = 'pseudo';
+        let stepIndex = 0;
+        let states = [];
+        let isPlaying = false;
+        let playInterval = null;
+
+        const pseudocodes = {
+            binsearch: `procedure BINSEARCH(S, x)
+  low = 1; heigh = LENGTH(S); location = -1
+  while low <= heigh AND location == -1 do
+    mid = (low + heigh) / 2
+    if x == S[mid] then location = mid
+    else
+      if x < S[mid] then heigh = mid - 1
+      else low = mid + 1
+      end if
+    end if
+  end while
+  return location
+end procedure`,
+            quicksort: `procedure QUICKSORT(A, p, r)
+  if p < r then
+    q = PARTITION(A, p, r)
+    QUICKSORT(A, p, q)
+    QUICKSORT(A, q + 1, r)
+  end if
+end procedure
+
+procedure PARTITION(A, p, r)
+  x = A[p]; i = p - 1; j = r + 1
+  while TRUE do
+    repeat j = j - 1 until A[j] <= x
+    repeat i = i + 1 until A[i] >= x
+    if i < j then interschimba A[i] cu A[j]
+    else return j
+    end if
+  end while
+end procedure`,
+            mergesort: `procedure MERGESORT(A, p, r)
+  if p < r then
+    q = floor((p + r) / 2)
+    MERGESORT(A, p, q)
+    MERGESORT(A, q + 1, r)
+    MERGE(A, p, q, r)
+  end if
+end procedure
+
+procedure MERGE(A, p, q, r)
+  n1 = q - p + 1; n2 = r - q
+  creeaza sirurile auxiliare L[1..n1] si R[1..n2]
+  copiaza elementele din A in L si R
+  i = 1; j = 1; k = p
+  while i <= n1 AND j <= n2 do
+    if L[i] <= R[j] then A[k] = L[i]; i = i + 1
+    else A[k] = R[j]; j = j + 1
+    end if
+    k = k + 1
+  end while
+  copiaza elementele ramase din L sau R in A
+end procedure`,
+            karatsuba: `procedure KARATSUBA(x, y)
+  if |x| = 1 OR |y| = 1 then return x * y
+  n = max(|x|, |y|); m = floor(n / 2)
+  xH = high(x); xL = low(x)
+  yH = high(y); yL = low(y)
+  a = KARATSUBA(xH, yH)
+  b = KARATSUBA(xL, yL)
+  c = KARATSUBA(xH + xL, yH + yL) - a - b
+  return a * 10^(2m) + c * 10^m + b
+end procedure`
+        };
+
+        const javacodes = {
+            binsearch: `public static int binSearch(int[] S, int x) {
+    int low = 0, high = S.length - 1;
+    int location = -1;
+    while (low <= high && location == -1) {
+        int mid = (low + high) / 2;
+        if (x == S[mid]) location = mid;
+        else if (x < S[mid]) high = mid - 1;
+        else low = mid + 1;
+    }
+    return location;
+}`,
+            quicksort: `public static void quickSort(int[] A, int p, int r) {
+    if (p < r) {
+        int q = partition(A, p, r);
+        quickSort(A, p, q);
+        quickSort(A, q + 1, r);
+    }
+}
+
+public static int partition(int[] A, int p, int r) {
+    int x = A[p];
+    int i = p - 1, j = r + 1;
+    while (true) {
+        do { j--; } while (A[j] > x);
+        do { i++; } while (A[i] < x);
+        if (i < j) {
+            int temp = A[i];
+            A[i] = A[j];
+            A[j] = temp;
+        } else {
+            return j;
+        }
+    }
+}`,
+            mergesort: `public static void mergeSort(int[] A, int p, int r) {
+    if (p < r) {
+        int q = (p + r) / 2;
+        mergeSort(A, p, q);
+        mergeSort(A, q + 1, r);
+        merge(A, p, q, r);
+    }
+}
+
+public static void merge(int[] A, int p, int q, int r) {
+    int n1 = q - p + 1, n2 = r - q;
+    int[] L = new int[n1], R = new int[n2];
+    System.arraycopy(A, p, L, 0, n1);
+    System.arraycopy(A, q + 1, R, 0, n2);
+    int i = 0, j = 0, k = p;
+    while (i < n1 && j < n2) {
+        if (L[i] <= R[j]) A[k++] = L[i++];
+        else A[k++] = R[j++];
+    }
+    while (i < n1) A[k++] = L[i++];
+    while (j < n2) A[k++] = R[j++];
+}`,
+            karatsuba: `public static long karatsuba(long x, long y) {
+    if (x < 10 || y < 10) return x * y;
+    int n = Math.max(String.valueOf(x).length(), String.valueOf(y).length());
+    int m = n / 2;
+    long power = (long) Math.pow(10, m);
+    long xH = x / power, xL = x % power;
+    long yH = y / power, yL = y % power;
+    long a = karatsuba(xH, yH);
+    long b = karatsuba(xL, yL);
+    long c = karatsuba(xH + xL, yH + yL) - a - b;
+    return a * (long) Math.pow(10, 2 * m) + c * power + b;
+}`
+        };
+
+        const teorii = {
+            binsearch: `<div style="padding: 10px; font-family: var(--font-sans);">
+                <h3 style="color: var(--primary); margin-bottom: 6px; font-size: 15px;">Scop</h3>
+                <p style="margin-bottom: 12px; color: var(--text-main); font-size: 13px; line-height: 1.5;">Căutarea extrem de rapidă a unui element într-un tablou gata ordonat crescător.</p>
+                <h3 style="color: var(--primary); margin-bottom: 6px; font-size: 15px;">Funcționare</h3>
+                <p style="margin-bottom: 12px; color: var(--text-main); font-size: 13px; line-height: 1.5;">Folosește paradigma <b>Divide et Impera</b>. Compară elementul căutat cu cel aflat pe poziția de mijloc (mid). Dacă nu sunt egale, înjumătățește intervalul de căutare: restrânge căutarea în stânga (high = mid - 1) sau în dreapta (low = mid + 1) și repetă procesul.</p>
+                <h3 style="color: var(--primary); margin-bottom: 6px; font-size: 15px;">Aplicații</h3>
+                <p style="margin-bottom: 12px; color: var(--text-main); font-size: 13px; line-height: 1.5;">Căutare în baze de date indexate, căutare de valori în tabele mari, aproximare numerică a funcțiilor (metoda bisecției).</p>
+                <h3 style="color: var(--primary); margin-bottom: 6px; font-size: 15px;">Complexitate</h3>
+                <p style="color: var(--text-main); font-size: 13px; line-height: 1.5;">Timp: O(log n). Spațiu: O(1) pentru varianta iterativă, O(log n) recursiv (stivă).</p>
+            </div>`,
+            quicksort: `<div style="padding: 10px; font-family: var(--font-sans);">
+                <h3 style="color: var(--primary); margin-bottom: 6px; font-size: 15px;">Scop</h3>
+                <p style="margin-bottom: 12px; color: var(--text-main); font-size: 13px; line-height: 1.5;">Sortarea extrem de eficientă a unui tablou neordonat.</p>
+                <h3 style="color: var(--primary); margin-bottom: 6px; font-size: 15px;">Funcționare</h3>
+                <p style="margin-bottom: 12px; color: var(--text-main); font-size: 13px; line-height: 1.5;">Alege un element pivot (în acest caz primul, A[p]). Partiționează tabloul utilizând schema Hoare cu doi pointeri (i și j) care se apropie reciproc. Aceștia se opresc și interschimbă valorile când i detectează o valoare mai mare sau egală cu pivotul, iar j o valoare mai mică sau egală. După partizare (i >= j), se autoapelează recursiv pe subintervalele stâng și drept.</p>
+                <h3 style="color: var(--primary); margin-bottom: 6px; font-size: 15px;">Aplicații</h3>
+                <p style="margin-bottom: 12px; color: var(--text-main); font-size: 13px; line-height: 1.5;">Una dintre cele mai utilizate metode de sortare generală în bibliotecile limbajelor de programare (ex. Arrays.sort() în anumite implementări Java).</p>
+                <h3 style="color: var(--primary); margin-bottom: 6px; font-size: 15px;">Complexitate</h3>
+                <p style="color: var(--text-main); font-size: 13px; line-height: 1.5;">Timp: O(n log n) în medie, O(n²) în cazul cel mai defavorabil (când tabloul este deja sortat și se folosește un pivot naiv). Spațiu: O(log n) recursiv.</p>
+            </div>`,
+            mergesort: `<div style="padding: 10px; font-family: var(--font-sans);">
+                <h3 style="color: var(--primary); margin-bottom: 6px; font-size: 15px;">Scop</h3>
+                <p style="margin-bottom: 12px; color: var(--text-main); font-size: 13px; line-height: 1.5;">Sortarea stabilă a unui tablou neordonat utilizând interclasarea.</p>
+                <h3 style="color: var(--primary); margin-bottom: 6px; font-size: 15px;">Funcționare</h3>
+                <p style="margin-bottom: 12px; color: var(--text-main); font-size: 13px; line-height: 1.5;">Folosește paradigma <b>Divide et Impera</b>. Divizează tabloul în două jumătăți egale, sortează recursiv cele două jumătăți și apoi le interclasează (fuzionează) folosind tablouri auxiliare pentru a obține secvența sortată.</p>
+                <h3 style="color: var(--primary); margin-bottom: 6px; font-size: 15px;">Complexitate</h3>
+                <p style="color: var(--text-main); font-size: 13px; line-height: 1.5;">Timp: O(n log n) în toate cazurile (cel mai bun, mediu, cel mai defavorabil). Spațiu: O(n) pentru tablourile auxiliare folosite în interclasare.</p>
+            </div>`,
+            karatsuba: `<div style="padding: 10px; font-family: var(--font-sans);">
+                <h3 style="color: var(--primary); margin-bottom: 6px; font-size: 15px;">Scop</h3>
+                <p style="margin-bottom: 12px; color: var(--text-main); font-size: 13px; line-height: 1.5;">Înmulțirea rapidă a două numere întregi mari folosind mai puține multiplicări.</p>
+                <h3 style="color: var(--primary); margin-bottom: 6px; font-size: 15px;">Funcționare</h3>
+                <p style="margin-bottom: 12px; color: var(--text-main); font-size: 13px; line-height: 1.5;">Karatsuba a observat că pentru înmulțirea a două numere pe n cifre nu avem nevoie de 4 înmulțiri pe n/2 cifre, ci putem face doar 3: a = xH*yH, b = xL*yL și c = (xH+xL)*(yH+yL) - a - b. Astfel, complexitatea asimptotică scade sub cea a înmulțirii clasice.</p>
+                <h3 style="color: var(--primary); margin-bottom: 6px; font-size: 15px;">Complexitate</h3>
+                <p style="color: var(--text-main); font-size: 13px; line-height: 1.5;">Timp: O(n^log2(3)) &approx; O(n^1.58) comparat cu O(n^2) pentru metoda naivă.</p>
+            </div>`
+        };
+
+        const titles = {
+            binsearch: "1. Căutare Binară",
+            quicksort: "2. Algoritmul Quick Sort",
+            mergesort: "3. Merge Sort",
+            karatsuba: "4. Înmulțirea Karatsuba"
+        };
+
+        function selectAlgorithm(algo) {
+            currentAlgorithm = algo;
+            document.querySelectorAll('.menu-item').forEach(el => el.classList.remove('active'));
+            const items = document.querySelectorAll('.menu-item');
+            if (algo === 'binsearch') items[0].classList.add('active');
+            else if (algo === 'quicksort') items[1].classList.add('active');
+            else if (algo === 'mergesort') items[2].classList.add('active');
+            else if (algo === 'karatsuba') items[3].classList.add('active');
+
+            document.getElementById('algo-title').innerText = titles[algo];
+            stopPlay();
+            renderCode();
+            setupInputs();
+            resetState();
+        }
+
+        function selectCodeTab(tab) {
+            currentCodeTab = tab;
+            document.getElementById('tab-pseudo').classList.toggle('active', tab === 'pseudo');
+            document.getElementById('tab-java').classList.toggle('active', tab === 'java');
+            document.getElementById('tab-teorie').classList.toggle('active', tab === 'teorie');
+            renderCode();
+        }
+
+        function renderCode() {
+            const display = document.getElementById('code-display');
+            if (currentCodeTab === 'teorie') {
+                display.innerHTML = teorii[currentAlgorithm] || '';
+                display.style.fontFamily = 'var(--font-sans)';
+                display.style.whiteSpace = 'normal';
+                return;
+            }
+            display.style.fontFamily = '';
+            display.style.whiteSpace = '';
+            const codeText = currentCodeTab === 'pseudo' ? pseudocodes[currentAlgorithm] : javacodes[currentAlgorithm];
+            
+            if (states.length > 0 && stepIndex < states.length && states[stepIndex].line !== undefined) {
+                const lines = codeText.split('\n');
+                const targetLine = states[stepIndex].line;
+                const formattedLines = lines.map((line, idx) => {
+                    if (idx === targetLine) {
+                        return `<span class="highlighted-line">${line}</span>`;
+                    }
+                    return line;
+                });
+                display.innerHTML = formattedLines.join('\n');
+            } else {
+                display.innerText = codeText;
+            }
+        }
+
+        function setupInputs() {
+            const container = document.getElementById('inputs-container');
+            container.innerHTML = '';
+
+            if (currentAlgorithm === 'binsearch') {
+                container.innerHTML = `
+                    <div class="input-group">
+                        <span style="font-size: 13px; font-weight:600;">Caută:</span>
+                        <input type="number" class="input-field" id="search-val" value="18" style="width: 70px;">
+                        <span style="font-size: 13px; font-weight:600;">Tablou:</span>
+                        <input type="text" class="input-field" id="array-input" value="2,4,5,7,8,10,14,18,52,102" style="width: 180px;">
+                        <button class="btn btn-primary" onclick="generateStates()">Setează</button>
+                    </div>
+                `;
+            } else if (currentAlgorithm === 'quicksort') {
+                container.innerHTML = `
+                    <div class="input-group">
+                        <span style="font-size: 13px; font-weight:600;">Tablou:</span>
+                        <input type="text" class="input-field" id="array-input" value="5,3,2,6,4,1,5,7" style="width: 160px;">
+                        <button class="btn btn-primary" onclick="generateStates()">Setează</button>
+                    </div>
+                `;
+            } else if (currentAlgorithm === 'mergesort') {
+                container.innerHTML = `
+                    <div class="input-group">
+                        <span style="font-size: 13px; font-weight:600;">Tablou:</span>
+                        <input type="text" class="input-field" id="array-input" value="5,2,4,7,1,3,2,6" style="width: 160px;">
+                        <button class="btn btn-primary" onclick="generateStates()">Setează</button>
+                    </div>
+                `;
+            } else if (currentAlgorithm === 'karatsuba') {
+                container.innerHTML = `
+                    <div class="input-group">
+                        <span style="font-size: 13px; font-weight:600;">x:</span>
+                        <input type="number" class="input-field" id="karatsuba-x" value="12345" style="width: 80px;">
+                        <span style="font-size: 13px; font-weight:600;">y:</span>
+                        <input type="number" class="input-field" id="karatsuba-y" value="6789" style="width: 80px;">
+                        <button class="btn btn-primary" onclick="generateStates()">Setează</button>
+                    </div>
+                `;
+            }
+        }
+
+        function generateStates() {
+            states = [];
+            stepIndex = 0;
+            stopPlay();
+
+            if (currentAlgorithm === 'binsearch') {
+                const val = document.getElementById('array-input').value;
+                const S = val.split(',').map(x => parseInt(x.trim())).filter(x => !isNaN(x)).sort((a, b) => a - b);
+                document.getElementById('array-input').value = S.join(',');
+                let x = parseInt(document.getElementById('search-val').value);
+                if (isNaN(x)) x = 18;
+
+                states.push({
+                    S: [...S],
+                    low: 0,
+                    high: S.length - 1,
+                    mid: -1,
+                    foundIdx: -1,
+                    line: 1,
+                    desc: "Inițializăm căutarea binară pentru valoarea " + x + " pe tabloul sortat: [" + S.join(', ') + "]."
+                });
+
+                let low = 0;
+                let high = S.length - 1;
+                let found = -1;
+
+                while (low <= high) {
+                    let mid = Math.floor((low + high) / 2);
+                    states.push({
+                        S: [...S],
+                        low: low,
+                        high: high,
+                        mid: mid,
+                        foundIdx: -1,
+                        line: 3,
+                        desc: "Calculăm indexul mijlocului: mid = " + mid + " (valoare: " + S[mid] + ")."
+                    });
+
+                    if (x === S[mid]) {
+                        found = mid;
+                        states.push({
+                            S: [...S],
+                            low: low,
+                            high: high,
+                            mid: mid,
+                            foundIdx: mid,
+                            line: 4,
+                            desc: "Valoarea căutată " + x + " a fost găsită pe indexul " + mid + "!"
+                        });
+                        break;
+                    } else if (x < S[mid]) {
+                        high = mid - 1;
+                        states.push({
+                            S: [...S],
+                            low: low,
+                            high: high,
+                            mid: mid,
+                            foundIdx: -1,
+                            line: 6,
+                            desc: "Deoarece " + x + " < " + S[mid] + ", căutăm în jumătatea stângă. Setăm high = " + high + "."
+                        });
+                    } else {
+                        low = mid + 1;
+                        states.push({
+                            S: [...S],
+                            low: low,
+                            high: high,
+                            mid: mid,
+                            foundIdx: -1,
+                            line: 7,
+                            desc: "Deoarece " + x + " > " + S[mid] + ", căutăm în jumătatea dreaptă. Setăm low = " + low + "."
+                        });
+                    }
+                }
+
+                if (found === -1) {
+                    states.push({
+                        S: [...S],
+                        low: low,
+                        high: high,
+                        mid: -1,
+                        foundIdx: -1,
+                        line: 11,
+                        desc: "Intervalul s-a golit (low > high). Valoarea " + x + " nu a fost găsită."
+                    });
+                }
+            } else if (currentAlgorithm === 'quicksort') {
+                const val = document.getElementById('array-input').value;
+                const A = val.split(',').map(x => parseInt(x.trim())).filter(x => !isNaN(x));
+
+                states.push({
+                    A: [...A],
+                    p: 0,
+                    r: A.length - 1,
+                    pivotIdx: -1,
+                    activeI: -1,
+                    activeJ: -1,
+                    line: 0,
+                    desc: "Inițializăm algoritmul Quick Sort pe tabloul: [" + A.join(', ') + "]."
+                });
+
+                const qSort = (p, r) => {
+                    if (p < r) {
+                        let pivot = A[p];
+                        let i = p - 1;
+                        let j = r + 1;
+
+                        states.push({
+                            A: [...A],
+                            p: p,
+                            r: r,
+                            pivotIdx: p,
+                            activeI: -1,
+                            activeJ: -1,
+                            line: 10,
+                            desc: "Apelăm PARTITION pe intervalul [" + p + ", " + r + "]. Alegem pivotul x = A[p] = " + pivot + "."
+                        });
+
+                        while (true) {
+                            do {
+                                j--;
+                                states.push({
+                                    A: [...A],
+                                    p: p,
+                                    r: r,
+                                    pivotIdx: p,
+                                    activeI: i >= 0 && i < A.length ? i : -1,
+                                    activeJ: j,
+                                    line: 12,
+                                    desc: "Deplasam pointerul j spre stânga. j = " + j + " (valoare: " + A[j] + ")."
+                                });
+                            } while (A[j] > pivot);
+
+                            do {
+                                i++;
+                                states.push({
+                                    A: [...A],
+                                    p: p,
+                                    r: r,
+                                    pivotIdx: p,
+                                    activeI: i,
+                                    activeJ: j,
+                                    line: 13,
+                                    desc: "Deplasam pointerul i spre dreapta. i = " + i + " (valoare: " + A[i] + ")."
+                                });
+                            } while (A[i] < pivot);
+
+                            if (i < j) {
+                                states.push({
+                                    A: [...A],
+                                    p: p,
+                                    r: r,
+                                    pivotIdx: p,
+                                    activeI: i,
+                                    activeJ: j,
+                                    line: 14,
+                                    desc: "Pointerii s-au oprit. Deoarece i < j (" + i + " < " + j + "), interschimbăm A[i]=" + A[i] + " cu A[j]=" + A[j] + "."
+                                });
+                                let temp = A[i];
+                                A[i] = A[j];
+                                A[j] = temp;
+                            } else {
+                                states.push({
+                                    A: [...A],
+                                    p: p,
+                                    r: r,
+                                    pivotIdx: p,
+                                    activeI: i,
+                                    activeJ: j,
+                                    line: 15,
+                                    desc: "Pointerii s-au intersectat (i >= j). Returnăm indexul de partizare j = " + j + "."
+                                });
+                                break;
+                            }
+                        }
+
+                        let q = j;
+                        qSort(p, q);
+                        qSort(q + 1, r);
+                    }
+                };
+
+                qSort(0, A.length - 1);
+
+                states.push({
+                    A: [...A],
+                    p: -1,
+                    r: -1,
+                    pivotIdx: -1,
+                    activeI: -1,
+                    activeJ: -1,
+                    line: 5,
+                    desc: "Quick Sort s-a finalizat! Tabloul sortat: [" + A.join(', ') + "]."
+                });
+            } else if (currentAlgorithm === 'mergesort') {
+                const val = document.getElementById('array-input').value;
+                let A = val.split(',').map(x => parseInt(x.trim())).filter(x => !isNaN(x));
+
+                states.push({
+                    A: [...A],
+                    p: 0,
+                    r: A.length - 1,
+                    mid: -1,
+                    mergedRange: null,
+                    line: 0,
+                    desc: "Inițializăm Merge Sort pe tabloul: [" + A.join(', ') + "]."
+                });
+
+                const mergeLocal = (arr, p, q, r) => {
+                    let n1 = q - p + 1;
+                    let n2 = r - q;
+                    let L = arr.slice(p, q + 1);
+                    let R = arr.slice(q + 1, r + 1);
+
+                    states.push({
+                        A: [...arr],
+                        p: p,
+                        r: r,
+                        mid: q,
+                        L: [...L],
+                        R: [...R],
+                        mergedRange: null,
+                        line: 9,
+                        desc: "Fuzionăm subtablourile stâng [" + L.join(', ') + "] și drept [" + R.join(', ') + "]."
+                    });
+
+                    let i = 0, j = 0, k = p;
+                    while (i < n1 && j < n2) {
+                        states.push({
+                            A: [...arr],
+                            p: p,
+                            r: r,
+                            mid: q,
+                            L: [...L],
+                            R: [...R],
+                            activeL: i,
+                            activeR: j,
+                            activeK: k,
+                            mergedRange: null,
+                            line: 13,
+                            desc: "Comparăm L[" + i + "] (" + L[i] + ") cu R[" + j + "] (" + R[j] + ")."
+                        });
+
+                        if (L[i] <= R[j]) {
+                            arr[k] = L[i];
+                            states.push({
+                                A: [...arr],
+                                p: p,
+                                r: r,
+                                mid: q,
+                                L: [...L],
+                                R: [...R],
+                                activeL: i,
+                                activeR: j,
+                                activeK: k,
+                                mergedRange: null,
+                                line: 15,
+                                desc: "L[" + i + "] <= R[" + j + "]. Copiem " + L[i] + " pe poziția " + k + " din tabloul principal."
+                            });
+                            i++;
+                        } else {
+                            arr[k] = R[j];
+                            states.push({
+                                A: [...arr],
+                                p: p,
+                                r: r,
+                                mid: q,
+                                L: [...L],
+                                R: [...R],
+                                activeL: i,
+                                activeR: j,
+                                activeK: k,
+                                mergedRange: null,
+                                line: 17,
+                                desc: "L[" + i + "] > R[" + j + "]. Copiem " + R[j] + " pe poziția " + k + " din tabloul principal."
+                            });
+                            j++;
+                        }
+                        k++;
+                    }
+
+                    while (i < n1) {
+                        states.push({
+                            A: [...arr],
+                            p: p,
+                            r: r,
+                            mid: q,
+                            L: [...L],
+                            R: [...R],
+                            activeL: i,
+                            activeR: -1,
+                            activeK: k,
+                            mergedRange: null,
+                            line: 21,
+                            desc: "Copiem elementul rămas din L: " + L[i] + " pe poziția " + k + "."
+                        });
+                        arr[k] = L[i];
+                        i++;
+                        k++;
+                    }
+
+                    while (j < n2) {
+                        states.push({
+                            A: [...arr],
+                            p: p,
+                            r: r,
+                            mid: q,
+                            L: [...L],
+                            R: [...R],
+                            activeL: -1,
+                            activeR: j,
+                            activeK: k,
+                            mergedRange: null,
+                            line: 21,
+                            desc: "Copiem elementul rămas din R: " + R[j] + " pe poziția " + k + "."
+                        });
+                        arr[k] = R[j];
+                        j++;
+                        k++;
+                    }
+
+                    states.push({
+                        A: [...arr],
+                        p: p,
+                        r: r,
+                        mid: q,
+                        mergedRange: { start: p, end: r },
+                        line: 22,
+                        desc: "Am finalizat fuziunea. Subtabloul sortat este acum: [" + arr.slice(p, r + 1).join(', ') + "]."
+                    });
+                };
+
+                const mergeSortLocal = (arr, p, r) => {
+                    if (p < r) {
+                        let q = Math.floor((p + r) / 2);
+                        states.push({
+                            A: [...arr],
+                            p: p,
+                            r: r,
+                            mid: q,
+                            mergedRange: null,
+                            line: 3,
+                            desc: "Divizăm intervalul [" + p + ", " + r + "] în două subintervale: [" + p + ", " + q + "] și [" + (q+1) + ", " + r + "]."
+                        });
+                        mergeSortLocal(arr, p, q);
+                        mergeSortLocal(arr, q + 1, r);
+                        mergeLocal(arr, p, q, r);
+                    }
+                };
+
+                mergeSortLocal(A, 0, A.length - 1);
+
+                states.push({
+                    A: [...A],
+                    p: -1,
+                    r: -1,
+                    mid: -1,
+                    mergedRange: { start: 0, end: A.length - 1 },
+                    line: 7,
+                    desc: "Merge Sort s-a finalizat! Tabloul complet sortat: [" + A.join(', ') + "]."
+                });
+            } else if (currentAlgorithm === 'karatsuba') {
+                const xVal = parseInt(document.getElementById('karatsuba-x').value);
+                const yVal = parseInt(document.getElementById('karatsuba-y').value);
+                
+                let callStack = [];
+
+                const runKaratsuba = (x, y) => {
+                    const depth = callStack.length;
+                    const indent = "  ".repeat(depth);
+                    
+                    states.push({
+                        x: x,
+                        y: y,
+                        depth: depth,
+                        step: "start",
+                        line: 1,
+                        desc: indent + "Apelăm Karatsuba(" + x + ", " + y + ")."
+                    });
+
+                    if (x < 10 || y < 10) {
+                        const res = x * y;
+                        states.push({
+                            x: x,
+                            y: y,
+                            depth: depth,
+                            step: "base",
+                            res: res,
+                            line: 3,
+                            desc: indent + "Caz de bază: " + x + " * " + y + " = " + res + "."
+                        });
+                        return res;
+                    }
+
+                    const n = Math.max(x.toString().length, y.toString().length);
+                    const m = Math.floor(n / 2);
+                    const power = Math.pow(10, m);
+
+                    const xH = Math.floor(x / power);
+                    const xL = x % power;
+                    const yH = Math.floor(y / power);
+                    const yL = y % power;
+
+                    states.push({
+                        x: x,
+                        y: y,
+                        depth: depth,
+                        step: "split",
+                        xH, xL, yH, yL, m,
+                        line: 6,
+                        desc: indent + "Divizăm în xH=" + xH + ", xL=" + xL + ", yH=" + yH + ", yL=" + yL + " (m = " + m + ")."
+                    });
+
+                    callStack.push({ x, y });
+                    const a = runKaratsuba(xH, yH);
+                    const b = runKaratsuba(xL, yL);
+                    const c = runKaratsuba(xH + xL, yH + yL) - a - b;
+                    callStack.pop();
+
+                    const res = a * Math.pow(10, 2 * m) + c * power + b;
+                    states.push({
+                        x: x,
+                        y: y,
+                        depth: depth,
+                        step: "combine",
+                        xH, xL, yH, yL, a, b, c, m, res,
+                        line: 10,
+                        desc: indent + "Recombinăm: a=" + a + ", b=" + b + ", c=" + c + " => Rezultat = " + a + "*10^" + (2*m) + " + " + c + "*10^" + m + " + " + b + " = " + res + "."
+                    });
+
+                    return res;
+                };
+
+                runKaratsuba(isNaN(xVal) ? 12345 : xVal, isNaN(yVal) ? 6789 : yVal);
+            }
+
+            renderState();
+        }
+
+        function renderState() {
+            if (states.length === 0) return;
+            const state = states[stepIndex];
+            document.getElementById('step-explanation').innerText = state.desc;
+
+            const canvas = document.getElementById('canvas');
+            canvas.innerHTML = '';
+
+            if (currentAlgorithm === 'binsearch') {
+                let html = '<div class="array-cards-row">';
+                state.S.forEach((val, idx) => {
+                    let cardClass = 'array-card';
+                    if (idx === state.foundIdx) {
+                        cardClass += ' found';
+                    } else if (idx === state.mid) {
+                        cardClass += ' mid-highlight';
+                    } else if (idx >= state.low && idx <= state.high) {
+                        cardClass += ' active-range';
+                    } else {
+                        cardClass += ' out-of-range';
+                    }
+
+                    let label = '';
+                    if (idx === state.low) label = 'low';
+                    if (idx === state.high) {
+                        label = label ? 'low/high' : 'high';
+                    }
+                    if (idx === state.mid && idx !== state.low && idx !== state.high) label = 'mid';
+
+                    html += `
+                        <div class="${cardClass}">
+                            ${label ? `<span class="card-label">${label}</span>` : ''}
+                            <span class="array-card-val">${val}</span>
+                        </div>
+                    `;
+                });
+                html += '</div>';
+                canvas.innerHTML = html;
+            } else if (currentAlgorithm === 'quicksort') {
+                let html = '<div class="bars-container">';
+                const maxVal = Math.max(...state.A);
+                state.A.forEach((val, idx) => {
+                    let barClass = 'bar';
+                    if (idx === state.pivotIdx) {
+                        barClass += ' pivot';
+                    } else if (idx === state.activeI || idx === state.activeJ) {
+                        barClass += ' active-pointer';
+                    }
+
+                    let label = '';
+                    if (idx === state.activeI) label = 'i';
+                    if (idx === state.activeJ) {
+                        label = label ? 'i/j' : 'j';
+                    }
+
+                    const height = (val / maxVal) * 200 + 10;
+                    html += `
+                        <div class="bar-wrapper">
+                            <span class="bar-value">${val}</span>
+                            <div class="${barClass}" style="height: ${height}px;"></div>
+                            ${label ? `<span class="pointer-marker">${label}</span>` : ''}
+                        </div>
+                    `;
+                });
+                html += '</div>';
+                canvas.innerHTML = html;
+            } else if (currentAlgorithm === 'mergesort') {
+                let html = '<div class="array-cards-row">';
+                state.A.forEach((val, idx) => {
+                    let cardClass = 'array-card';
+                    if (state.mergedRange && idx >= state.mergedRange.start && idx <= state.mergedRange.end) {
+                        cardClass += ' found';
+                    } else if (idx === state.mid) {
+                        cardClass += ' mid-highlight';
+                    } else if (idx >= state.p && idx <= state.r) {
+                        cardClass += ' active-range';
+                    } else {
+                        cardClass += ' out-of-range';
+                    }
+
+                    let label = '';
+                    if (idx === state.p) label = 'p';
+                    if (idx === state.r) {
+                        label = label ? 'p/r' : 'r';
+                    }
+                    if (idx === state.mid && idx !== state.p && idx !== state.r) label = 'mid';
+
+                    html += `
+                        <div class="${cardClass}">
+                            ${label ? `<span class="card-label">${label}</span>` : ''}
+                            <span class="array-card-val">${val}</span>
+                        </div>
+                    `;
+                });
+                html += '</div>';
+
+                if (state.L && state.R) {
+                    html += '<div style="margin-top: 24px; display: flex; gap: 40px; justify-content: center; width:100%;">';
+                    html += '<div><p style="font-size: 12px; font-weight: 600; color: var(--text-muted); text-align: center; margin-bottom: 8px;">Subtablou Stâng (L)</p><div class="array-cards-row">';
+                    state.L.forEach((val, idx) => {
+                        let cardClass = 'array-card';
+                        if (idx === state.activeL) cardClass += ' active-range';
+                        html += `
+                            <div class="${cardClass}">
+                                <span class="array-card-val">${val}</span>
+                            </div>
+                        `;
+                    });
+                    html += '</div></div>';
+
+                    html += '<div><p style="font-size: 12px; font-weight: 600; color: var(--text-muted); text-align: center; margin-bottom: 8px;">Subtablou Drept (R)</p><div class="array-cards-row">';
+                    state.R.forEach((val, idx) => {
+                        let cardClass = 'array-card';
+                        if (idx === state.activeR) cardClass += ' active-range';
+                        html += `
+                            <div class="${cardClass}">
+                                <span class="array-card-val">${val}</span>
+                            </div>
+                        `;
+                    });
+                    html += '</div></div>';
+                    html += '</div>';
+                }
+
+                canvas.innerHTML = html;
+            } else if (currentAlgorithm === 'karatsuba') {
+                let html = '<div style="display: flex; flex-direction: column; gap: 16px; width: 100%; max-width: 500px; padding: 16px; background-color: var(--bg-surface); border: 1px solid var(--border); border-radius: 12px;">';
+                html += `<div style="font-size: 16px; font-weight: 700; color: var(--primary); text-align: center;">Karatsuba(${state.x}, ${state.y})</div>`;
+                html += `<div style="font-size: 13px; color: var(--text-muted); font-family: var(--font-mono); text-align: center;">Nivel Recursivitate: ${state.depth}</div>`;
+                html += '<hr style="border-color: var(--border);">';
+                
+                if (state.step === 'start') {
+                    html += `<p style="font-size: 14px; text-align: center; margin-top: 10px;">Începe calculul pentru <b>x = ${state.x}</b> și <b>y = ${state.y}</b>.</p>`;
+                } else if (state.step === 'base') {
+                    html += `<p style="font-size: 14px; text-align: center; margin-top: 10px;">Caz de bază (numere mici):<br><span style="font-size: 18px; font-weight: 700; color: var(--success);">${state.x} &times; ${state.y} = ${state.res}</span></p>`;
+                } else if (state.step === 'split') {
+                    html += `
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; font-size: 13px;">
+                            <div><b>xH (High):</b> ${state.xH}</div>
+                            <div><b>yH (High):</b> ${state.yH}</div>
+                            <div><b>xL (Low):</b> ${state.xL}</div>
+                            <div><b>yL (Low):</b> ${state.yL}</div>
+                        </div>
+                        <div style="font-size: 13px; margin-top: 8px; text-align: center; color: var(--warning);">m = ${state.m} (împărțire la 10^${state.m})</div>
+                    `;
+                } else if (state.step === 'combine') {
+                    html += `
+                        <div style="font-size: 13px; display: flex; flex-direction: column; gap: 6px;">
+                            <div><b>a = Karatsuba(xH, yH):</b> ${state.a}</div>
+                            <div><b>b = Karatsuba(xL, yL):</b> ${state.b}</div>
+                            <div><b>c = Karatsuba(xH+xL, yH+yL) - a - b:</b> ${state.c}</div>
+                            <hr style="border-color: var(--border); margin: 6px 0;">
+                            <div style="font-size: 14px; font-weight: 700; text-align: center; color: var(--success);">
+                                Rezultat = a&times;10^${2*state.m} + c&times;10^${state.m} + b = ${state.res}
+                            </div>
+                        </div>
+                    `;
+                }
+                html += '</div>';
+                canvas.innerHTML = html;
+            }
+
+            renderCode();
+        }
+
+        function stepForward() {
+            if (stepIndex < states.length - 1) {
+                stepIndex++;
+                renderState();
+            } else {
+                stopPlay();
+            }
+        }
+
+        function stepBackward() {
+            if (stepIndex > 0) {
+                stepIndex--;
+                renderState();
+            }
+        }
+
+        function togglePlay() {
+            if (isPlaying) {
+                stopPlay();
+            } else {
+                startPlay();
+            }
+        }
+
+        function startPlay() {
+            isPlaying = true;
+            document.getElementById('play-btn').innerText = 'Pauză';
+            document.getElementById('play-btn').classList.add('btn-danger');
+            playInterval = setInterval(() => {
+                stepForward();
+            }, 1000);
+        }
+
+        function stopPlay() {
+            isPlaying = false;
+            document.getElementById('play-btn').innerText = 'Auto Run';
+            document.getElementById('play-btn').classList.remove('btn-danger');
+            if (playInterval) {
+                clearInterval(playInterval);
+                playInterval = null;
+            }
+        }
+
+        function resetState() {
+            stepIndex = 0;
+            stopPlay();
+            renderState();
+        }
+
+        selectAlgorithm('binsearch');
+    </script>
+</body>
+</html>

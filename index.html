@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Vizualizare Algoritmi</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-base: #0f172a;
+            --bg-surface: #1e293b;
+            --primary: #6366f1;
+            --primary-hover: #4f46e5;
+            --secondary: #0ea5e9;
+            --accent: #f43f5e;
+            --success: #10b981;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border: #334155;
+            --font-sans: 'Inter', sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-base);
+            color: var(--text-main);
+            font-family: var(--font-sans);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+
+        header h1 {
+            font-size: 36px;
+            font-weight: 800;
+            letter-spacing: -0.05em;
+            background: linear-gradient(135deg, #a5b4fc, #38bdf8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 12px;
+        }
+
+        header p {
+            font-size: 16px;
+            color: var(--text-muted);
+            max-width: 600px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+
+        .chapters-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+            gap: 24px;
+        }
+
+        .chapter-card {
+            background-color: var(--bg-surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .chapter-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .chapter-card:hover {
+            transform: translateY(-6px);
+            border-color: #475569;
+            box-shadow: 0 12px 24px -10px rgba(0, 0, 0, 0.4);
+        }
+
+        .chapter-card:hover::before {
+            opacity: 1;
+        }
+
+        .chapter-num {
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--secondary);
+            margin-bottom: 8px;
+        }
+
+        .chapter-title {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 16px;
+            color: var(--text-main);
+        }
+
+        .algo-list {
+            list-style: none;
+            margin-bottom: 24px;
+            flex-grow: 1;
+        }
+
+        .algo-item {
+            font-size: 14px;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .algo-item::before {
+            content: '';
+            display: inline-block;
+            width: 6px;
+            height: 6px;
+            background-color: var(--primary);
+            border-radius: 50%;
+        }
+
+        .btn {
+            background-color: var(--border);
+            color: var(--text-main);
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: center;
+            text-decoration: none;
+            display: block;
+        }
+
+        .chapter-card:hover .btn {
+            background-color: var(--primary);
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.25);
+        }
+
+        .btn:hover {
+            background-color: var(--primary-hover) !important;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 60px;
+            padding-top: 24px;
+            border-top: 1px solid var(--border);
+            color: var(--text-muted);
+            font-size: 13px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header>
+            <h1>Vizualizator Interactiv Algoritmi</h1>
+            <p>Panou central de control și navigare pentru algoritmii și structurile de date studiate la colocviu.</p>
+        </header>
+
+        <main class="chapters-grid">
+            <div class="chapter-card">
+                <div class="chapter-num">Capitolul 1</div>
+                <div class="chapter-title">Introducere</div>
+                <ul class="algo-list">
+                    <li class="algo-item">Turnurile din Hanoi</li>
+                </ul>
+                <a href="./Capitolul_1/visualizer.html" class="btn">Deschide Vizualizatorul</a>
+            </div>
+
+            <div class="chapter-card">
+                <div class="chapter-num">Capitolul 2</div>
+                <div class="chapter-title">Structuri de Date de Bază</div>
+                <ul class="algo-list">
+                    <li class="algo-item">Tabele Hash cu Chaining</li>
+                    <li class="algo-item">Tabele Hash cu Adresare Deschisă</li>
+                </ul>
+                <a href="./Capitolul_2/visualizer.html" class="btn">Deschide Vizualizatorul</a>
+            </div>
+
+            <div class="chapter-card">
+                <div class="chapter-num">Capitolul 3</div>
+                <div class="chapter-title">Arbori Avanșați</div>
+                <ul class="algo-list">
+                    <li class="algo-item">Arbori Binari de Căutare (BST)</li>
+                    <li class="algo-item">Operații: Căutare, Inserare, Ștergere</li>
+                    <li class="algo-item">Rotații specifice Arborilor Red-Black</li>
+                </ul>
+                <a href="./Capitolul_3/visualizer.html" class="btn">Deschide Vizualizatorul</a>
+            </div>
+
+            <div class="chapter-card">
+                <div class="chapter-num">Capitolul 4</div>
+                <div class="chapter-title">Algoritmi Backtracking</div>
+                <ul class="algo-list">
+                    <li class="algo-item">Probleme de colorare și plasare</li>
+                </ul>
+                <a href="./Capitolul_4/visualizer.html" class="btn">Deschide Vizualizatorul</a>
+            </div>
+
+            <div class="chapter-card">
+                <div class="chapter-num">Capitolul 5</div>
+                <div class="chapter-title">Heap-uri</div>
+                <ul class="algo-list">
+                    <li class="algo-item">Structura de Heap</li>
+                    <li class="algo-item">Cozi de priorități</li>
+                </ul>
+                <a href="./Capitolul_5/visualizer.html" class="btn">Deschide Vizualizatorul</a>
+            </div>
+
+            <div class="chapter-card">
+                <div class="chapter-num">Capitolul 6</div>
+                <div class="chapter-title">Algoritmi Greedy</div>
+                <ul class="algo-list">
+                    <li class="algo-item">Codificarea Huffman</li>
+                    <li class="algo-item">Planificarea activităților (Activity Selection)</li>
+                    <li class="algo-item">Algoritmul Heapsort</li>
+                </ul>
+                <a href="./Capitolul_6/visualizer.html" class="btn">Deschide Vizualizatorul</a>
+            </div>
+
+            <div class="chapter-card">
+                <div class="chapter-num">Capitolul 7</div>
+                <div class="chapter-title">Divide et Impera</div>
+                <ul class="algo-list">
+                    <li class="algo-item">Algoritmul Merge Sort</li>
+                    <li class="algo-item">Înmulțirea rapidă Karatsuba</li>
+                </ul>
+                <a href="./Capitolul_7/visualizer.html" class="btn">Deschide Vizualizatorul</a>
+            </div>
+
+            <div class="chapter-card">
+                <div class="chapter-num">Capitolul 8</div>
+                <div class="chapter-title">Acoperirea Convexă</div>
+                <ul class="algo-list">
+                    <li class="algo-item">Algoritmul Graham's Scan</li>
+                    <li class="algo-item">Algoritmul Jarvis March</li>
+                </ul>
+                <a href="./Capitolul_8/visualizer.html" class="btn">Deschide Vizualizatorul</a>
+            </div>
+
+            <div class="chapter-card">
+                <div class="chapter-num">Capitolul 9</div>
+                <div class="chapter-title">Programare Dinamică</div>
+                <ul class="algo-list">
+                    <li class="algo-item">Subsecvența Continuă Maximă (LIS)</li>
+                    <li class="algo-item">Triangularea Poligoanelor Convexe</li>
+                    <li class="algo-item">Jocul de Turneu (serie)</li>
+                    <li class="algo-item">Înmulțirea matricelor în lanț</li>
+                    <li class="algo-item">LCS (Cea mai lungă subsecvență comună)</li>
+                    <li class="algo-item">Arbore Binar de Căutare Optim (OBST)</li>
+                </ul>
+                <a href="./Capitolul_9/visualizer.html" class="btn">Deschide Vizualizatorul</a>
+            </div>
+
+            <div class="chapter-card">
+                <div class="chapter-num">Capitolul 10</div>
+                <div class="chapter-title">String Matching</div>
+                <ul class="algo-list">
+                    <li class="algo-item">Algoritmul Naiv de Potrivire</li>
+                    <li class="algo-item">Algoritmul Rabin-Karp</li>
+                    <li class="algo-item">Potrivirea cu Automate Finite</li>
+                </ul>
+                <a href="./Capitolul_10/visualizer.html" class="btn">Deschide Vizualizatorul</a>
+            </div>
+        </main>
+
+        <footer>
+            Panou de navigare realizat pentru Colocviul de Algoritmi și Structuri de Date.
+        </footer>
+    </div>
+
+</body>
+</html>

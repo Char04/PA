@@ -1,0 +1,1571 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vizualizator Algoritmi - Capitolul 5</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-base: #0f172a;
+            --bg-surface: #1e293b;
+            --bg-code: #0b0f19;
+            --primary: #6366f1;
+            --primary-hover: #4f46e5;
+            --secondary: #0ea5e9;
+            --accent: #f43f5e;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border: #334155;
+            --font-sans: 'Inter', sans-serif;
+            --font-mono: 'Fira Code', monospace;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-base);
+            color: var(--text-main);
+            font-family: var(--font-sans);
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .sidebar {
+            width: 280px;
+            background-color: var(--bg-surface);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+        }
+
+        .sidebar-header {
+            padding: 24px;
+            border-bottom: 1px solid var(--border);
+            background: linear-gradient(135deg, var(--bg-surface), #131b2e);
+        }
+
+        .sidebar-header h1 {
+            font-size: 18px;
+            font-weight: 700;
+            letter-spacing: -0.025em;
+            color: var(--text-main);
+        }
+
+        .sidebar-header p {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        .menu-list {
+            list-style: none;
+            padding: 16px;
+            overflow-y: auto;
+            flex-grow: 1;
+        }
+
+        .menu-item {
+            padding: 12px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            color: var(--text-muted);
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+        }
+
+        .menu-item:hover {
+            background-color: rgba(99, 102, 241, 0.1);
+            color: var(--text-main);
+        }
+
+        .menu-item.active {
+            background-color: var(--primary);
+            color: var(--text-main);
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.25);
+        }
+
+        .main-content {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .top-bar {
+            height: 70px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 32px;
+            background-color: var(--bg-surface);
+        }
+
+        .top-bar h2 {
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .workspace {
+            flex-grow: 1;
+            display: flex;
+            overflow: hidden;
+            padding: 24px;
+            gap: 24px;
+        }
+
+        .visualizer-section {
+            flex: 3;
+            background-color: var(--bg-surface);
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .visualizer-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background-color: rgba(30, 41, 59, 0.5);
+        }
+
+        .controls-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .btn {
+            background-color: var(--border);
+            color: var(--text-main);
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn:hover {
+            background-color: #475569;
+        }
+
+        .btn-primary {
+            background-color: var(--primary);
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-hover);
+        }
+
+        .btn-danger {
+            background-color: var(--accent);
+        }
+
+        .btn-danger:hover {
+            background-color: #e11d48;
+        }
+
+        .visualizer-body {
+            flex-grow: 1;
+            padding: 32px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow-y: auto;
+        }
+
+        .visualizer-footer {
+            padding: 20px;
+            border-top: 1px solid var(--border);
+            background-color: rgba(15, 23, 42, 0.4);
+        }
+
+        .explanation-box {
+            background-color: rgba(99, 102, 241, 0.05);
+            border-left: 4px solid var(--primary);
+            padding: 16px;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .explanation-box p {
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .code-section {
+            flex: 2;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .code-container {
+            background-color: var(--bg-surface);
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .code-tabs {
+            display: flex;
+            border-bottom: 1px solid var(--border);
+            background-color: rgba(30, 41, 59, 0.5);
+        }
+
+        .code-tab {
+            padding: 12px 20px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            border-right: 1px solid var(--border);
+            color: var(--text-muted);
+            transition: all 0.2s ease;
+        }
+
+        .code-tab:hover {
+            color: var(--text-main);
+        }
+
+        .code-tab.active {
+            background-color: var(--bg-code);
+            color: var(--primary);
+            border-bottom: 2px solid var(--primary);
+        }
+
+        .code-viewport {
+            flex-grow: 1;
+            background-color: var(--bg-code);
+            padding: 20px;
+            overflow: auto;
+        }
+
+        pre {
+            font-family: var(--font-mono);
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        .highlighted-line {
+            background-color: rgba(99, 102, 241, 0.2);
+            display: block;
+            margin: 0 -20px;
+            padding: 0 20px;
+            border-left: 3px solid var(--primary);
+        }
+
+        .graph-wrapper {
+            display: flex;
+            gap: 32px;
+            width: 100%;
+            height: 100%;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .graph-canvas {
+            width: 320px;
+            height: 320px;
+            background-color: var(--bg-base);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            position: relative;
+        }
+
+        .graph-node {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, var(--secondary), #38bdf8);
+            border-radius: 50%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 13px;
+            position: absolute;
+            z-index: 10;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .graph-node.visited {
+            background: linear-gradient(135deg, var(--success), #34d399);
+        }
+
+        .graph-node.active {
+            background: linear-gradient(135deg, var(--accent), #fb7185);
+            box-shadow: 0 0 12px rgba(244, 63, 94, 0.5);
+        }
+
+        .node-weight-tag {
+            font-size: 9px;
+            color: var(--text-main);
+            font-weight: 600;
+            margin-top: -2px;
+        }
+
+        .tree-svg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        .tables-container {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            flex-grow: 1;
+        }
+
+        .table-container {
+            background-color: rgba(15, 23, 42, 0.3);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+            text-align: left;
+        }
+
+        th, td {
+            padding: 8px 12px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        th {
+            background-color: rgba(30, 41, 59, 0.5);
+            font-weight: 600;
+            color: var(--text-muted);
+        }
+
+        .array-visual {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            width: 100%;
+            padding: 16px;
+        }
+
+        .array-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .array-label {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-muted);
+            min-width: 120px;
+        }
+
+        .array-cells {
+            display: flex;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            overflow: hidden;
+            background-color: var(--bg-base);
+        }
+
+        .array-cell {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border-right: 1px solid var(--border);
+            font-weight: 600;
+        }
+
+        .array-cell:last-child {
+            border-right: none;
+        }
+
+        .array-cell-index {
+            font-size: 9px;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h1>Capitolul 5</h1>
+            <p>Tehnica Greedy</p>
+        </div>
+        <ul class="menu-list">
+            <li class="menu-item active" onclick="selectAlgorithm('dijkstra')">1. Algoritmul Dijkstra</li>
+            <li class="menu-item" onclick="selectAlgorithm('kruskal')">2. Algoritmul Kruskal</li>
+            <li class="menu-item" onclick="selectAlgorithm('prim')">3. Algoritmul Prim</li>
+            <li class="menu-item" onclick="selectAlgorithm('spectacole')">4. Programarea Spectacolelor</li>
+        </ul>
+    </div>
+
+    <div class="main-content">
+        <div class="top-bar">
+            <h2 id="algo-title">Algoritmul Dijkstra</h2>
+        </div>
+
+        <div class="workspace">
+            <div class="visualizer-section">
+                <div class="visualizer-header">
+                    <div class="controls-row" id="inputs-container">
+                    </div>
+                    <div class="controls-row">
+                        <button class="btn" onclick="stepBackward()">Înapoi</button>
+                        <button class="btn btn-primary" id="play-btn" onclick="togglePlay()">Auto Run</button>
+                        <button class="btn" onclick="stepForward()">Pas Următor</button>
+                        <button class="btn btn-danger" onclick="resetState()">Reset</button>
+                    </div>
+                </div>
+                <div class="visualizer-body" id="canvas">
+                </div>
+                <div class="visualizer-footer">
+                    <div class="explanation-box">
+                        <p id="step-explanation">Inițializează stările pentru a începe.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="code-section">
+                <div class="code-container">
+                    <div class="code-tabs">
+                        <div class="code-tab active" id="tab-pseudo" onclick="selectCodeTab('pseudo')">Pseudocod</div>
+                        <div class="code-tab" id="tab-java" onclick="selectCodeTab('java')">Cod Java</div>
+                        <div class="code-tab" id="tab-teorie" onclick="selectCodeTab('teorie')">Teorie</div>
+                    </div>
+                    <div class="code-viewport">
+                        <pre id="code-display"></pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentAlgorithm = 'dijkstra';
+        let currentCodeTab = 'pseudo';
+        let stepIndex = 0;
+        let states = [];
+        let isPlaying = false;
+        let playInterval = null;
+
+        const pseudocodes = {
+            dijkstra: `function DIJKSTRA(L, n)
+  C = {2, 3, 4, ..., n}
+  S = {1}
+  for i = 2 to n do D[i] = L[1,i]
+  for i = 3 to n do
+    v = varf din C care minimizeaza D[v]
+    C = C \\ {v}
+    S = S U {v}
+    for fiecare w in C do
+      D[w] = min(D[w], D[v] + L[v,w])
+    end for
+  end for
+  return D
+end function`,
+            kruskal: `function KRUSKAL(G)
+  sorteaza M crescator dupa cost
+  A = empty
+  initializeaza n multimi disjuncte
+  repeat
+    u, v = muchia de cost minim neanalizata
+    ucomp = find(u); vcomp = find(v)
+    if ucomp != vcomp then
+      merge(ucomp, vcomp)
+      A = A U {(u, v)}
+    end if
+  until #A == n - 1
+  return A
+end function`,
+            prim: `function PRIM(C, n)
+  for i = 2 to n do
+    vecin[i] = 1; mincost[i] = C[i,1]
+  end for
+  for step = 1 to n - 1 do
+    k = varf cu mincost[k] minim (> 0)
+    A = A U {(k, vecin[k])}
+    mincost[k] = -1
+    for j = 2 to n do
+      if mincost[j] != -1 AND C[j,k] < mincost[j] then
+        mincost[j] = C[j,k]; vecin[j] = k
+      end if
+    end for
+  end for
+  return A
+end function`,
+            spectacole: `procedure ACTIVITY-SELECTION(R)
+  sort R by end time f[i] ascending
+  A = {R[1]}
+  last = 1
+  for j = 2 to n do
+    if s[j] >= f[last] then
+      A = A U {R[j]}
+      last = j
+    end if
+  end for
+  return A
+end procedure`
+        };
+
+        const javacodes = {
+            dijkstra: `public static int[] dijkstra(int[][] L, int n) {
+    int[] D = new int[n + 1];
+    boolean[] S = new boolean[n + 1];
+    for (int i = 2; i <= n; i++) D[i] = L[1][i];
+    S[1] = true;
+    for (int i = 3; i <= n; i++) {
+        int v = findMinDistanceNode(D, S, n);
+        S[v] = true;
+        for (int w = 2; w <= n; w++) {
+            if (!S[w] && L[v][w] != Integer.MAX_VALUE) {
+                D[w] = Math.min(D[w], D[v] + L[v][w]);
+            }
+        }
+    }
+    return D;
+}`,
+            kruskal: `public static List<Edge> kruskal(List<Edge> edges, int n) {
+    Collections.sort(edges);
+    int[] set = new int[n + 1];
+    for (int i = 1; i <= n; i++) set[i] = i;
+    List<Edge> A = new ArrayList<>();
+    for (Edge edge : edges) {
+        int ucomp = find(set, edge.u);
+        int vcomp = find(set, edge.v);
+        if (ucomp != vcomp) {
+            merge(set, ucomp, vcomp, n);
+            A.add(edge);
+        }
+    }
+    return A;
+}`,
+            prim: `public static void prim(int[][] C, int n, List<Edge> MST) {
+    int[] vecin = new int[n + 1];
+    int[] mincost = new int[n + 1];
+    for (int i = 2; i <= n; i++) {
+        vecin[i] = 1; mincost[i] = C[i][1];
+    }
+    for (int step = 1; step <= n - 1; step++) {
+        int k = findMinCostNode(mincost, n);
+        MST.add(new Edge(k, vecin[k], mincost[k]));
+        mincost[k] = -1;
+        for (int j = 2; j <= n; j++) {
+            if (mincost[j] != -1 && C[j][k] < mincost[j]) {
+                mincost[j] = C[j][k]; vecin[j] = k;
+            }
+        }
+    }
+}`,
+            spectacole: `public static List<Spectacol> selectSpectacole(List<Spectacol> spectacole) {
+    Collections.sort(spectacole);
+    List<Spectacol> selectate = new ArrayList<>();
+    if (spectacole.isEmpty()) return selectate;
+    Spectacol ultimul = spectacole.get(0);
+    selectate.add(ultimul);
+    for (int i = 1; i < spectacole.size(); i++) {
+        Spectacol curent = spectacole.get(i);
+        if (curent.start >= ultimul.end) {
+            selectate.add(curent);
+            ultimul = curent;
+        }
+    }
+    return selectate;
+}`
+        };
+
+        const titles = {
+            dijkstra: "1. Algoritmul Dijkstra",
+            kruskal: "2. Algoritmul Kruskal",
+            prim: "3. Algoritmul Prim",
+            spectacole: "4. Programarea Spectacolelor"
+        };
+
+        const nodeCoordsDijk = {
+            1: {x: 40, y: 140},
+            2: {x: 140, y: 50},
+            3: {x: 260, y: 50},
+            5: {x: 140, y: 230},
+            4: {x: 260, y: 230}
+        };
+
+        const edgesDijk = [
+            {u: 1, v: 2, w: 1},
+            {u: 2, v: 3, w: 4},
+            {u: 2, v: 5, w: 1},
+            {u: 3, v: 4, w: 3},
+            {u: 5, v: 4, w: 2}
+        ];
+
+        const nodeCoordsMST = {
+            1: {x: 40, y: 50},
+            2: {x: 150, y: 50},
+            3: {x: 260, y: 50},
+            4: {x: 40, y: 180},
+            5: {x: 150, y: 180},
+            6: {x: 260, y: 180},
+            7: {x: 150, y: 270}
+        };
+
+        const edgesMST = [
+            {u: 1, v: 2, w: 1},
+            {u: 2, v: 3, w: 2},
+            {u: 1, v: 4, w: 4},
+            {u: 2, v: 4, w: 6},
+            {u: 2, v: 5, w: 5},
+            {u: 3, v: 5, w: 8},
+            {u: 3, v: 6, w: 6},
+            {u: 4, v: 5, w: 3},
+            {u: 4, v: 7, w: 4},
+            {u: 5, v: 6, w: 3},
+            {u: 5, v: 7, w: 7}
+        ];
+
+        function selectAlgorithm(algo) {
+            currentAlgorithm = algo;
+            document.querySelectorAll('.menu-item').forEach(el => el.classList.remove('active'));
+            const items = document.querySelectorAll('.menu-item');
+            if (algo === 'dijkstra') items[0].classList.add('active');
+            else if (algo === 'kruskal') items[1].classList.add('active');
+            else if (algo === 'prim') items[2].classList.add('active');
+            else if (algo === 'spectacole') items[3].classList.add('active');
+
+            document.getElementById('algo-title').innerText = titles[algo];
+            stopPlay();
+            renderCode();
+            setupInputs();
+            resetState();
+        }
+
+        const teorii = {
+            dijkstra: `<div style="padding: 10px; font-family: var(--font-sans);">
+                <h3 style="color: var(--primary); margin-bottom: 6px; font-size: 15px;">Scop</h3>
+                <p style="margin-bottom: 12px; color: var(--text-main); font-size: 13px; line-height: 1.5;">Determinarea celor mai scurte drumuri de la un nod sursă ales la toate celelalte noduri dintr-un graf ponderat (cu costuri strict non-negative).</p>
+                <h3 style="color: var(--primary); margin-bottom: 6px; font-size: 15px;">Funcționare</h3>
+                <p style="margin-bottom: 12px; color: var(--text-main); font-size: 13px; line-height: 1.5;">Folosește o abordare Greedy. Menține o listă cu distanțele minime estimate. La fiecare pas, selectează nodul nevizitat cu distanța minimă garantată, îl marchează ca vizitat și relaxează toate muchiile care pleacă din acesta pentru a actualiza drumurile vecinilor săi.</p>
+                <h3 style="color: var(--primary); margin-bottom: 6px; font-size: 15px;">Aplicații</h3>
+                <p style="margin-bottom: 12px; color: var(--text-main); font-size: 13px; line-height: 1.5;">Sisteme de navigație GPS pentru stabilirea traseului optim, algoritmi de rutare a pachetelor în rețelele IP (OSPF).</p>
+                <h3 style="color: var(--primary); margin-bottom: 6px; font-size: 15px;">Complexitate</h3>
+                <p style="color: var(--text-main); font-size: 13px; line-height: 1.5;">Timp: O(V²) standard, O(E log V) folosind o coadă de priorități (min-heap). Spațiu: O(V) pentru vectorii de distanțe și tați.</p>
+            </div>`,
+            kruskal: `<div style="padding: 10px; font-family: var(--font-sans);">
+                <h3 style="color: var(--primary); margin-bottom: 6px; font-size: 15px;">Scop</h3>
+                <p style="margin-bottom: 12px; color: var(--text-main); font-size: 13px; line-height: 1.5;">Determinarea arborelui parțial de cost minim (MST) într-un graf conex ponderat neorientat.</p>
+                <h3 style="color: var(--primary); margin-bottom: 6px; font-size: 15px;">Funcționare</h3>
+                <p style="margin-bottom: 12px; color: var(--text-main); font-size: 13px; line-height: 1.5;">Sortează toate muchiile crescător după cost. Parcurge muchiile ordonate și, pentru fiecare muchie, dacă nodurile sale aparțin unor componente conexe diferite (nu formează ciclu), o adaugă în MST și reunește componentele folosind structura Disjoint Sets (Union-Find).</p>
+                <h3 style="color: var(--primary); margin-bottom: 6px; font-size: 15px;">Aplicații</h3>
+                <p style="margin-bottom: 12px; color: var(--text-main); font-size: 13px; line-height: 1.5;">Proiectarea rețelelor fizice cu cost minim de cablare sau construcție (rețele electrice, conducte de apă, fibră optică).</p>
+                <h3 style="color: var(--primary); margin-bottom: 6px; font-size: 15px;">Complexitate</h3>
+                <p style="color: var(--text-main); font-size: 13px; line-height: 1.5;">Timp: O(E log E) din cauza sortării inițiale a muchiilor. Spațiu: O(V + E) pentru Union-Find și lista de muchii.</p>
+            </div>`,
+            prim: `<div style="padding: 10px; font-family: var(--font-sans);">
+                <h3 style="color: var(--primary); margin-bottom: 6px; font-size: 15px;">Scop</h3>
+                <p style="margin-bottom: 12px; color: var(--text-main); font-size: 13px; line-height: 1.5;">Determinarea arborelui parțial de cost minim (MST) dintr-un graf conex ponderat neorientat, pornind dintr-un nod rădăcină.</p>
+                <h3 style="color: var(--primary); margin-bottom: 6px; font-size: 15px;">Funcționare</h3>
+                <p style="margin-bottom: 12px; color: var(--text-main); font-size: 13px; line-height: 1.5;">Începe cu un singur nod ales arbitrar în arbore. La fiecare pas, caută muchia de cost minim care conectează un nod aflat în MST cu un nod nevizitat din exterior. Adaugă acest nod nou și muchia corespunzătoare în MST, actualizând distanțele către vecini.</p>
+                <h3 style="color: var(--primary); margin-bottom: 6px; font-size: 15px;">Aplicații</h3>
+                <p style="margin-bottom: 12px; color: var(--text-main); font-size: 13px; line-height: 1.5;">Algoritmi de aproximare pentru probleme NP-dure (cum ar fi problema comis-voiajorului), clustering în analiza datelor.</p>
+                <h3 style="color: var(--primary); margin-bottom: 6px; font-size: 15px;">Complexitate</h3>
+                <p style="color: var(--text-main); font-size: 13px; line-height: 1.5;">Timp: O(V²) standard, O(E log V) folosind min-heap. Spațiu: O(V) pentru vectorii auxiliari.</p>
+            </div>`,
+            spectacole: `<div style="padding: 10px; font-family: var(--font-sans);">
+                <h3 style="color: var(--primary); margin-bottom: 6px; font-size: 15px;">Scop</h3>
+                <p style="margin-bottom: 12px; color: var(--text-main); font-size: 13px; line-height: 1.5;">Selectarea unui număr maxim de activități compatibile dintr-un set dat de activități cu intervale de timp specificate.</p>
+                <h3 style="color: var(--primary); margin-bottom: 6px; font-size: 15px;">Funcționare</h3>
+                <p style="margin-bottom: 12px; color: var(--text-main); font-size: 13px; line-height: 1.5;">Sortează activitățile crescător după timpul de sfârșit și apoi le selectează în mod greedy pe cele care nu se suprapun cu ultima activitate selectată.</p>
+                <h3 style="color: var(--primary); margin-bottom: 6px; font-size: 15px;">Complexitate</h3>
+                <p style="color: var(--text-main); font-size: 13px; line-height: 1.5;">Timp: O(n log n). Spațiu: O(n).</p>
+            </div>`
+        };
+
+        function selectCodeTab(tab) {
+            currentCodeTab = tab;
+            document.getElementById('tab-pseudo').classList.toggle('active', tab === 'pseudo');
+            document.getElementById('tab-java').classList.toggle('active', tab === 'java');
+            document.getElementById('tab-teorie').classList.toggle('active', tab === 'teorie');
+            renderCode();
+        }
+
+        function renderCode() {
+            const display = document.getElementById('code-display');
+            if (currentCodeTab === 'teorie') {
+                display.innerHTML = teorii[currentAlgorithm] || '';
+                display.style.fontFamily = 'var(--font-sans)';
+                display.style.whiteSpace = 'normal';
+                return;
+            }
+            display.style.fontFamily = '';
+            display.style.whiteSpace = '';
+            const codeText = currentCodeTab === 'pseudo' ? pseudocodes[currentAlgorithm] : javacodes[currentAlgorithm];
+            
+            if (states.length > 0 && stepIndex < states.length) {
+                const lines = codeText.split('\n');
+                const targetLine = states[stepIndex].line;
+                const formattedLines = lines.map((line, idx) => {
+                    if (idx === targetLine) {
+                        return `<span class="highlighted-line">${line}</span>`;
+                    }
+                    return line;
+                });
+                display.innerHTML = formattedLines.join('\n');
+            } else {
+                display.innerText = codeText;
+            }
+        }
+
+        function setupInputs() {
+            const container = document.getElementById('inputs-container');
+            container.innerHTML = '';
+        }
+
+        function generateStates() {
+            states = [];
+            stepIndex = 0;
+            stopPlay();
+
+            if (currentAlgorithm === 'dijkstra') {
+                let n = 5;
+                let L = Array.from({length: 6}, () => Array(6).fill(Infinity));
+                for (let i = 1; i <= n; i++) L[i][i] = 0;
+                L[1][2] = 1; L[2][3] = 4; L[2][5] = 1; L[3][4] = 3; L[5][4] = 2;
+
+                let D = Array(6).fill(Infinity);
+                let S = Array(6).fill(false);
+
+                states.push({
+                    D: [...D],
+                    S: [...S],
+                    activeNode: null,
+                    activeEdge: null,
+                    line: 1,
+                    desc: "Inițializăm mulțimile: S = {1}, C = {2, 3, 4, 5}."
+                });
+
+                for (let i = 2; i <= n; i++) {
+                    D[i] = L[1][i];
+                }
+                S[1] = true;
+
+                states.push({
+                    D: [...D],
+                    S: [...S],
+                    activeNode: 1,
+                    activeEdge: null,
+                    line: 3,
+                    desc: "Inițializăm distanțele direct din sursa 1: D[2] = 1, restul fiind INF."
+                });
+
+                for (let step = 3; step <= n; step++) {
+                    let minVal = Infinity;
+                    let v = -1;
+                    for (let j = 2; j <= n; j++) {
+                        if (!S[j] && D[j] < minVal) {
+                            minVal = D[j];
+                            v = j;
+                        }
+                    }
+
+                    if (v === -1) break;
+
+                    states.push({
+                        D: [...D],
+                        S: [...S],
+                        activeNode: v,
+                        activeEdge: null,
+                        line: 5,
+                        desc: "Nodul cel mai apropiat nevizitat din C este v = " + v + " (distanța: " + minVal + ")."
+                    });
+
+                    S[v] = true;
+
+                    states.push({
+                        D: [...D],
+                        S: [...S],
+                        activeNode: v,
+                        activeEdge: null,
+                        line: 7,
+                        desc: "Adăugăm nodul " + v + " în mulțimea S a vârfurilor vizitate."
+                    });
+
+                    for (let w = 2; w <= n; w++) {
+                        if (!S[w] && L[v][w] !== Infinity) {
+                            let oldDist = D[w];
+                            let newDist = D[v] + L[v][w];
+                            let activeEdge = {u: v, v: w};
+
+                            states.push({
+                                D: [...D],
+                                S: [...S],
+                                activeNode: v,
+                                activeEdge: activeEdge,
+                                line: 9,
+                                desc: "Relaxăm muchia (" + v + ", " + w + "). Verificăm dacă D[" + v + "] + L[" + v + "," + w + "] < D[" + w + "] (" + D[v] + " + " + L[v][w] + " < " + (oldDist === Infinity ? 'INF' : oldDist) + ")."
+                            });
+
+                            if (newDist < D[w]) {
+                                D[w] = newDist;
+                                states.push({
+                                    D: [...D],
+                                    S: [...S],
+                                    activeNode: v,
+                                    activeEdge: activeEdge,
+                                    line: 9,
+                                    desc: "Actualizăm distanța minimă pentru nodul " + w + ": D[" + w + "] devine " + newDist + "."
+                                });
+                            }
+                        }
+                    }
+                }
+
+                states.push({
+                    D: [...D],
+                    S: [...S],
+                    activeNode: null,
+                    activeEdge: null,
+                    line: 12,
+                    desc: "Algoritmul Dijkstra s-a terminat. Am găsit distanțele minime finale din nodul 1."
+                });
+
+            } else if (currentAlgorithm === 'kruskal') {
+                let n = 7;
+                let sortedEdges = [...edgesMST].sort((a, b) => a.w - b.w);
+                let set = Array.from({length: 8}, (_, i) => i);
+                let A = [];
+
+                states.push({
+                    edges: sortedEdges,
+                    set: [...set],
+                    A: [],
+                    activeEdgeIdx: -1,
+                    cycleEdge: null,
+                    line: 1,
+                    desc: "Sortăm cele 11 muchii crescător după cost și inițializăm mulțimile disjuncte."
+                });
+
+                for (let i = 0; i < sortedEdges.length; i++) {
+                    let edge = sortedEdges[i];
+                    let ucomp = set[edge.u];
+                    let vcomp = set[edge.v];
+
+                    states.push({
+                        edges: sortedEdges,
+                        set: [...set],
+                        A: [...A],
+                        activeEdgeIdx: i,
+                        cycleEdge: null,
+                        line: 6,
+                        desc: "Analizăm muchia " + edge.u + "-" + edge.v + " (cost: " + edge.w + "). find(" + edge.u + ") = " + ucomp + ", find(" + edge.v + ") = " + vcomp + "."
+                    });
+
+                    if (ucomp !== vcomp) {
+                        let a = ucomp;
+                        let b = vcomp;
+                        if (a > b) {
+                            let tmp = a; a = b; b = tmp;
+                        }
+                        for (let k = 1; k <= n; k++) {
+                            if (set[k] === b) set[k] = a;
+                        }
+                        A.push(edge);
+
+                        states.push({
+                            edges: sortedEdges,
+                            set: [...set],
+                            A: [...A],
+                            activeEdgeIdx: i,
+                            cycleEdge: null,
+                            line: 8,
+                            desc: "Nodurile fac parte din mulțimi diferite. Interconectăm componentele și adăugăm muchia în MST."
+                        });
+
+                        if (A.size === n - 1) break;
+                    } else {
+                        states.push({
+                            edges: sortedEdges,
+                            set: [...set],
+                            A: [...A],
+                            activeEdgeIdx: i,
+                            cycleEdge: edge,
+                            line: 6,
+                            desc: "Nodurile fac deja parte din aceeași componentă (se formează un ciclu). Ignorăm muchia."
+                        });
+                    }
+                }
+
+                states.push({
+                    edges: sortedEdges,
+                    set: [...set],
+                    A: [...A],
+                    activeEdgeIdx: -1,
+                    cycleEdge: null,
+                    line: 11,
+                    desc: "Algoritmul Kruskal s-a finalizat. MST cost total: " + A.reduce((acc, e) => acc + e.w, 0) + "."
+                });
+
+            } else if (currentAlgorithm === 'prim') {
+                let n = 7;
+                let C = Array.from({length: 8}, () => Array(8).fill(Infinity));
+                for (let i = 1; i <= n; i++) C[i][i] = 0;
+                edgesMST.forEach(e => {
+                    C[e.u][e.v] = e.w;
+                    C[e.v][e.u] = e.w;
+                });
+
+                let vecin = Array(8).fill(0);
+                let mincost = Array(8).fill(0);
+                let MST = [];
+                let U = [1];
+
+                states.push({
+                    U: [...U],
+                    vecin: [...vecin],
+                    mincost: [...mincost],
+                    MST: [],
+                    activeNode: null,
+                    line: 1,
+                    desc: "Inițializăm algoritmul lui Prim. Începem cu nodul rădăcină 1."
+                });
+
+                for (let i = 2; i <= n; i++) {
+                    vecin[i] = 1;
+                    mincost[i] = C[i][1];
+                }
+
+                states.push({
+                    U: [...U],
+                    vecin: [...vecin],
+                    mincost: [...mincost],
+                    MST: [],
+                    activeNode: 1,
+                    line: 2,
+                    desc: "Setăm valorile inițiale: mincost[i] = cost(1, i) și vecin[i] = 1."
+                });
+
+                for (let step = 1; step <= n - 1; step++) {
+                    let min = Infinity;
+                    let k = -1;
+                    for (let j = 2; j <= n; j++) {
+                        if (mincost[j] !== -1 && mincost[j] < min) {
+                            min = mincost[j];
+                            k = j;
+                        }
+                    }
+
+                    if (k === -1) break;
+
+                    states.push({
+                        U: [...U],
+                        vecin: [...vecin],
+                        mincost: [...mincost],
+                        MST: [...MST],
+                        activeNode: k,
+                        line: 5,
+                        desc: "Nodul nevizitat cu mincost minim este k = " + k + " (cost: " + min + ") conectat prin vecin = " + vecin[k] + "."
+                    });
+
+                    MST.push({u: k, v: vecin[k], w: min});
+                    mincost[k] = -1;
+                    U.push(k);
+
+                    states.push({
+                        U: [...U],
+                        vecin: [...vecin],
+                        mincost: [...mincost],
+                        MST: [...MST],
+                        activeNode: k,
+                        line: 6,
+                        desc: "Adăugăm muchia în MST și adăugăm nodul " + k + " în U. Actualizăm vecin și mincost."
+                    });
+
+                    for (let j = 2; j <= n; j++) {
+                        if (mincost[j] !== -1 && C[j][k] < mincost[j]) {
+                            mincost[j] = C[j][k];
+                            vecin[j] = k;
+                        }
+                    }
+
+                    states.push({
+                        U: [...U],
+                        vecin: [...vecin],
+                        mincost: [...mincost],
+                        MST: [...MST],
+                        activeNode: k,
+                        line: 8,
+                        desc: "Am recalculat mincost[] și vecin[] după adăugarea nodului " + k + "."
+                    });
+                }
+
+                states.push({
+                    U: [...U],
+                    vecin: [...vecin],
+                    mincost: [...mincost],
+                    MST: [...MST],
+                    activeNode: null,
+                    line: 11,
+                    desc: "Algoritmul lui Prim s-a finalizat. MST cost total: 17."
+                });
+            } else if (currentAlgorithm === 'spectacole') {
+                const activities = [
+                    { id: 1, s: 10, f: 14 },
+                    { id: 2, s: 12, f: 15 },
+                    { id: 3, s: 14, f: 16 },
+                    { id: 4, s: 11, f: 13 },
+                    { id: 5, s: 15, f: 17 }
+                ];
+
+                states.push({
+                    sorted: [...activities],
+                    A: [],
+                    checkingIdx: -1,
+                    lastSelectedIdx: -1,
+                    statusMap: {},
+                    line: 1,
+                    desc: "Inițializăm lista de spectacole disponibile."
+                });
+
+                const sorted = [...activities].sort((a, b) => a.f - b.f);
+                states.push({
+                    sorted: [...sorted],
+                    A: [],
+                    checkingIdx: -1,
+                    lastSelectedIdx: -1,
+                    statusMap: {},
+                    line: 2,
+                    desc: "Sortează spectacolele crescător după ora de sfârșit f(i)."
+                });
+
+                let A = [];
+                let lastSelectedIdx = -1;
+                let statusMap = {};
+
+                A.push(sorted[0]);
+                statusMap[sorted[0].id] = 'selected';
+                lastSelectedIdx = 0;
+
+                states.push({
+                    sorted: [...sorted],
+                    A: [...A],
+                    checkingIdx: 0,
+                    lastSelectedIdx: 0,
+                    statusMap: { ...statusMap },
+                    line: 3,
+                    desc: "Alegem primul spectacol în ordinea sortării: S" + sorted[0].id + " [" + sorted[0].s + ", " + sorted[0].f + ") și îl adăugăm în A."
+                });
+
+                for (let j = 1; j < sorted.length; j++) {
+                    const current = sorted[j];
+                    const last = sorted[lastSelectedIdx];
+                    
+                    statusMap[current.id] = 'checking';
+                    states.push({
+                        sorted: [...sorted],
+                        A: [...A],
+                        checkingIdx: j,
+                        lastSelectedIdx: lastSelectedIdx,
+                        statusMap: { ...statusMap },
+                        line: 5,
+                        desc: "Analizăm spectacolul S" + current.id + " [" + current.s + ", " + current.f + "). Verificăm dacă se suprapune cu ultimul selectat S" + last.id + " (s(j) >= f(last) -> " + current.s + " >= " + last.f + ")."
+                    });
+
+                    if (current.s >= last.f) {
+                        A.push(current);
+                        statusMap[current.id] = 'selected';
+                        lastSelectedIdx = j;
+                        states.push({
+                            sorted: [...sorted],
+                            A: [...A],
+                            checkingIdx: j,
+                            lastSelectedIdx: lastSelectedIdx,
+                            statusMap: { ...statusMap },
+                            line: 6,
+                            desc: "Nicio suprapunere (" + current.s + " >= " + last.f + "). Adăugăm spectacolul S" + current.id + " în lista activităților selectate A."
+                        });
+                    } else {
+                        statusMap[current.id] = 'rejected';
+                        states.push({
+                            sorted: [...sorted],
+                            A: [...A],
+                            checkingIdx: j,
+                            lastSelectedIdx: lastSelectedIdx,
+                            statusMap: { ...statusMap },
+                            line: 10,
+                            desc: "Suprapunere detectată! Ora de început " + current.s + " este înainte de finalizarea ultimului selectat " + last.f + ". Eliminăm spectacolul S" + current.id + "."
+                        });
+                    }
+                }
+
+                states.push({
+                    sorted: [...sorted],
+                    A: [...A],
+                    checkingIdx: -1,
+                    lastSelectedIdx: lastSelectedIdx,
+                    statusMap: { ...statusMap },
+                    line: 15,
+                    desc: "Algoritmul s-a încheiat. Spectacolele selectate sunt: " + A.map(x => "S" + x.id).join(', ') + "."
+                });
+            }
+
+            renderState();
+        }
+
+        function renderState() {
+            if (states.length === 0) return;
+            const state = states[stepIndex];
+            const canvas = document.getElementById('canvas');
+            canvas.innerHTML = '';
+
+            document.getElementById('step-explanation').innerText = state.desc;
+            renderCode();
+
+            if (currentAlgorithm === 'dijkstra') {
+                const wrapper = document.createElement('div');
+                wrapper.className = 'graph-wrapper';
+
+                const graphArea = document.createElement('div');
+                graphArea.className = 'graph-canvas';
+
+                Object.keys(nodeCoordsDijk).forEach(nodeId => {
+                    const node = document.createElement('div');
+                    node.className = 'graph-node';
+                    if (state.S[parseInt(nodeId)]) node.classList.add('visited');
+                    if (state.activeNode === parseInt(nodeId)) node.classList.add('active');
+                    
+                    const dVal = state.D[parseInt(nodeId)] === Infinity ? 'INF' : state.D[parseInt(nodeId)];
+                    node.innerHTML = `
+                        <div>${nodeId}</div>
+                        <div class="node-weight-tag">D:${dVal}</div>
+                    `;
+                    node.style.left = nodeCoordsDijk[nodeId].x + 'px';
+                    node.style.top = nodeCoordsDijk[nodeId].y + 'px';
+                    graphArea.appendChild(node);
+                });
+
+                const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+                svg.className = 'tree-svg';
+                svg.style.width = '320px';
+                svg.style.height = '320px';
+
+                edgesDijk.forEach(edge => {
+                    const uCoord = nodeCoordsDijk[edge.u];
+                    const vCoord = nodeCoordsDijk[edge.v];
+
+                    const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                    line.setAttribute('x1', uCoord.x + 18);
+                    line.setAttribute('y1', uCoord.y + 18);
+                    line.setAttribute('x2', vCoord.x + 18);
+                    line.setAttribute('y2', vCoord.y + 18);
+                    line.setAttribute('stroke', '#475569');
+                    line.setAttribute('stroke-width', '2');
+
+                    if (state.activeEdge && state.activeEdge.u === edge.u && state.activeEdge.v === edge.v) {
+                        line.setAttribute('stroke', '#f43f5e');
+                        line.setAttribute('stroke-width', '4');
+                    } else if (state.S[edge.u] && state.S[edge.v]) {
+                        line.setAttribute('stroke', '#10b981');
+                    }
+
+                    svg.appendChild(line);
+                });
+
+                graphArea.appendChild(svg);
+                wrapper.appendChild(graphArea);
+
+                const tableCont = document.createElement('div');
+                tableCont.className = 'table-container';
+                tableCont.style.flex = '1';
+                
+                let tBody = '';
+                for (let i = 2; i <= 5; i++) {
+                    let dVal = state.D[i] === Infinity ? 'INF' : state.D[i];
+                    tBody += `<tr><td><strong>Nodul ${i}</strong></td><td>${dVal}</td></tr>`;
+                }
+
+                tableCont.innerHTML = `
+                    <div style="padding:10px 16px; font-weight:600; font-size:14px; border-bottom:1px solid var(--border);">Distanțe minime (D)</div>
+                    <table>
+                        <thead>
+                            <tr><th>Destinație</th><th>Distanță</th></tr>
+                        </thead>
+                        <tbody>${tBody}</tbody>
+                    </table>
+                `;
+                wrapper.appendChild(tableCont);
+                canvas.appendChild(wrapper);
+
+            } else if (currentAlgorithm === 'kruskal') {
+                const wrapper = document.createElement('div');
+                wrapper.className = 'graph-wrapper';
+
+                const graphArea = document.createElement('div');
+                graphArea.className = 'graph-canvas';
+
+                Object.keys(nodeCoordsMST).forEach(nodeId => {
+                    const node = document.createElement('div');
+                    node.className = 'graph-node';
+                    node.innerText = nodeId;
+                    node.style.left = nodeCoordsMST[nodeId].x + 'px';
+                    node.style.top = nodeCoordsMST[nodeId].y + 'px';
+                    graphArea.appendChild(node);
+                });
+
+                const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+                svg.className = 'tree-svg';
+                svg.style.width = '320px';
+                svg.style.height = '320px';
+
+                edgesMST.forEach(edge => {
+                    const uCoord = nodeCoordsMST[edge.u];
+                    const vCoord = nodeCoordsMST[edge.v];
+
+                    const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                    line.setAttribute('x1', uCoord.x + 18);
+                    line.setAttribute('y1', uCoord.y + 18);
+                    line.setAttribute('x2', vCoord.x + 18);
+                    line.setAttribute('y2', vCoord.y + 18);
+                    line.setAttribute('stroke', '#475569');
+                    line.setAttribute('stroke-width', '2');
+
+                    let isInMST = state.A.some(e => e.u === edge.u && e.v === edge.v);
+                    let isActive = (state.activeEdgeIdx !== -1 && state.edges[state.activeEdgeIdx].u === edge.u && state.edges[state.activeEdgeIdx].v === edge.v);
+                    let isCycle = (state.cycleEdge && state.cycleEdge.u === edge.u && state.cycleEdge.v === edge.v);
+
+                    if (isActive) {
+                        line.setAttribute('stroke', '#6366f1');
+                        line.setAttribute('stroke-width', '4');
+                    } else if (isCycle) {
+                        line.setAttribute('stroke', '#f43f5e');
+                        line.setAttribute('stroke-width', '4');
+                    } else if (isInMST) {
+                        line.setAttribute('stroke', '#10b981');
+                        line.setAttribute('stroke-width', '3');
+                    }
+
+                    svg.appendChild(line);
+                });
+
+                graphArea.appendChild(svg);
+                wrapper.appendChild(graphArea);
+
+                const rightCol = document.createElement('div');
+                rightCol.className = 'tables-container';
+
+                const arrayDiv = document.createElement('div');
+                arrayDiv.className = 'array-visual';
+
+                const cells = document.createElement('div');
+                cells.className = 'array-cells';
+                for (let k = 1; k <= 7; k++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'array-cell';
+                    cell.innerHTML = `
+                        <div>${state.set[k]}</div>
+                        <div class="array-cell-index">${k}</div>
+                    `;
+                    cells.appendChild(cell);
+                }
+                
+                const rRow = document.createElement('div');
+                rRow.className = 'array-row';
+                rRow.innerHTML = '<div class="array-label">Set Repr:</div>';
+                rRow.appendChild(cells);
+                arrayDiv.appendChild(rRow);
+                rightCol.appendChild(arrayDiv);
+
+                const tableCont = document.createElement('div');
+                tableCont.className = 'table-container';
+                let tBody = '';
+                state.A.forEach((e, idx) => {
+                    tBody += `<tr><td>${idx+1}</td><td>${e.u} - ${e.v}</td><td>${e.w}</td></tr>`;
+                });
+                tableCont.innerHTML = `
+                    <div style="padding:8px 12px; font-weight:600;">Muchii MST (A)</div>
+                    <table>
+                        <thead><tr><th>Nr</th><th>Muchie</th><th>Cost</th></tr></thead>
+                        <tbody>${tBody}</tbody>
+                    </table>
+                `;
+                rightCol.appendChild(tableCont);
+
+                wrapper.appendChild(rightCol);
+                canvas.appendChild(wrapper);
+
+            } else if (currentAlgorithm === 'prim') {
+                const wrapper = document.createElement('div');
+                wrapper.className = 'graph-wrapper';
+
+                const graphArea = document.createElement('div');
+                graphArea.className = 'graph-canvas';
+
+                Object.keys(nodeCoordsMST).forEach(nodeId => {
+                    const node = document.createElement('div');
+                    node.className = 'graph-node';
+                    
+                    let isInU = state.U.includes(parseInt(nodeId));
+                    if (isInU) node.classList.add('visited');
+                    if (state.activeNode === parseInt(nodeId)) node.classList.add('active');
+
+                    node.innerText = nodeId;
+                    node.style.left = nodeCoordsMST[nodeId].x + 'px';
+                    node.style.top = nodeCoordsMST[nodeId].y + 'px';
+                    graphArea.appendChild(node);
+                });
+
+                const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+                svg.className = 'tree-svg';
+                svg.style.width = '320px';
+                svg.style.height = '320px';
+
+                edgesMST.forEach(edge => {
+                    const uCoord = nodeCoordsMST[edge.u];
+                    const vCoord = nodeCoordsMST[edge.v];
+
+                    const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                    line.setAttribute('x1', uCoord.x + 18);
+                    line.setAttribute('y1', uCoord.y + 18);
+                    line.setAttribute('x2', vCoord.x + 18);
+                    line.setAttribute('y2', vCoord.y + 18);
+                    line.setAttribute('stroke', '#475569');
+                    line.setAttribute('stroke-width', '2');
+
+                    let isInMST = state.MST.some(e => (e.u === edge.u && e.v === edge.v) || (e.v === edge.u && e.u === edge.v));
+                    if (isInMST) {
+                        line.setAttribute('stroke', '#10b981');
+                        line.setAttribute('stroke-width', '3');
+                    }
+
+                    svg.appendChild(line);
+                });
+
+                graphArea.appendChild(svg);
+                wrapper.appendChild(graphArea);
+
+                const rightCol = document.createElement('div');
+                rightCol.className = 'tables-container';
+
+                const arrayDiv = document.createElement('div');
+                arrayDiv.className = 'array-visual';
+
+                const renderRow = (arr, label) => {
+                    const r = document.createElement('div');
+                    r.className = 'array-row';
+                    r.innerHTML = `<div class="array-label">${label}:</div>`;
+                    const cells = document.createElement('div');
+                    cells.className = 'array-cells';
+                    for (let k = 2; k <= 7; k++) {
+                        const cell = document.createElement('div');
+                        cell.className = 'array-cell';
+                        let val = arr[k] === Infinity ? 'INF' : arr[k];
+                        cell.innerHTML = `
+                            <div>${val}</div>
+                            <div class="array-cell-index">${k}</div>
+                        `;
+                        cells.appendChild(cell);
+                    }
+                    r.appendChild(cells);
+                    return r;
+                };
+
+                arrayDiv.appendChild(renderRow(state.mincost, 'mincost'));
+                arrayDiv.appendChild(renderRow(state.vecin, 'vecin'));
+                rightCol.appendChild(arrayDiv);
+
+                const tableCont = document.createElement('div');
+                tableCont.className = 'table-container';
+                let tBody = '';
+                state.MST.forEach((e, idx) => {
+                    tBody += `<tr><td>${idx+1}</td><td>${e.u} - ${e.v}</td><td>${e.w}</td></tr>`;
+                });
+                tableCont.innerHTML = `
+                    <div style="padding:8px 12px; font-weight:600;">Muchii MST Prim</div>
+                    <table>
+                        <thead><tr><th>Nr</th><th>Muchie</th><th>Cost</th></tr></thead>
+                        <tbody>${tBody}</tbody>
+                    </table>
+                `;
+                rightCol.appendChild(tableCont);
+
+                wrapper.appendChild(rightCol);
+                canvas.appendChild(wrapper);
+            } else if (currentAlgorithm === 'spectacole') {
+                const wrapper = document.createElement('div');
+                wrapper.style.display = 'flex';
+                wrapper.style.flexDirection = 'column';
+                wrapper.style.alignItems = 'center';
+                wrapper.style.gap = '20px';
+                wrapper.style.width = '100%';
+
+                const timelineContainer = document.createElement('div');
+                timelineContainer.style.position = 'relative';
+                timelineContainer.style.width = '500px';
+                timelineContainer.style.height = '280px';
+                timelineContainer.style.backgroundColor = 'var(--bg-base)';
+                timelineContainer.style.border = '1px solid var(--border)';
+                timelineContainer.style.borderRadius = '12px';
+                timelineContainer.style.padding = '20px';
+
+                for (let h = 10; h <= 18; h++) {
+                    const x = 50 + (h - 10) * 50;
+                    const line = document.createElement('div');
+                    line.style.position = 'absolute';
+                    line.style.left = x + 'px';
+                    line.style.top = '20px';
+                    line.style.bottom = '40px';
+                    line.style.width = '1px';
+                    line.style.backgroundColor = 'rgba(255, 255, 255, 0.05)';
+                    timelineContainer.appendChild(line);
+
+                    const label = document.createElement('div');
+                    label.style.position = 'absolute';
+                    label.style.left = (x - 12) + 'px';
+                    label.style.bottom = '15px';
+                    label.style.fontSize = '10px';
+                    label.style.color = 'var(--text-muted)';
+                    label.style.fontFamily = 'var(--font-mono)';
+                    label.innerText = h + ':00';
+                    timelineContainer.appendChild(label);
+                }
+
+                state.sorted.forEach((act, idx) => {
+                    const y = 30 + idx * 42;
+                    const xStart = 50 + (act.s - 10) * 50;
+                    const xEnd = 50 + (act.f - 10) * 50;
+                    const width = xEnd - xStart;
+
+                    const bar = document.createElement('div');
+                    bar.style.position = 'absolute';
+                    bar.style.left = xStart + 'px';
+                    bar.style.top = y + 'px';
+                    bar.style.width = width + 'px';
+                    bar.style.height = '28px';
+                    bar.style.borderRadius = '6px';
+                    bar.style.display = 'flex';
+                    bar.style.alignItems = 'center';
+                    bar.style.justifyContent = 'center';
+                    bar.style.fontSize = '12px';
+                    bar.style.fontWeight = '700';
+                    bar.style.color = '#fff';
+                    bar.style.boxShadow = '0 2px 4px rgba(0,0,0,0.15)';
+                    bar.style.transition = 'all 0.3s ease';
+
+                    const status = state.statusMap[act.id];
+                    let bgColor = 'var(--border)';
+
+                    if (status === 'selected') {
+                        bgColor = 'var(--success)';
+                    } else if (status === 'rejected') {
+                        bgColor = 'var(--accent)';
+                        bar.style.opacity = '0.35';
+                    } else if (status === 'checking') {
+                        bgColor = 'var(--warning)';
+                        bar.style.boxShadow = '0 0 12px rgba(245, 158, 11, 0.5)';
+                    } else if (idx === state.checkingIdx) {
+                        bgColor = 'var(--warning)';
+                    }
+
+                    bar.style.backgroundColor = bgColor;
+                    bar.innerText = `S${act.id} [${act.s}-${act.f})`;
+
+                    timelineContainer.appendChild(bar);
+                });
+
+                wrapper.appendChild(timelineContainer);
+
+                const listDiv = document.createElement('div');
+                listDiv.style.fontSize = '14px';
+                listDiv.style.fontWeight = '600';
+                listDiv.style.color = 'var(--text-main)';
+                listDiv.innerText = "Spectacole selectate (A): " + (state.A.length > 0 ? state.A.map(x => "S" + x.id).join(', ') : "niciunul");
+                wrapper.appendChild(listDiv);
+
+                canvas.appendChild(wrapper);
+            }
+        }
+
+        function stepForward() {
+            if (stepIndex < states.length - 1) {
+                stepIndex++;
+                renderState();
+            }
+        }
+
+        function stepBackward() {
+            if (stepIndex > 0) {
+                stepIndex--;
+                renderState();
+            }
+        }
+
+        function resetState() {
+            stepIndex = 0;
+            generateStates();
+        }
+
+        function togglePlay() {
+            if (isPlaying) {
+                stopPlay();
+            } else {
+                isPlaying = true;
+                document.getElementById('play-btn').innerText = 'Stop';
+                playInterval = setInterval(() => {
+                    if (stepIndex < states.length - 1) {
+                        stepForward();
+                    } else {
+                        stopPlay();
+                    }
+                }, 1200);
+            }
+        }
+
+        function stopPlay() {
+            isPlaying = false;
+            document.getElementById('play-btn').innerText = 'Auto Run';
+            if (playInterval) {
+                clearInterval(playInterval);
+                playInterval = null;
+            }
+        }
+
+        window.onload = () => {
+            selectAlgorithm('dijkstra');
+        };
+    </script>
+</body>
+</html>
